@@ -13,43 +13,58 @@
     --purple: #9b7fff; --text: #e8e8f0; --muted: #666680;
   }
   body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; padding: 24px 16px; }
+
+  /* LOGIN */
+  .login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 32px; width: 100%; max-width: 380px; text-align: center; }
+  .login-title { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .login-title span { color: var(--green); }
+  .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; font-family: 'Space Mono', monospace; letter-spacing: 1px; }
+  .login-field { margin-bottom: 16px; text-align: left; }
+  .login-field label { font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); display: block; margin-bottom: 8px; }
+  .login-field input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Grotesk', sans-serif; font-size: 14px; padding: 12px 14px; outline: none; transition: border-color 0.15s; }
+  .login-field input:focus { border-color: var(--green); }
+  .login-btn { width: 100%; background: var(--green); color: #0a0a0f; border: none; border-radius: 10px; font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; padding: 14px; cursor: pointer; margin-top: 8px; transition: opacity 0.15s; }
+  .login-btn:hover { opacity: 0.85; }
+  .login-error { color: var(--red); font-size: 13px; margin-top: 12px; display: none; font-family: 'Space Mono', monospace; }
+  .login-lock { font-size: 48px; margin-bottom: 20px; }
+
+  /* APP */
+  .app-screen { display: none; }
   header { text-align: center; margin-bottom: 28px; }
+  .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .logout-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; padding: 6px 12px; cursor: pointer; }
+  .logout-btn:hover { border-color: var(--red); color: var(--red); }
   h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; }
   h1 span { color: var(--green); }
   .subtitle { font-size: 13px; color: var(--muted); margin-top: 6px; }
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
   .card-title { font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 16px; }
 
-  /* Week selector */
   .week-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
   .week-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; cursor: pointer; transition: all 0.15s; }
   .week-btn.active { border-color: var(--green); color: var(--green); background: rgba(0,229,160,0.08); }
 
-  /* Pair grid */
   .pair-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
   .pair-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 10px 4px; cursor: pointer; transition: all 0.15s; text-align: center; }
   .pair-btn:hover { border-color: var(--green); color: var(--green); }
   .pair-btn.active { background: var(--green); color: #0a0a0f; border-color: var(--green); }
-
   .analyze-btn { width: 100%; background: var(--green); color: #0a0a0f; border: none; border-radius: 10px; font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; padding: 14px; cursor: pointer; transition: opacity 0.15s; }
   .analyze-btn:hover { opacity: 0.85; }
   .analyze-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  /* Live price bar */
   .live-bar { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 1.5s infinite; display: inline-block; margin-right: 6px; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
   .live-label { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--muted); }
   .live-price { font-size: 28px; font-weight: 700; font-family: 'Space Mono', monospace; color: var(--text); }
   .live-change { font-size: 13px; font-family: 'Space Mono', monospace; font-weight: 700; }
-  .live-change.up { color: var(--green); }
-  .live-change.down { color: var(--red); }
+  .live-change.up { color: var(--green); } .live-change.down { color: var(--red); }
   .live-indicators { display: flex; gap: 16px; flex-wrap: wrap; }
   .live-ind { text-align: center; }
   .live-ind-val { font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700; }
   .live-ind-label { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 1px; }
 
-  /* Recomendacion principal */
   .rec-box { border-radius: 14px; padding: 22px; margin-bottom: 16px; border: 2px solid; text-align: center; }
   .rec-accion { font-size: 38px; font-weight: 700; font-family: 'Space Mono', monospace; margin-bottom: 6px; }
   .rec-estrategia { font-size: 13px; margin-bottom: 14px; color: var(--muted); }
@@ -62,26 +77,21 @@
   .rec-cell-label { font-size: 10px; font-family: 'Space Mono', monospace; color: var(--muted); margin-bottom: 4px; }
   .rec-cell-val { font-size: 16px; font-weight: 700; font-family: 'Space Mono', monospace; }
 
-  /* Sesgo */
   .sesgo-box { border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid; }
   .sesgo-box.alcista { background: rgba(0,229,160,0.08); border-color: var(--green); }
   .sesgo-box.bajista { background: rgba(255,64,96,0.08); border-color: var(--red); }
   .sesgo-box.neutral { background: rgba(255,209,102,0.08); border-color: var(--yellow); }
   .sesgo-label { font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); margin-bottom: 6px; }
   .sesgo-dir { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-  .alcista .sesgo-dir { color: var(--green); }
-  .bajista .sesgo-dir { color: var(--red); }
-  .neutral .sesgo-dir { color: var(--yellow); }
+  .alcista .sesgo-dir { color: var(--green); } .bajista .sesgo-dir { color: var(--red); } .neutral .sesgo-dir { color: var(--yellow); }
   .sesgo-desc { font-size: 13px; color: var(--text); line-height: 1.5; }
 
-  /* Metrics */
   .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
   .metric { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
   .metric-label { font-size: 10px; font-family: 'Space Mono', monospace; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 6px; }
   .metric-val { font-size: 17px; font-weight: 700; }
   .green { color: var(--green); } .red { color: var(--red); } .yellow { color: var(--yellow); } .blue { color: var(--blue); }
 
-  /* Estrategias */
   .estrategias { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
   .estrategia-pill { border-radius: 8px; padding: 12px; text-align: center; border: 1px solid; }
   .estrategia-pill.recomendada { background: rgba(0,229,160,0.1); border-color: var(--green); }
@@ -91,7 +101,6 @@
   .recomendada .code { color: var(--green); } .posible .code { color: var(--blue); } .evitar .code { color: var(--muted); }
   .estrategia-pill .etype { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; }
 
-  /* Prob */
   .prob-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; margin-top: 8px; }
   .prob-bar { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
   .prob-bar.green { background: var(--green); } .prob-bar.red { background: var(--red); }
@@ -102,7 +111,6 @@
   .high .score-num { color: var(--green); } .med .score-num { color: var(--yellow); } .low .score-num { color: var(--red); }
   .score-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; }
 
-  /* Setup */
   .setup-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 10px; }
   .setup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
   .setup-type { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted); }
@@ -112,7 +120,6 @@
   .setup-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; color: var(--muted); }
   .setup-row span:last-child { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--text); }
 
-  /* Niveles */
   .nivel-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
   .nivel-item:last-child { border-bottom: none; }
   .nivel-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
@@ -130,7 +137,6 @@
   .nivel-rec.cuidado { background: rgba(255,209,102,0.12); color: var(--yellow); }
   .nivel-rec.observar { background: rgba(77,159,255,0.12); color: var(--blue); }
 
-  /* Noticias */
   .noticia-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
   .noticia-item:last-child { border-bottom: none; }
   .noticia-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
@@ -140,715 +146,263 @@
   .noticia-titulo { font-weight: 600; color: var(--text); margin-bottom: 2px; }
   .noticia-fecha { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
 
-  /* Finviz */
   .finviz-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
   .finviz-pill { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
   .finviz-pill.up { background: rgba(0,229,160,0.15); color: var(--green); }
   .finviz-pill.down { background: rgba(255,64,96,0.15); color: var(--red); }
 
-  /* Warning */
   .warning-box { background: rgba(255,64,96,0.08); border: 1px solid rgba(255,64,96,0.3); border-radius: 10px; padding: 14px; font-size: 13px; color: var(--red); margin-bottom: 16px; }
   .warning-box .w-title { font-weight: 700; margin-bottom: 4px; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 1px; }
-
+  .zona-alert { background: rgba(255,209,102,0.1); border: 1px solid var(--yellow); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--yellow); margin-bottom: 12px; display: none; font-family: 'Space Mono', monospace; }
   .loading { text-align: center; padding: 40px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 12px; display: none; }
   .dot-anim::after { content: ''; animation: dots 1.2s steps(4,end) infinite; }
   @keyframes dots { 0%,20%{content:''} 40%{content:'.'} 60%{content:'..'} 80%,100%{content:'...'} }
   .result { display: none; }
   footer { text-align: center; margin-top: 32px; font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
   .context-text { font-size: 13px; color: var(--text); line-height: 1.6; }
-
-  /* Zona alert */
-  .zona-alert { background: rgba(255,209,102,0.1); border: 1px solid var(--yellow); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--yellow); margin-bottom: 12px; display: none; font-family: 'Space Mono', monospace; }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>RADAR <span>FX</span></h1>
-  <p class="subtitle">Precios en vivo · Análisis semanal · Estrategia Ren</p>
-</header>
-
-<!-- Selector de semana -->
-<div class="card">
-  <div class="card-title">Semana a Analizar</div>
-  <div class="week-toggle">
-    <button class="week-btn active" id="btnEsta" onclick="setWeek('esta')">📅 ESTA SEMANA<br><span style="font-size:10px;opacity:0.7">28 Sep – 2 Oct</span></button>
-    <button class="week-btn" id="btnProx" onclick="setWeek('proxima')">📅 PRÓXIMA SEMANA<br><span style="font-size:10px;opacity:0.7">5 Oct – 9 Oct</span></button>
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-lock">📡</div>
+    <div class="login-title">RADAR <span>FX</span></div>
+    <div class="login-sub">ACCESO RESTRINGIDO</div>
+    <div class="login-field">
+      <label>EMAIL</label>
+      <input type="email" id="loginEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <div class="login-field">
+      <label>CONTRASEÑA</label>
+      <input type="password" id="loginPass" placeholder="••••••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">ENTRAR</button>
+    <div class="login-error" id="loginError">❌ Email o contraseña incorrectos</div>
   </div>
 </div>
 
-<!-- Selector de par -->
-<div class="card">
-  <div class="card-title">Seleccionar Par</div>
-  <div class="pair-grid" id="pairGrid"></div>
-  <button class="analyze-btn" id="analyzeBtn" onclick="analyzePair()" disabled>Analizar Par</button>
+<!-- APP SCREEN -->
+<div class="app-screen" id="appScreen">
+
+  <div class="header-top">
+    <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--muted);">
+      <span class="live-dot"></span>EN VIVO
+    </div>
+    <button class="logout-btn" onclick="doLogout()">CERRAR SESIÓN</button>
+  </div>
+
+  <header>
+    <h1>RADAR <span>FX</span></h1>
+    <p class="subtitle">Precios en vivo · Análisis semanal · Estrategia Ren</p>
+  </header>
+
+  <div class="card">
+    <div class="card-title">Semana a Analizar</div>
+    <div class="week-toggle">
+      <button class="week-btn active" id="btnEsta" onclick="setWeek('esta')">📅 ESTA SEMANA<br><span style="font-size:10px;opacity:0.7">28 Sep – 2 Oct</span></button>
+      <button class="week-btn" id="btnProx" onclick="setWeek('proxima')">📅 PRÓXIMA SEMANA<br><span style="font-size:10px;opacity:0.7">5 Oct – 9 Oct</span></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Seleccionar Par</div>
+    <div class="pair-grid" id="pairGrid"></div>
+    <button class="analyze-btn" id="analyzeBtn" onclick="analyzePair()" disabled>Analizar Par</button>
+  </div>
+
+  <div class="loading" id="loading"><span class="dot-anim">Cargando datos en vivo</span></div>
+
+  <div class="result" id="result">
+    <div class="live-bar">
+      <div>
+        <div class="live-label"><span class="live-dot"></span>EN VIVO · <span id="livePair">--</span></div>
+        <div class="live-price" id="livePrice">--</div>
+        <div class="live-change" id="liveChange">--</div>
+      </div>
+      <div class="live-indicators">
+        <div class="live-ind"><div class="live-ind-val" id="indRSI">--</div><div class="live-ind-label">RSI 14</div></div>
+        <div class="live-ind"><div class="live-ind-val" id="indEMA20">--</div><div class="live-ind-label">EMA 20</div></div>
+        <div class="live-ind"><div class="live-ind-val" id="indEMA50">--</div><div class="live-ind-label">EMA 50</div></div>
+        <div class="live-ind"><div class="live-ind-val" id="indATR">--</div><div class="live-ind-label">ATR 14</div></div>
+      </div>
+    </div>
+
+    <div class="zona-alert" id="zonaAlert"></div>
+    <div class="warning-box" id="warningBox" style="display:none"><div class="w-title">⚠ NOTICIAS ROJAS ESTA SEMANA</div><div id="warningText"></div></div>
+
+    <div class="rec-box" id="recBox">
+      <div style="font-size:11px;font-family:'Space Mono',monospace;letter-spacing:3px;color:var(--muted);margin-bottom:10px;">RECOMENDACIÓN RADAR FX</div>
+      <div class="rec-accion" id="recAccion"></div>
+      <div class="rec-estrategia" id="recEstrategia"></div>
+      <div class="rec-zona-box">
+        <div class="rec-zona-label">ZONA PSICOLÓGICA DE ENTRADA</div>
+        <div class="rec-zona-price" id="recZona"></div>
+        <div class="rec-zona-desc" id="recZonaDesc"></div>
+      </div>
+      <div class="rec-grid">
+        <div class="rec-cell"><div class="rec-cell-label">STOP LOSS</div><div class="rec-cell-val red" id="recSL"></div></div>
+        <div class="rec-cell"><div class="rec-cell-label">TAKE PROFIT</div><div class="rec-cell-val green" id="recTP"></div></div>
+        <div class="rec-cell"><div class="rec-cell-label">R:R</div><div class="rec-cell-val" style="color:var(--purple)">1 : 3</div></div>
+      </div>
+    </div>
+
+    <div class="sesgo-box" id="sesgBox">
+      <div class="sesgo-label">Sesgo Semanal</div>
+      <div class="sesgo-dir" id="sesgDir"></div>
+      <div class="sesgo-desc" id="sesgDesc"></div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric"><div class="metric-label">Tendencia</div><div class="metric-val" id="mTendencia"></div></div>
+      <div class="metric"><div class="metric-label">Volatilidad</div><div class="metric-val" id="mVolatilidad"></div></div>
+      <div class="metric"><div class="metric-label">Zona Psicológica</div><div class="metric-val" id="mZona"></div></div>
+      <div class="metric"><div class="metric-label">R:R Mínimo</div><div class="metric-val green">1 : 3</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Estrategias Aplicables</div>
+      <div class="estrategias" id="estrategiasGrid"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;">AR=Compra alcista · BR=Venta bajista · CR=Venta contra-tend. · DR=Compra contra-tend.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Probabilidad Semanal</div>
+      <div style="text-align:center;margin-bottom:16px;"><div class="score-circle" id="scoreCircle"><span class="score-num" id="scoreNum">--</span><span class="score-label">PROB</span></div></div>
+      <div style="margin-bottom:4px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;"><span>🔼 Sube</span><span id="probUp">--%</span></div>
+      <div class="prob-bar-wrap"><div class="prob-bar green" id="barUp" style="width:0%"></div></div>
+      <div class="prob-labels"><span>0%</span><span>100%</span></div>
+      <div style="margin:12px 0 4px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;"><span>🔽 Baja</span><span id="probDown">--%</span></div>
+      <div class="prob-bar-wrap"><div class="prob-bar red" id="barDown" style="width:0%"></div></div>
+      <div class="prob-labels"><span>0%</span><span>100%</span></div>
+    </div>
+
+    <div class="card"><div class="card-title">Setup Sugerido</div><div id="setupsContainer"></div></div>
+    <div class="card"><div class="card-title">Niveles Clave</div><ul style="list-style:none" id="nivelesList"></ul></div>
+    <div class="card"><div class="card-title" id="noticiasTitle">Noticias Relevantes</div><div id="noticiasList"></div></div>
+    <div class="card">
+      <div class="card-title">Contexto Macro</div>
+      <div class="card-title" style="margin-bottom:8px;">Finviz — Fuerza de Divisas</div>
+      <div class="finviz-row" id="finvizRow"></div>
+      <div style="height:16px;"></div>
+      <div class="context-text" id="macroText"></div>
+    </div>
+  </div>
+
+  <footer>RADAR FX · DATOS EN VIVO · SL=25 PIPS · TP=75 PIPS · R:R 1:3</footer>
 </div>
-
-<div class="loading" id="loading"><span class="dot-anim">Cargando datos en vivo</span></div>
-
-<div class="result" id="result">
-
-  <!-- Live price -->
-  <div class="live-bar">
-    <div>
-      <div class="live-label"><span class="live-dot"></span>EN VIVO · <span id="livePair">--</span></div>
-      <div class="live-price" id="livePrice">--</div>
-      <div class="live-change" id="liveChange">--</div>
-    </div>
-    <div class="live-indicators">
-      <div class="live-ind">
-        <div class="live-ind-val" id="indRSI">--</div>
-        <div class="live-ind-label">RSI 14</div>
-      </div>
-      <div class="live-ind">
-        <div class="live-ind-val" id="indEMA20">--</div>
-        <div class="live-ind-label">EMA 20</div>
-      </div>
-      <div class="live-ind">
-        <div class="live-ind-val" id="indEMA50">--</div>
-        <div class="live-ind-label">EMA 50</div>
-      </div>
-      <div class="live-ind">
-        <div class="live-ind-val" id="indATR">--</div>
-        <div class="live-ind-label">ATR 14</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Zona alert -->
-  <div class="zona-alert" id="zonaAlert"></div>
-
-  <!-- Warning noticias -->
-  <div class="warning-box" id="warningBox" style="display:none">
-    <div class="w-title">⚠ NOTICIAS ROJAS ESTA SEMANA</div>
-    <div id="warningText"></div>
-  </div>
-
-  <!-- Recomendacion principal -->
-  <div class="rec-box" id="recBox">
-    <div style="font-size:11px;font-family:'Space Mono',monospace;letter-spacing:3px;color:var(--muted);margin-bottom:10px;">RECOMENDACIÓN RADAR FX</div>
-    <div class="rec-accion" id="recAccion"></div>
-    <div class="rec-estrategia" id="recEstrategia"></div>
-    <div class="rec-zona-box">
-      <div class="rec-zona-label">ZONA PSICOLÓGICA DE ENTRADA</div>
-      <div class="rec-zona-price" id="recZona"></div>
-      <div class="rec-zona-desc" id="recZonaDesc"></div>
-    </div>
-    <div class="rec-grid">
-      <div class="rec-cell"><div class="rec-cell-label">STOP LOSS</div><div class="rec-cell-val red" id="recSL"></div></div>
-      <div class="rec-cell"><div class="rec-cell-label">TAKE PROFIT</div><div class="rec-cell-val green" id="recTP"></div></div>
-      <div class="rec-cell"><div class="rec-cell-label">R:R</div><div class="rec-cell-val" style="color:var(--purple)">1 : 3</div></div>
-    </div>
-  </div>
-
-  <!-- Sesgo -->
-  <div class="sesgo-box" id="sesgBox">
-    <div class="sesgo-label">Sesgo Semanal</div>
-    <div class="sesgo-dir" id="sesgDir"></div>
-    <div class="sesgo-desc" id="sesgDesc"></div>
-  </div>
-
-  <!-- Métricas -->
-  <div class="metrics-grid">
-    <div class="metric"><div class="metric-label">Tendencia</div><div class="metric-val" id="mTendencia"></div></div>
-    <div class="metric"><div class="metric-label">Volatilidad</div><div class="metric-val" id="mVolatilidad"></div></div>
-    <div class="metric"><div class="metric-label">Zona Psicológica</div><div class="metric-val" id="mZona"></div></div>
-    <div class="metric"><div class="metric-label">R:R Mínimo</div><div class="metric-val green">1 : 3</div></div>
-  </div>
-
-  <!-- Estrategias -->
-  <div class="card">
-    <div class="card-title">Estrategias Aplicables</div>
-    <div class="estrategias" id="estrategiasGrid"></div>
-    <div style="font-size:12px;color:var(--muted);margin-top:8px;">AR=Compra alcista · BR=Venta bajista · CR=Venta contra-tend. · DR=Compra contra-tend.</div>
-  </div>
-
-  <!-- Probabilidad -->
-  <div class="card">
-    <div class="card-title">Probabilidad Semanal</div>
-    <div style="text-align:center;margin-bottom:16px;">
-      <div class="score-circle" id="scoreCircle"><span class="score-num" id="scoreNum">--</span><span class="score-label">PROB</span></div>
-    </div>
-    <div style="margin-bottom:4px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;"><span>🔼 Sube</span><span id="probUp">--%</span></div>
-    <div class="prob-bar-wrap"><div class="prob-bar green" id="barUp" style="width:0%"></div></div>
-    <div class="prob-labels"><span>0%</span><span>100%</span></div>
-    <div style="margin:12px 0 4px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;"><span>🔽 Baja</span><span id="probDown">--%</span></div>
-    <div class="prob-bar-wrap"><div class="prob-bar red" id="barDown" style="width:0%"></div></div>
-    <div class="prob-labels"><span>0%</span><span>100%</span></div>
-  </div>
-
-  <!-- Setup -->
-  <div class="card"><div class="card-title">Setup Sugerido</div><div id="setupsContainer"></div></div>
-
-  <!-- Niveles -->
-  <div class="card"><div class="card-title">Niveles Clave</div><ul style="list-style:none" id="nivelesList"></ul></div>
-
-  <!-- Noticias -->
-  <div class="card"><div class="card-title" id="noticiasTitle">Noticias Relevantes</div><div id="noticiasList"></div></div>
-
-  <!-- Macro -->
-  <div class="card">
-    <div class="card-title">Contexto Macro</div>
-    <div class="card-title" style="margin-bottom:8px;">Finviz — Fuerza de Divisas</div>
-    <div class="finviz-row" id="finvizRow"></div>
-    <div style="height:16px;"></div>
-    <div class="context-text" id="macroText"></div>
-  </div>
-
-</div>
-
-<footer>RADAR FX · DATOS EN VIVO · SL=25 PIPS · TP=75 PIPS · R:R 1:3</footer>
 
 <script>
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+const VALID_EMAIL = 'jorge.castillo6@outlook.com';
+const VALID_PASS = 'zsat6hHjNUZGF8j_qWZc';
+const SESSION_KEY = 'radorfx_session';
+
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  if (email === VALID_EMAIL.toLowerCase() && pass === VALID_PASS) {
+    sessionStorage.setItem(SESSION_KEY, 'authenticated');
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginPass').value = '';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem(SESSION_KEY);
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+function checkSession() {
+  if (sessionStorage.getItem(SESSION_KEY) === 'authenticated') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appScreen').style.display = 'block';
+  }
+}
+
+// ─── APP ──────────────────────────────────────────────────────────────────────
 const API_KEY = 'cabd5fa3a1f542f1a1927200e52e5422';
 const PAIRS = ['AUD/USD','AUD/CAD','EUR/CAD','CHF/JPY','EUR/NZD','EUR/GBP','NZD/JPY','USD/JPY','GBP/USD','EUR/USD','USD/CAD','GBP/JPY','AUD/JPY','NZD/USD','EUR/JPY','GBP/CAD'];
 
 let selectedPair = null;
 let currentWeek = 'esta';
 
-// ─── DATOS SEMANALES ──────────────────────────────────────────────────────────
 const WEEKLY_DATA = {
   esta: {
     label: '28 Sep – 2 Oct 2026',
     noticias_semana: {
-      RBA: {titulo:'🔴 RBA — Decision de Tasas', fecha:'Mar 29 Sep', color:'rojo', desc:'Consenso: suba 25bps a 4.60%. Impacta AUD.'},
-      NFP: {titulo:'🔴 NFP — Nóminas EEUU', fecha:'Vie 2 Oct 08:30 ET', color:'rojo', desc:'Consenso: 100K vs 162K anterior. Impacta USD.'},
-      PCE: {titulo:'🟠 US PCE — Inflación Fed', fecha:'Mié 30 Sep', color:'naranja', desc:'Anterior: 3.7% YoY. Impacta USD.'},
-      'China PMI': {titulo:'🟠 China Manufacturing PMI', fecha:'Mié 30 Sep', color:'naranja', desc:'Anterior: 49.8. Impacta AUD, NZD.'},
-      'Jobless Claims': {titulo:'🟡 US Jobless Claims', fecha:'Jue 1 Oct', color:'verde', desc:'Impacta USD.'},
-      'Ninguna directa': {titulo:'✅ Sin noticias directas', fecha:'Semana tranquila para este par', color:'verde', desc:'Menor riesgo de volatilidad.'},
-      'Datos UK': {titulo:'🟠 GDP + Datos UK', fecha:'Mié 30 Sep', color:'naranja', desc:'Impacta GBP.'},
+      RBA:{titulo:'🔴 RBA — Decision de Tasas',fecha:'Mar 29 Sep',color:'rojo',desc:'Consenso: suba 25bps a 4.60%. Impacta AUD.'},
+      NFP:{titulo:'🔴 NFP — Nóminas EEUU',fecha:'Vie 2 Oct 08:30 ET',color:'rojo',desc:'Consenso: 100K vs 162K anterior. Impacta USD.'},
+      PCE:{titulo:'🟠 US PCE — Inflación Fed',fecha:'Mié 30 Sep',color:'naranja',desc:'Anterior: 3.7% YoY. Impacta USD.'},
+      'China PMI':{titulo:'🟠 China Manufacturing PMI',fecha:'Mié 30 Sep',color:'naranja',desc:'Anterior: 49.8. Impacta AUD, NZD.'},
+      'Jobless Claims':{titulo:'🟡 US Jobless Claims',fecha:'Jue 1 Oct',color:'verde',desc:'Impacta USD.'},
+      'Ninguna directa':{titulo:'✅ Sin noticias directas',fecha:'Semana tranquila',color:'verde',desc:'Menor riesgo de volatilidad.'},
+      'Datos UK':{titulo:'🟠 GDP + Datos UK',fecha:'Mié 30 Sep',color:'naranja',desc:'Impacta GBP.'},
+      NFP:{titulo:'🔴 NFP — Nóminas EEUU',fecha:'Vie 2 Oct',color:'rojo',desc:'Impacta USD y pares de riesgo.'},
     },
     pairs: {
-      'AUD/USD': {
-        tendencia:'BAJISTA', volatilidad:'ALTA', sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA', sesgDesc:'AUD cayó a mínimos de 3 meses. USD fuerte por Fed hawkish (4%). RBA decide el martes — si sube pero guidance dovish, AUD puede caer más. Resistencia clave 0.6977.',
-        probUp:35, probDown:65, zonaActual:'.750 / .000',
-        noticias:['RBA','NFP','PCE'],
-        estrategias:{AR:'posible',BR:'evitar',CR:'evitar',DR:'recomendada'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'0.6950 – 0.6977',zonaDesc:'Zona .750 / resistencia EMA20 — orden Limit de venta',sl:'0.7010',tp:'0.6830'},
-        niveles:[
-          {tag:'res',price:'0.6977',desc:'Resistencia crítica — EMA20',explain:'Zona donde los vendedores toman control. Si el precio llega acá sin momentum fuerte, es zona de venta.',rec:'venta',recLabel:'→ BUSCAR VENTA (BR)'},
-          {tag:'psi',price:'0.6875',desc:'Zona .875 AUD',explain:'Nivel psicológico secundario. Útil para mover SL a break-even si ya estás en posición.',rec:'observar',recLabel:'→ MOVER SL A BREAK-EVEN'},
-          {tag:'psi',price:'0.6750',desc:'Zona .750 AUD',explain:'Zona .750 muy respetada. Si el precio llega acá con señal alcista, evalúa DR.',rec:'compra',recLabel:'→ EVALUAR COMPRA (DR)'},
-          {tag:'sop',price:'0.6833',desc:'Soporte — mínimo 30 mar',explain:'Si rompe este nivel confirma tendencia bajista. Si rebota, posible DR.',rec:'observar',recLabel:'→ OBSERVAR RUPTURA O REBOTE'},
-          {tag:'sop',price:'0.6700',desc:'Zona .700 AUD — soporte profundo',explain:'Soporte estructural de largo plazo. Alta probabilidad de rebote para DR agresivo.',rec:'compra',recLabel:'→ DR AGRESIVO SI HAY SEÑAL'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'0.6950–0.6977',sl:'0.7010',tp:'0.6830',dir:'venta',nota:'Setup principal. Vender en rally hacia resistencia. Esperar RBA martes.'}],
-        macro:'AUD bajo presión por USD fuerte y risk-off global. RBA el martes 29 sep es el evento clave.',
-        finviz:{AUD:'down',USD:'up'},
-      },
-      'USD/JPY': {
-        tendencia:'ALCISTA', volatilidad:'MUY ALTA', sesgo:'alcista',
-        sesgDir:'⚠️ ALCISTA — RIESGO INTERVENCIÓN',sesgDesc:'USD/JPY en pico histórico. Trend alcista firme por Fed vs BoJ. Pero zona 160–162 tiene riesgo extremo de intervención japonesa (300–500 pips en minutos). NFP y PCE son catalizadores.',
-        probUp:55,probDown:45,zonaActual:'.500 JPY',
-        noticias:['NFP','PCE','Jobless Claims'],
-        estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en pullback (NO en 161+)',zona:'160.00 – 160.50',zonaDesc:'Zona .000/.500 JPY — espera pullback. No compres cerca de 162.',sl:'159.70',tp:'161.40'},
-        niveles:[
-          {tag:'res',price:'162.00',desc:'Zona intervención MoF',explain:'Nivel de intervención del Ministerio de Finanzas. Riesgo de caída de 300–500 pips.',rec:'cuidado',recLabel:'⚠ EVITAR LARGOS — INTERVENCIÓN'},
-          {tag:'psi',price:'161.50',desc:'Zona .500 JPY',explain:'Nivel .500 JPY muy respetado. Si hay señal bajista aquí, evalúa CR.',rec:'venta',recLabel:'→ EVALUAR CR CON SEÑAL'},
-          {tag:'key',price:'161.00',desc:'EMA10 — soporte inmediato',explain:'Primer soporte dinámico. Pullback acá con vela alcista = oportunidad AR.',rec:'compra',recLabel:'→ AR EN PULLBACK'},
-          {tag:'psi',price:'160.50',desc:'Zona .500 — soporte clave',explain:'Zona .500 como soporte. Mejor punto de entrada AR de la semana.',rec:'compra',recLabel:'→ AR — MEJOR ENTRADA'},
-          {tag:'sop',price:'160.00',desc:'Nivel .000 — soporte fuerte',explain:'El nivel .000 en JPY es el más importante. Alta probabilidad de rebote.',rec:'compra',recLabel:'→ AR AGRESIVO'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'160.00–160.50',sl:'159.70',tp:'161.40',dir:'compra',nota:'Solo en pullback al .000/.500. NO comprar en 161+.'}],
-        macro:'Par más peligroso de la semana. Fed (4%) vs BoJ (1%) es el driver estructural. NFP del viernes mueve este par.',
-        finviz:{USD:'up',JPY:'down'},
-      },
-      'CHF/JPY': {
-        tendencia:'ALCISTA',volatilidad:'MEDIA',sesgo:'alcista',
-        sesgDir:'🟢 ALCISTA — Setup más limpio',sesgDesc:'CHF safe-haven fuerte. JPY débil por diferencial de tasas. Rebotó desde soporte Fibonacci 198.80. Target claro en 202.30. El setup más limpio de la lista.',
-        probUp:65,probDown:35,zonaActual:'.000 / .500',
-        noticias:['Ninguna directa'],
-        estrategias:{AR:'recomendada',BR:'evitar',CR:'evitar',DR:'posible'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Setup más limpio de la semana',zona:'199.00 – 199.50',zonaDesc:'Zona .000/.500 JPY — soporte Fibonacci confirmado. Orden Limit aquí',sl:'198.40',tp:'202.30'},
-        niveles:[
-          {tag:'res',price:'202.30',desc:'Target principal',explain:'Tu TP de la semana. Cierra la posición o mueve SL a break-even.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},
-          {tag:'psi',price:'200.00',desc:'Zona .000 — nivel psicológico',explain:'Nivel .000 muy importante. Puede pausar el movimiento. Mantén posición.',rec:'observar',recLabel:'→ MANTENER POSICIÓN'},
-          {tag:'sop',price:'199.00',desc:'Zona de entrada AR',explain:'Zona ideal de entrada larga. Vela alcista aquí = entrada AR limpia.',rec:'compra',recLabel:'→ AR — ENTRADA PRINCIPAL'},
-          {tag:'sop',price:'198.80',desc:'Soporte Fibonacci — SL',explain:'Si rompe este nivel, el setup queda invalidado. Aquí va tu SL.',rec:'cuidado',recLabel:'⚠ INVALIDACIÓN — SL AQUÍ'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'199.00–199.50',sl:'198.40',tp:'202.30',dir:'compra',nota:'Setup más limpio de la semana. R:R excelente (~1:5).'}],
-        macro:'CHF gana por safe-haven (Irán). JPY débil por BoJ en 1% vs Fed en 4%. Sin noticias directas — ventaja.',
-        finviz:{CHF:'up',JPY:'down'},
-      },
-      'EUR/GBP': {
-        tendencia:'BAJISTA',volatilidad:'BAJA',sesgo:'neutral',
-        sesgDir:'🟡 NEUTRAL / leve bajista',sesgDesc:'EUR/GBP en zona de resistencia (0.8620). Ambas divisas débiles. Bearish FVG visible en diario. Par de baja volatilidad — útil para diversificar.',
-        probUp:42,probDown:58,zonaActual:'.500 / .750',
-        noticias:['Ninguna directa','Datos UK'],
-        estrategias:{AR:'evitar',BR:'posible',CR:'recomendada',DR:'evitar'},
-        rec:{accion:'VENTA',color:'red',estrategia:'CR — Venta en resistencia del rango',zona:'0.8670 – 0.8700',zonaDesc:'Zona .750 GBP — techo del rango histórico. Espera señal de vela bajista',sl:'0.8730',tp:'0.8560'},
-        niveles:[
-          {tag:'res',price:'0.8700',desc:'Techo del rango',explain:'Alta probabilidad de rechazo bajista aquí. Zona CR ideal.',rec:'venta',recLabel:'→ CR — ENTRADA IDEAL'},
-          {tag:'psi',price:'0.8620',desc:'Nivel crítico — invalidación',explain:'Si cierra por encima de 0.8620, el sesgo bajista queda invalidado.',rec:'cuidado',recLabel:'⚠ INVALIDACIÓN BAJISTA'},
-          {tag:'sop',price:'0.8580',desc:'Soporte inmediato',explain:'Si estás en corto y el precio llega acá, mueve SL a break-even.',rec:'observar',recLabel:'→ MOVER SL A BREAK-EVEN'},
-          {tag:'sop',price:'0.8500',desc:'Zona .500 GBP',explain:'Target del corto. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'CR (Venta)',entrada:'0.8670–0.8700',sl:'0.8730',tp:'0.8560',dir:'venta',nota:'Venta en resistencia del rango. Señal de vela requerida.'}],
-        macro:'Cross sin USD — baja volatilidad. Útil como diversificación en watchlist.',
-        finviz:{EUR:'down',GBP:'down'},
-      },
-      'NZD/JPY': {
-        tendencia:'BAJISTA',volatilidad:'MEDIA-ALTA',sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA',sesgDesc:'NZD/JPY cayó 1.79% la semana pasada y 3.04% en el mes. NZD es divisa de riesgo que sufre en entorno hawkish. Soporte clave 90.94.',
-        probUp:38,probDown:62,zonaActual:'.500 JPY',
-        noticias:['NFP'],
-        estrategias:{AR:'posible',BR:'recomendada',CR:'evitar',DR:'evitar'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'92.00 – 92.50',zonaDesc:'Zona .000/.500 JPY — resistencia psicológica. Orden Limit de venta',sl:'93.00',tp:'90.50'},
-        niveles:[
-          {tag:'res',price:'92.50',desc:'Zona .500 JPY',explain:'Resistencia psicológica. Entrada BR más clara de la semana.',rec:'venta',recLabel:'→ BR — ENTRADA PRINCIPAL'},
-          {tag:'res',price:'92.00',desc:'Zona .000 JPY',explain:'Nivel .000 en JPY. Alta probabilidad de rechazo.',rec:'venta',recLabel:'→ BR CON SEÑAL DE VELA'},
-          {tag:'key',price:'90.94',desc:'Soporte crítico — mínimo reciente',explain:'Si rompe 90.94, la tendencia bajista se confirma.',rec:'observar',recLabel:'→ OBSERVAR RUPTURA'},
-          {tag:'sop',price:'90.50',desc:'Zona .500 JPY — target',explain:'Target bajista de la semana. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'92.00–92.50',sl:'93.00',tp:'90.50',dir:'venta',nota:'Short en rebote. Si rompe 90.94 profundiza hacia 89.50.'}],
-        macro:'NZD es la divisa de riesgo más débil esta semana. Fed hawkish aplasta commodity currencies.',
-        finviz:{NZD:'down',JPY:'down'},
-      },
-      'AUD/CAD': {
-        tendencia:'ALCISTA',volatilidad:'BAJA',sesgo:'alcista',
-        sesgDir:'🟢 ALCISTA — Canal confirmado',sesgDesc:'AUD/CAD en canal alcista. Rompió resistencia 0.9755. CAD frenado por aranceles EEUU. AUD soportado por RBA hawkish. Strong Buy en TradingView.',
-        probUp:62,probDown:38,zonaActual:'.750 / .000',
-        noticias:['RBA'],
-        estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en canal alcista confirmado',zona:'0.9755 – 0.9770',zonaDesc:'Zona .750 AUD — soporte del canal alcista. Orden Limit de compra',sl:'0.9700',tp:'0.9850'},
-        niveles:[
-          {tag:'res',price:'0.9850',desc:'Target alcista',explain:'Tu TP de la semana. Cierra la posición aquí.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},
-          {tag:'psi',price:'0.9750',desc:'Zona .750 AUD',explain:'Zona de entrada AR esta semana. Vela alcista aquí = entrada.',rec:'compra',recLabel:'→ AR — ENTRADA PRINCIPAL'},
-          {tag:'sop',price:'0.9700',desc:'Soporte — invalidación',explain:'Si rompe 0.9700, el setup alcista queda invalidado. Aquí va el SL.',rec:'cuidado',recLabel:'⚠ SL / INVALIDACIÓN'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'0.9755–0.9770',sl:'0.9700',tp:'0.9850',dir:'compra',nota:'RBA el martes puede darle impulso extra al AUD.'}],
-        macro:'Ambas commodity currencies pero con dinámica distinta. RBA hawkish ayuda al AUD. BoC precavido debilita el CAD.',
-        finviz:{AUD:'down',CAD:'down'},
-      },
-      'EUR/CAD': {
-        tendencia:'LATERAL',volatilidad:'BAJA',sesgo:'neutral',
-        sesgDir:'🟡 NEUTRAL — Rango',sesgDesc:'EUR/CAD en rango sin dirección clara. Ambas divisas débiles. Sin catalizador claro. Mejor esperar extremos del rango.',
-        probUp:48,probDown:52,zonaActual:'.000 / .500',
-        noticias:['Ninguna directa'],
-        estrategias:{AR:'evitar',BR:'posible',CR:'evitar',DR:'evitar'},
-        rec:{accion:'ESPERAR',color:'yellow',estrategia:'Sin setup claro — par en rango',zona:'1.6250 – 1.6300',zonaDesc:'Si llega al techo del rango evalúa venta. No entrar en zona media.',sl:'1.6360',tp:'1.6050'},
-        niveles:[
-          {tag:'res',price:'1.6300',desc:'Techo del rango',explain:'Única entrada con probabilidad aceptable esta semana. Busca señal bajista.',rec:'venta',recLabel:'→ BR EN TECHO DEL RANGO'},
-          {tag:'sop',price:'1.6050',desc:'Base del rango',explain:'Si el precio llega acá, evalúa entrada larga DR con señal.',rec:'compra',recLabel:'→ DR EN BASE DEL RANGO'},
-        ],
-        setup:[{tipo:'BR (si llega al techo)',entrada:'1.6250–1.6300',sl:'1.6360',tp:'1.6050',dir:'venta',nota:'No forzar. Solo entrar si hay setup limpio en el extremo del rango.'}],
-        macro:'Par confuso esta semana. Mejor enfocarse en pares con dirección más definida.',
-        finviz:{EUR:'down',CAD:'down'},
-      },
-      'EUR/NZD': {
-        tendencia:'ALCISTA',volatilidad:'MEDIA',sesgo:'alcista',
-        sesgDir:'🟢 ALCISTA — NZD bajo presión',sesgDesc:'EUR/NZD se beneficia de la debilidad del NZD en entornos risk-off. Proyecciones apuntan a 2.0222. Target: nivel psicológico 2.0000.',
-        probUp:60,probDown:40,zonaActual:'.000 / .500',
-        noticias:['Ninguna directa'],
-        estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra por debilidad del NZD',zona:'1.9600 – 1.9650',zonaDesc:'Zona .000/.500 — soporte psicológico. Orden Limit de compra',sl:'1.9500',tp:'1.9800'},
-        niveles:[
-          {tag:'res',price:'2.0000',desc:'Zona .000 — nivel psicológico',explain:'Nivel .000 muy importante. Alta probabilidad de pausa o rechazo.',rec:'observar',recLabel:'→ OBSERVAR REACCIÓN'},
-          {tag:'sop',price:'1.9650',desc:'Zona de entrada AR',explain:'Zona de entrada larga. Vela alcista aquí = entrada AR limpia.',rec:'compra',recLabel:'→ AR — ENTRADA PRINCIPAL'},
-          {tag:'sop',price:'1.9500',desc:'Soporte profundo',explain:'Si el precio llega acá, revisa el contexto antes de re-entrar.',rec:'cuidado',recLabel:'⚠ REVISAR SETUP'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'1.9600–1.9650',sl:'1.9500',tp:'1.9800',dir:'compra',nota:'Target conservador 1.9800, agresivo 2.0000.'}],
-        macro:'NZD es la divisa de riesgo más vendida. EUR puede ganar vs NZD aunque sea débil vs USD.',
-        finviz:{EUR:'down',NZD:'down'},
-      },
-      'GBP/USD': {
-        tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA',sesgDesc:'GBP/USD cerca de mínimos de 3 meses. Peor semana en 4 meses. BoE en hold, USD fuerte. Proyección: 1.31 en sep, 1.28 en dic 2026.',
-        probUp:32,probDown:68,zonaActual:'.250 / .000',
-        noticias:['NFP','PCE','Datos UK'],
-        estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'1.3270 – 1.3300',zonaDesc:'Zona .250/.000 GBP — resistencia psicológica. Orden Limit de venta',sl:'1.3360',tp:'1.3120'},
-        niveles:[
-          {tag:'res',price:'1.3300',desc:'Zona .000 GBP',explain:'Nivel psicológico .000 muy respetado. Alta probabilidad de giro bajista.',rec:'venta',recLabel:'→ BR AGRESIVO CON SEÑAL'},
-          {tag:'psi',price:'1.3250',desc:'Zona .250 GBP',explain:'Resistencia menor. Evalúa entrada corta si hay señal de vela.',rec:'venta',recLabel:'→ BR CON SEÑAL'},
-          {tag:'sop',price:'1.3200',desc:'Soporte inmediato',explain:'Si rompe con fuerza bajista, confirma tendencia.',rec:'observar',recLabel:'→ OBSERVAR RUPTURA'},
-          {tag:'sop',price:'1.3100',desc:'Target bajista',explain:'Target de la semana. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'1.3270–1.3300',sl:'1.3360',tp:'1.3120',dir:'venta',nota:'GBP muy sensible al NFP del viernes.'}],
-        macro:'GBP sufriendo igual que el EUR. BoE en 5% pero sin más subas previstas. NFP del viernes es el catalizador.',
-        finviz:{GBP:'down',USD:'up'},
-      },
-      'EUR/USD': {
-        tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA',sesgDesc:'EUR/USD cayó de 1.1683 a 1.1359. Tercer semana consecutiva de pérdidas. BCE en 2.50% pero diferencial con Fed (4%) sigue aplastando al euro.',
-        probUp:30,probDown:70,zonaActual:'.000 / .250',
-        noticias:['PCE','NFP'],
-        estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'1.1430 – 1.1460',zonaDesc:'Zona .000/.500 EUR — resistencia confirmada. Orden Limit de venta',sl:'1.1520',tp:'1.1280'},
-        niveles:[
-          {tag:'res',price:'1.1450',desc:'Resistencia — zona .000/.500',explain:'Zona donde los vendedores toman control. Entrada BR más clara.',rec:'venta',recLabel:'→ BR — ENTRADA PRINCIPAL'},
-          {tag:'psi',price:'1.1375',desc:'Zona .375 EUR',explain:'Zona de desaceleración bajista. Mueve SL a break-even.',rec:'observar',recLabel:'→ MOVER SL A BREAK-EVEN'},
-          {tag:'sop',price:'1.1250',desc:'Zona .250 EUR — target',explain:'Target bajista de la semana. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'1.1430–1.1460',sl:'1.1520',tp:'1.1280',dir:'venta',nota:'PCE miércoles puede acelerar la caída.'}],
-        macro:'EUR en su peor racha desde finales de 2025. Fed hawkish vs BCE en pausa. PCE del miércoles y NFP del viernes son los catalizadores.',
-        finviz:{EUR:'down',USD:'up'},
-      },
-      'USD/CAD': {
-        tendencia:'ALCISTA',volatilidad:'MEDIA',sesgo:'alcista',
-        sesgDir:'🟢 ALCISTA — USD dominante',sesgDesc:'USD/CAD sube por fortaleza del dólar. CAD frenado por perspectivas débiles de crecimiento y aranceles EEUU. BoC en modo precaución.',
-        probUp:60,probDown:40,zonaActual:'.000 / .500',
-        noticias:['NFP','PCE'],
-        estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra por fortaleza del USD',zona:'1.4100 – 1.4130',zonaDesc:'Zona .000/.100 — soporte psicológico. Orden Limit de compra',sl:'1.4050',tp:'1.4280'},
-        niveles:[
-          {tag:'res',price:'1.4300',desc:'Target alcista',explain:'Target de la semana. Toma ganancias aquí.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},
-          {tag:'sop',price:'1.4100',desc:'Zona de entrada AR',explain:'Zona de entrada larga. NFP del viernes es el catalizador.',rec:'compra',recLabel:'→ AR — ENTRADA PRINCIPAL'},
-          {tag:'sop',price:'1.4050',desc:'Soporte — invalidación',explain:'Si rompe 1.4050, el setup queda invalidado. Aquí va el SL.',rec:'cuidado',recLabel:'⚠ SL / INVALIDACIÓN'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'1.4100–1.4130',sl:'1.4050',tp:'1.4280',dir:'compra',nota:'NFP del viernes es el catalizador principal.'}],
-        macro:'USD fuerte por Fed hawkish (4%). CAD débil por BoC precavido y aranceles EEUU.',
-        finviz:{USD:'up',CAD:'down'},
-      },
-      'GBP/JPY': {
-        tendencia:'ALCISTA',volatilidad:'MUY ALTA',sesgo:'alcista',
-        sesgDir:'🟢 ALCISTA — Muy volátil',sesgDesc:'GBP/JPY uptrend por diferencial BoE (5%) vs BoJ (1%). Pero es el par más volátil de la lista. Riesgo de intervención en JPY.',
-        probUp:55,probDown:45,zonaActual:'.500 JPY',
-        noticias:['NFP','Datos UK'],
-        estrategias:{AR:'posible',BR:'evitar',CR:'posible',DR:'evitar'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en retroceso (alta volatilidad)',zona:'204.50 – 205.00',zonaDesc:'Zona .500 JPY — soporte en tendencia alcista. SL amplio por volatilidad GBP',sl:'203.90',tp:'206.50'},
-        niveles:[
-          {tag:'res',price:'206.00',desc:'Zona .000 — target',explain:'Target del largo. Alta probabilidad de rechazo aquí.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},
-          {tag:'sop',price:'204.50',desc:'Soporte inmediato',explain:'Soporte de corto plazo. Re-entrada AR con señal.',rec:'compra',recLabel:'→ AR EN RETROCESO'},
-          {tag:'sop',price:'203.50',desc:'Soporte fuerte — SL',explain:'Soporte estructural. SL va aquí.',rec:'cuidado',recLabel:'⚠ SL / INVALIDACIÓN'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'204.50–205.00',sl:'203.90',tp:'206.50',dir:'compra',nota:'Rango amplio necesario por volatilidad GBP. Duración 5–25h.'}],
-        macro:'Par más volátil (rango 150–200 pips/día). Diferencial tasas BoE vs BoJ es el driver.',
-        finviz:{GBP:'down',JPY:'down'},
-      },
-      'AUD/JPY': {
-        tendencia:'BAJISTA',volatilidad:'MEDIA',sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA',sesgDesc:'AUD bajo presión global. JPY ganando en entorno risk-off. Par sigue tendencia bajista del AUD vs divisas de menor riesgo.',
-        probUp:38,probDown:62,zonaActual:'.500 JPY',
-        noticias:['RBA','NFP'],
-        estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta por debilidad del AUD',zona:'100.00 – 100.50',zonaDesc:'Zona .000/.500 JPY — resistencia psicológica fuerte. Orden Limit de venta',sl:'101.00',tp:'97.80'},
-        niveles:[
-          {tag:'res',price:'100.50',desc:'Zona .500 JPY',explain:'Zona .500 — resistencia. Entrada BR principal.',rec:'venta',recLabel:'→ BR — ENTRADA PRINCIPAL'},
-          {tag:'psi',price:'100.00',desc:'Zona .000 — nivel psicológico',explain:'El nivel .000 más importante. Alta probabilidad de rechazo.',rec:'venta',recLabel:'→ BR CON SEÑAL DE VELA'},
-          {tag:'sop',price:'97.00',desc:'Target bajista',explain:'Target del corto. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'100.00–100.50',sl:'101.00',tp:'97.80',dir:'venta',nota:'RBA el martes define la dirección del AUD.'}],
-        macro:'AUD/JPY como proxy de riesgo. RBA martes 29 sep es el catalizador principal.',
-        finviz:{AUD:'down',JPY:'down'},
-      },
-      'NZD/USD': {
-        tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA',sesgDesc:'NZD/USD en tendencia bajista por USD fuerte y NZD como divisa de riesgo bajo presión.',
-        probUp:32,probDown:68,zonaActual:'.000 / .250',
-        noticias:['NFP','PCE'],
-        estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'0.6250 – 0.6280',zonaDesc:'Zona .250 NZD — resistencia psicológica. Orden Limit de venta',sl:'0.6330',tp:'0.6080'},
-        niveles:[
-          {tag:'res',price:'0.6250',desc:'Zona .250 NZD',explain:'Resistencia psicológica. Alta probabilidad de rechazo.',rec:'venta',recLabel:'→ BR CON SEÑAL'},
-          {tag:'sop',price:'0.6000',desc:'Zona .000 — target',explain:'Target del corto. Nivel .000 muy importante.',rec:'compra',recLabel:'→ TOMAR GANANCIAS / EVALUAR DR'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'0.6250–0.6280',sl:'0.6330',tp:'0.6080',dir:'venta',nota:'Misma lógica que AUD/USD pero NZD tiene menos soporte fundamental.'}],
-        macro:'NZD/USD sigue la misma lógica que AUD/USD: USD hawkish aplasta divisas de riesgo.',
-        finviz:{NZD:'down',USD:'up'},
-      },
-      'EUR/JPY': {
-        tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA — Corrección en curso',sesgDesc:'EUR/JPY en corrección alcista temporal. La tendencia de fondo es bajista. Esperar confirmación antes de entrar en corto.',
-        probUp:40,probDown:60,zonaActual:'.500 JPY',
-        noticias:['NFP'],
-        estrategias:{AR:'evitar',BR:'recomendada',CR:'posible',DR:'evitar'},
-        rec:{accion:'VENTA',color:'red',estrategia:'CR — Venta contra-tendencia en resistencia',zona:'162.00 – 162.50',zonaDesc:'Zona .000/.500 JPY — resistencia fuerte. Espera señal de vela bajista',sl:'163.00',tp:'159.50'},
-        niveles:[
-          {tag:'res',price:'162.50',desc:'Zona de resistencia',explain:'Zona donde los vendedores toman control. Entrada CR con señal.',rec:'venta',recLabel:'→ CR — ENTRADA CORTO'},
-          {tag:'sop',price:'159.00',desc:'Target del corto',explain:'Target. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'CR (Venta)',entrada:'162.00–162.50',sl:'163.00',tp:'159.50',dir:'venta',nota:'Espera confirmación de vela bajista antes de entrar.'}],
-        macro:'Combinación de dos divisas débiles. Corrección alcista puede continuar brevemente.',
-        finviz:{EUR:'down',JPY:'down'},
-      },
-      'GBP/CAD': {
-        tendencia:'LATERAL',volatilidad:'MEDIA',sesgo:'neutral',
-        sesgDir:'🟡 NEUTRAL — Evitar',sesgDesc:'GBP/CAD en rango sin dirección clara. Ambas divisas débiles por diferentes razones. Sin catalizador claro esta semana.',
-        probUp:48,probDown:52,zonaActual:'.000 / .500',
-        noticias:['Ninguna directa'],
-        estrategias:{AR:'evitar',BR:'evitar',CR:'evitar',DR:'evitar'},
-        rec:{accion:'ESPERAR',color:'yellow',estrategia:'Sin setup claro — no operar este par',zona:'Sin zona clara',zonaDesc:'Par sin dirección. Prioriza otros pares con más claridad.',sl:'—',tp:'—'},
-        niveles:[
-          {tag:'res',price:'1.7500',desc:'Resistencia del rango',explain:'Techo del rango. Si el precio llega acá puede haber oportunidad pero sin catalizador claro.',rec:'observar',recLabel:'→ OBSERVAR — NO FORZAR'},
-          {tag:'sop',price:'1.7200',desc:'Soporte del rango',explain:'Base del rango. Sin catalizador claro. Prioriza otros pares.',rec:'observar',recLabel:'→ PRIORIZA OTROS PARES'},
-        ],
-        setup:[],
-        macro:'Par confuso. GBP y CAD ambos bajo presión. Sin catalizador claro.',
-        finviz:{GBP:'down',CAD:'down'},
-      },
+      'AUD/USD':{tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'AUD cayó a mínimos de 3 meses. USD fuerte por Fed hawkish (4%). RBA decide el martes — si sube pero guidance dovish, AUD puede caer más.',probUp:35,probDown:65,zonaActual:'.750 / .000',noticias:['RBA','NFP','PCE'],estrategias:{AR:'posible',BR:'evitar',CR:'evitar',DR:'recomendada'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'0.6950 – 0.6977',zonaDesc:'Zona .750 / resistencia EMA20 — orden Limit de venta',sl:'0.7010',tp:'0.6830'},niveles:[{tag:'res',price:'0.6977',desc:'Resistencia crítica — EMA20',explain:'Zona donde los vendedores toman control. Si el precio llega acá sin momentum fuerte, es zona de venta.',rec:'venta',recLabel:'→ BUSCAR VENTA (BR)'},{tag:'psi',price:'0.6875',desc:'Zona .875 AUD',explain:'Nivel psicológico secundario. Útil para mover SL a break-even.',rec:'observar',recLabel:'→ MOVER SL A BREAK-EVEN'},{tag:'psi',price:'0.6750',desc:'Zona .750 AUD',explain:'Zona .750 muy respetada. Si el precio llega acá con señal alcista, evalúa DR.',rec:'compra',recLabel:'→ EVALUAR COMPRA (DR)'},{tag:'sop',price:'0.6833',desc:'Soporte — mínimo 30 mar',explain:'Si rompe confirma tendencia bajista. Si rebota, posible DR.',rec:'observar',recLabel:'→ OBSERVAR'},{tag:'sop',price:'0.6700',desc:'Zona .700 AUD',explain:'Soporte estructural. Alta probabilidad de rebote.',rec:'compra',recLabel:'→ DR AGRESIVO'}],setup:[{tipo:'BR (Venta)',entrada:'0.6950–0.6977',sl:'0.7010',tp:'0.6830',dir:'venta',nota:'Setup principal. Vender en rally hacia resistencia. Esperar RBA martes.'}],macro:'AUD bajo presión por USD fuerte y risk-off global. RBA el martes 29 sep es el evento clave.',finviz:{AUD:'down',USD:'up'}},
+      'USD/JPY':{tendencia:'ALCISTA',volatilidad:'MUY ALTA',sesgo:'alcista',sesgDir:'⚠️ ALCISTA — RIESGO INTERVENCIÓN',sesgDesc:'USD/JPY en pico histórico. Trend alcista firme. Zona 160–162 tiene riesgo extremo de intervención japonesa (300–500 pips en minutos).',probUp:55,probDown:45,zonaActual:'.500 JPY',noticias:['NFP','PCE','Jobless Claims'],estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en pullback (NO en 162+)',zona:'160.00 – 160.50',zonaDesc:'Zona .000/.500 JPY — espera pullback. No compres cerca de 162.',sl:'159.70',tp:'161.40'},niveles:[{tag:'res',price:'162.00',desc:'Zona intervención MoF',explain:'Riesgo de caída de 300–500 pips. No abrir largos aquí.',rec:'cuidado',recLabel:'⚠ EVITAR — INTERVENCIÓN'},{tag:'psi',price:'161.50',desc:'Zona .500 JPY',explain:'Nivel .500 JPY muy respetado. Si hay señal bajista, evalúa CR.',rec:'venta',recLabel:'→ EVALUAR CR'},{tag:'sop',price:'160.50',desc:'Soporte clave — entrada AR',explain:'Mejor punto de entrada AR de la semana.',rec:'compra',recLabel:'→ AR — MEJOR ENTRADA'},{tag:'sop',price:'160.00',desc:'Nivel .000 — soporte fuerte',explain:'El nivel .000 en JPY es el más importante.',rec:'compra',recLabel:'→ AR AGRESIVO'}],setup:[{tipo:'AR (Compra)',entrada:'160.00–160.50',sl:'159.70',tp:'161.40',dir:'compra',nota:'Solo en pullback al .000/.500. NO comprar en 161+.'}],macro:'Par más peligroso. Fed (4%) vs BoJ (1%) es el driver. NFP del viernes mueve este par.',finviz:{USD:'up',JPY:'down'}},
+      'CHF/JPY':{tendencia:'ALCISTA',volatilidad:'MEDIA',sesgo:'alcista',sesgDir:'🟢 ALCISTA — Setup más limpio',sesgDesc:'CHF safe-haven fuerte. JPY débil. Rebotó desde soporte Fibonacci 198.80. Target claro en 202.30.',probUp:65,probDown:35,zonaActual:'.000 / .500',noticias:['Ninguna directa'],estrategias:{AR:'recomendada',BR:'evitar',CR:'evitar',DR:'posible'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Setup más limpio de la semana',zona:'199.00 – 199.50',zonaDesc:'Zona .000/.500 JPY — soporte Fibonacci confirmado. Orden Limit aquí',sl:'198.40',tp:'202.30'},niveles:[{tag:'res',price:'202.30',desc:'Target principal',explain:'Tu TP de la semana. Cierra la posición aquí.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},{tag:'psi',price:'200.00',desc:'Zona .000',explain:'Nivel .000 muy importante. Puede pausar el movimiento.',rec:'observar',recLabel:'→ MANTENER POSICIÓN'},{tag:'sop',price:'199.00',desc:'Zona de entrada AR',explain:'Zona ideal de entrada larga. Vela alcista aquí = entrada AR.',rec:'compra',recLabel:'→ AR — ENTRADA PRINCIPAL'},{tag:'sop',price:'198.80',desc:'Soporte Fibonacci — SL',explain:'Si rompe, el setup queda invalidado. Aquí va tu SL.',rec:'cuidado',recLabel:'⚠ INVALIDACIÓN — SL AQUÍ'}],setup:[{tipo:'AR (Compra)',entrada:'199.00–199.50',sl:'198.40',tp:'202.30',dir:'compra',nota:'Setup más limpio de la semana. R:R excelente.'}],macro:'CHF gana por safe-haven. JPY débil por BoJ en 1% vs Fed en 4%. Sin noticias directas.',finviz:{CHF:'up',JPY:'down'}},
+      'EUR/GBP':{tendencia:'BAJISTA',volatilidad:'BAJA',sesgo:'neutral',sesgDir:'🟡 NEUTRAL / leve bajista',sesgDesc:'EUR/GBP en zona de resistencia (0.8620). Ambas divisas débiles. Par de baja volatilidad.',probUp:42,probDown:58,zonaActual:'.500 / .750',noticias:['Ninguna directa','Datos UK'],estrategias:{AR:'evitar',BR:'posible',CR:'recomendada',DR:'evitar'},rec:{accion:'VENTA',color:'red',estrategia:'CR — Venta en resistencia del rango',zona:'0.8670 – 0.8700',zonaDesc:'Zona .750 GBP — techo del rango. Espera señal de vela bajista',sl:'0.8730',tp:'0.8560'},niveles:[{tag:'res',price:'0.8700',desc:'Techo del rango',explain:'Alta probabilidad de rechazo bajista. Zona CR ideal.',rec:'venta',recLabel:'→ CR — ENTRADA IDEAL'},{tag:'psi',price:'0.8620',desc:'Nivel crítico — invalidación',explain:'Si cierra por encima, el sesgo bajista queda invalidado.',rec:'cuidado',recLabel:'⚠ INVALIDACIÓN'},{tag:'sop',price:'0.8500',desc:'Zona .500 GBP',explain:'Target del corto. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'CR (Venta)',entrada:'0.8670–0.8700',sl:'0.8730',tp:'0.8560',dir:'venta',nota:'Señal de vela requerida antes de entrar.'}],macro:'Cross sin USD — baja volatilidad. Útil como diversificación.',finviz:{EUR:'down',GBP:'down'}},
+      'NZD/JPY':{tendencia:'BAJISTA',volatilidad:'MEDIA-ALTA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'NZD/JPY cayó 1.79% la semana pasada y 3.04% en el mes. NZD es divisa de riesgo en entorno hawkish.',probUp:38,probDown:62,zonaActual:'.500 JPY',noticias:['NFP'],estrategias:{AR:'posible',BR:'recomendada',CR:'evitar',DR:'evitar'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'92.00 – 92.50',zonaDesc:'Zona .000/.500 JPY — resistencia psicológica. Orden Limit de venta',sl:'93.00',tp:'90.50'},niveles:[{tag:'res',price:'92.50',desc:'Zona .500 JPY',explain:'Resistencia psicológica. Entrada BR más clara.',rec:'venta',recLabel:'→ BR — ENTRADA PRINCIPAL'},{tag:'key',price:'90.94',desc:'Soporte crítico',explain:'Si rompe 90.94, la tendencia bajista se confirma.',rec:'observar',recLabel:'→ OBSERVAR RUPTURA'},{tag:'sop',price:'90.50',desc:'Zona .500 JPY — target',explain:'Target bajista. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'BR (Venta)',entrada:'92.00–92.50',sl:'93.00',tp:'90.50',dir:'venta',nota:'Short en rebote. Si rompe 90.94 profundiza.'}],macro:'NZD es la divisa de riesgo más débil. Fed hawkish aplasta commodity currencies.',finviz:{NZD:'down',JPY:'down'}},
+      'AUD/CAD':{tendencia:'ALCISTA',volatilidad:'BAJA',sesgo:'alcista',sesgDir:'🟢 ALCISTA — Canal confirmado',sesgDesc:'AUD/CAD en canal alcista. CAD frenado por aranceles EEUU. AUD soportado por RBA hawkish.',probUp:62,probDown:38,zonaActual:'.750 / .000',noticias:['RBA'],estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en canal alcista confirmado',zona:'0.9755 – 0.9770',zonaDesc:'Zona .750 AUD — soporte del canal. Orden Limit de compra',sl:'0.9700',tp:'0.9850'},niveles:[{tag:'res',price:'0.9850',desc:'Target alcista',explain:'Tu TP de la semana. Cierra la posición aquí.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},{tag:'psi',price:'0.9750',desc:'Zona .750 AUD',explain:'Zona de entrada AR. Vela alcista aquí = entrada.',rec:'compra',recLabel:'→ AR — ENTRADA PRINCIPAL'},{tag:'sop',price:'0.9700',desc:'Soporte — SL',explain:'Si rompe, el setup alcista queda invalidado.',rec:'cuidado',recLabel:'⚠ SL / INVALIDACIÓN'}],setup:[{tipo:'AR (Compra)',entrada:'0.9755–0.9770',sl:'0.9700',tp:'0.9850',dir:'compra',nota:'RBA el martes puede darle impulso extra al AUD.'}],macro:'RBA hawkish ayuda al AUD. BoC precavido debilita el CAD.',finviz:{AUD:'down',CAD:'down'}},
+      'EUR/CAD':{tendencia:'LATERAL',volatilidad:'BAJA',sesgo:'neutral',sesgDir:'🟡 NEUTRAL — Rango',sesgDesc:'EUR/CAD en rango sin dirección clara. Ambas divisas débiles. Sin catalizador claro.',probUp:48,probDown:52,zonaActual:'.000 / .500',noticias:['Ninguna directa'],estrategias:{AR:'evitar',BR:'posible',CR:'evitar',DR:'evitar'},rec:{accion:'ESPERAR',color:'yellow',estrategia:'Sin setup claro — par en rango',zona:'1.6250 – 1.6300',zonaDesc:'Solo entrar si llega al techo del rango con señal clara.',sl:'1.6360',tp:'1.6050'},niveles:[{tag:'res',price:'1.6300',desc:'Techo del rango',explain:'Única entrada viable. Busca señal bajista.',rec:'venta',recLabel:'→ BR EN TECHO'},{tag:'sop',price:'1.6050',desc:'Base del rango',explain:'Si llega acá, evalúa DR con señal.',rec:'compra',recLabel:'→ DR EN BASE'}],setup:[{tipo:'BR (si llega al techo)',entrada:'1.6250–1.6300',sl:'1.6360',tp:'1.6050',dir:'venta',nota:'No forzar. Solo entrar en extremo del rango.'}],macro:'Par confuso. Mejor enfocarse en pares con más dirección.',finviz:{EUR:'down',CAD:'down'}},
+      'EUR/NZD':{tendencia:'ALCISTA',volatilidad:'MEDIA',sesgo:'alcista',sesgDir:'🟢 ALCISTA — NZD bajo presión',sesgDesc:'EUR/NZD se beneficia de la debilidad del NZD en entornos risk-off. Target: 2.0000.',probUp:60,probDown:40,zonaActual:'.000 / .500',noticias:['Ninguna directa'],estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra por debilidad del NZD',zona:'1.9600 – 1.9650',zonaDesc:'Zona .000/.500 — soporte psicológico. Orden Limit de compra',sl:'1.9500',tp:'1.9800'},niveles:[{tag:'res',price:'2.0000',desc:'Zona .000 — nivel psicológico',explain:'Nivel .000 muy importante. Alta probabilidad de pausa.',rec:'observar',recLabel:'→ OBSERVAR REACCIÓN'},{tag:'sop',price:'1.9650',desc:'Zona de entrada AR',explain:'Zona de entrada larga. Vela alcista = entrada AR.',rec:'compra',recLabel:'→ AR — ENTRADA PRINCIPAL'},{tag:'sop',price:'1.9500',desc:'Soporte profundo',explain:'Si llega acá, revisa el contexto antes de re-entrar.',rec:'cuidado',recLabel:'⚠ REVISAR SETUP'}],setup:[{tipo:'AR (Compra)',entrada:'1.9600–1.9650',sl:'1.9500',tp:'1.9800',dir:'compra',nota:'Target conservador 1.9800, agresivo 2.0000.'}],macro:'NZD es la divisa de riesgo más vendida. EUR puede ganar vs NZD.',finviz:{EUR:'down',NZD:'down'}},
+      'GBP/USD':{tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'GBP/USD cerca de mínimos de 3 meses. BoE en hold, USD fuerte.',probUp:32,probDown:68,zonaActual:'.250 / .000',noticias:['NFP','PCE','Datos UK'],estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'1.3270 – 1.3300',zonaDesc:'Zona .250/.000 GBP — resistencia. Orden Limit de venta',sl:'1.3360',tp:'1.3120'},niveles:[{tag:'res',price:'1.3300',desc:'Zona .000 GBP',explain:'Nivel .000 muy respetado. Alta probabilidad de giro bajista.',rec:'venta',recLabel:'→ BR AGRESIVO'},{tag:'psi',price:'1.3250',desc:'Zona .250 GBP',explain:'Resistencia menor. Evalúa entrada corta con señal.',rec:'venta',recLabel:'→ BR CON SEÑAL'},{tag:'sop',price:'1.3100',desc:'Target bajista',explain:'Target de la semana. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'BR (Venta)',entrada:'1.3270–1.3300',sl:'1.3360',tp:'1.3120',dir:'venta',nota:'GBP muy sensible al NFP del viernes.'}],macro:'BoE en 5% pero sin más subas previstas. NFP del viernes es el catalizador.',finviz:{GBP:'down',USD:'up'}},
+      'EUR/USD':{tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'EUR/USD cayó de 1.1683 a 1.1359. Tercer semana consecutiva de pérdidas. BCE en 2.50% vs Fed en 4%.',probUp:30,probDown:70,zonaActual:'.000 / .250',noticias:['PCE','NFP'],estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'1.1430 – 1.1460',zonaDesc:'Zona .000/.500 EUR — resistencia. Orden Limit de venta',sl:'1.1520',tp:'1.1280'},niveles:[{tag:'res',price:'1.1450',desc:'Resistencia — zona .000/.500',explain:'Zona donde los vendedores toman control.',rec:'venta',recLabel:'→ BR — ENTRADA PRINCIPAL'},{tag:'psi',price:'1.1375',desc:'Zona .375 EUR',explain:'Zona de desaceleración bajista. Mueve SL.',rec:'observar',recLabel:'→ MOVER SL'},{tag:'sop',price:'1.1250',desc:'Zona .250 EUR — target',explain:'Target bajista. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'BR (Venta)',entrada:'1.1430–1.1460',sl:'1.1520',tp:'1.1280',dir:'venta',nota:'PCE miércoles puede acelerar la caída.'}],macro:'Fed hawkish vs BCE en pausa. PCE y NFP son los catalizadores.',finviz:{EUR:'down',USD:'up'}},
+      'USD/CAD':{tendencia:'ALCISTA',volatilidad:'MEDIA',sesgo:'alcista',sesgDir:'🟢 ALCISTA — USD dominante',sesgDesc:'USD/CAD sube por fortaleza del dólar. CAD frenado por perspectivas débiles.',probUp:60,probDown:40,zonaActual:'.000 / .500',noticias:['NFP','PCE'],estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra por fortaleza del USD',zona:'1.4100 – 1.4130',zonaDesc:'Zona .000/.100 — soporte. Orden Limit de compra',sl:'1.4050',tp:'1.4280'},niveles:[{tag:'res',price:'1.4300',desc:'Target alcista',explain:'Target de la semana.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},{tag:'sop',price:'1.4100',desc:'Zona de entrada AR',explain:'NFP del viernes es el catalizador.',rec:'compra',recLabel:'→ AR — ENTRADA PRINCIPAL'},{tag:'sop',price:'1.4050',desc:'Soporte — SL',explain:'Si rompe, el setup queda invalidado.',rec:'cuidado',recLabel:'⚠ SL'}],setup:[{tipo:'AR (Compra)',entrada:'1.4100–1.4130',sl:'1.4050',tp:'1.4280',dir:'compra',nota:'NFP del viernes es el catalizador principal.'}],macro:'USD fuerte. CAD débil. NFP puede acelerar el movimiento.',finviz:{USD:'up',CAD:'down'}},
+      'GBP/JPY':{tendencia:'ALCISTA',volatilidad:'MUY ALTA',sesgo:'alcista',sesgDir:'🟢 ALCISTA — Muy volátil',sesgDesc:'GBP/JPY uptrend por diferencial BoE (5%) vs BoJ (1%). Par más volátil de la lista.',probUp:55,probDown:45,zonaActual:'.500 JPY',noticias:['NFP','Datos UK'],estrategias:{AR:'posible',BR:'evitar',CR:'posible',DR:'evitar'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en retroceso (alta volatilidad)',zona:'204.50 – 205.00',zonaDesc:'Zona .500 JPY — soporte. SL amplio por volatilidad GBP',sl:'203.90',tp:'206.50'},niveles:[{tag:'res',price:'206.00',desc:'Zona .000 — target',explain:'Target del largo.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},{tag:'sop',price:'204.50',desc:'Soporte inmediato',explain:'Re-entrada AR con señal.',rec:'compra',recLabel:'→ AR EN RETROCESO'},{tag:'sop',price:'203.50',desc:'Soporte fuerte — SL',explain:'SL va aquí.',rec:'cuidado',recLabel:'⚠ SL'}],setup:[{tipo:'AR (Compra)',entrada:'204.50–205.00',sl:'203.90',tp:'206.50',dir:'compra',nota:'Par muy volátil. Duración 5–25h.'}],macro:'Diferencial tasas BoE vs BoJ es el driver. Rango 150–200 pips/día.',finviz:{GBP:'down',JPY:'down'}},
+      'AUD/JPY':{tendencia:'BAJISTA',volatilidad:'MEDIA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'AUD bajo presión global. JPY ganando en entorno risk-off.',probUp:38,probDown:62,zonaActual:'.500 JPY',noticias:['RBA','NFP'],estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta por debilidad del AUD',zona:'100.00 – 100.50',zonaDesc:'Zona .000/.500 JPY — resistencia. Orden Limit de venta',sl:'101.00',tp:'97.80'},niveles:[{tag:'res',price:'100.50',desc:'Zona .500 JPY',explain:'Zona .500 — resistencia. Entrada BR principal.',rec:'venta',recLabel:'→ BR — ENTRADA'},{tag:'psi',price:'100.00',desc:'Zona .000 — nivel psicológico',explain:'El nivel .000 más importante.',rec:'venta',recLabel:'→ BR CON SEÑAL'},{tag:'sop',price:'97.00',desc:'Target bajista',explain:'Target del corto.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'BR (Venta)',entrada:'100.00–100.50',sl:'101.00',tp:'97.80',dir:'venta',nota:'RBA el martes define la dirección.'}],macro:'RBA martes 29 sep es el catalizador principal.',finviz:{AUD:'down',JPY:'down'}},
+      'NZD/USD':{tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'NZD/USD bajista por USD fuerte y NZD como divisa de riesgo.',probUp:32,probDown:68,zonaActual:'.000 / .250',noticias:['NFP','PCE'],estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'0.6250 – 0.6280',zonaDesc:'Zona .250 NZD — resistencia. Orden Limit de venta',sl:'0.6330',tp:'0.6080'},niveles:[{tag:'res',price:'0.6250',desc:'Zona .250 NZD',explain:'Resistencia psicológica. Alta probabilidad de rechazo.',rec:'venta',recLabel:'→ BR CON SEÑAL'},{tag:'sop',price:'0.6000',desc:'Zona .000 — target',explain:'Target del corto.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'BR (Venta)',entrada:'0.6250–0.6280',sl:'0.6330',tp:'0.6080',dir:'venta',nota:'Misma lógica que AUD/USD.'}],macro:'USD hawkish aplasta divisas de riesgo.',finviz:{NZD:'down',USD:'up'}},
+      'EUR/JPY':{tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'EUR/JPY en corrección alcista temporal. Tendencia de fondo bajista.',probUp:40,probDown:60,zonaActual:'.500 JPY',noticias:['NFP'],estrategias:{AR:'evitar',BR:'recomendada',CR:'posible',DR:'evitar'},rec:{accion:'VENTA',color:'red',estrategia:'CR — Venta contra-tendencia en resistencia',zona:'162.00 – 162.50',zonaDesc:'Zona .000/.500 JPY — resistencia. Espera señal de vela bajista',sl:'163.00',tp:'159.50'},niveles:[{tag:'res',price:'162.50',desc:'Zona de resistencia',explain:'Zona donde los vendedores toman control.',rec:'venta',recLabel:'→ CR — ENTRADA'},{tag:'sop',price:'159.00',desc:'Target del corto',explain:'Target. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'CR (Venta)',entrada:'162.00–162.50',sl:'163.00',tp:'159.50',dir:'venta',nota:'Espera señal clara de vela bajista.'}],macro:'EUR débil. JPY débil. Corrección alcista puede continuar brevemente.',finviz:{EUR:'down',JPY:'down'}},
+      'GBP/CAD':{tendencia:'LATERAL',volatilidad:'MEDIA',sesgo:'neutral',sesgDir:'🟡 NEUTRAL — Evitar',sesgDesc:'GBP/CAD sin dirección. Ambas divisas débiles. Sin catalizador claro.',probUp:48,probDown:52,zonaActual:'.000 / .500',noticias:['Ninguna directa'],estrategias:{AR:'evitar',BR:'evitar',CR:'evitar',DR:'evitar'},rec:{accion:'ESPERAR',color:'yellow',estrategia:'Sin setup claro — no operar',zona:'Sin zona clara',zonaDesc:'Prioriza otros pares con más claridad.',sl:'—',tp:'—'},niveles:[{tag:'res',price:'1.7500',desc:'Resistencia del rango',explain:'Solo relevante si hay catalizador.',rec:'observar',recLabel:'→ OBSERVAR'},{tag:'sop',price:'1.7200',desc:'Soporte del rango',explain:'Base del rango.',rec:'observar',recLabel:'→ OBSERVAR'}],setup:[],macro:'Par confuso. Prioriza otros pares.',finviz:{GBP:'down',CAD:'down'}},
     }
   },
   proxima: {
     label: '5 Oct – 9 Oct 2026',
     noticias_semana: {
-      'FOMC Minutes': {titulo:'🔴 FOMC Minutes', fecha:'Mié 8 Oct', color:'rojo', desc:'Minutas de la última reunión Fed. Impacta USD.'},
-      'CPI Australia': {titulo:'🔴 CPI Australia', fecha:'Mié 8 Oct', color:'rojo', desc:'Inflación Australia. Impacta AUD.'},
-      'BoE Decision': {titulo:'🟠 BoE — Decisión de Tasas', fecha:'Jue 9 Oct', color:'naranja', desc:'Se espera hold en 5%. Impacta GBP.'},
-      'RBNZ Decision': {titulo:'🟠 RBNZ — Decisión de Tasas', fecha:'Mié 8 Oct', color:'naranja', desc:'Se espera suba 25bps. Impacta NZD.'},
-      'US PPI': {titulo:'🟠 US PPI', fecha:'Vie 10 Oct', color:'naranja', desc:'Precios al productor EEUU. Impacta USD.'},
-      'Ninguna directa': {titulo:'✅ Sin noticias directas', fecha:'Semana tranquila para este par', color:'verde', desc:'Menor riesgo.'},
-      'China Trade': {titulo:'🟡 China Trade Balance', fecha:'Mar 7 Oct', color:'verde', desc:'Impacta AUD, NZD.'},
+      'FOMC Minutes':{titulo:'🔴 FOMC Minutes',fecha:'Mié 8 Oct',color:'rojo',desc:'Minutas Fed. Impacta USD.'},
+      'CPI Australia':{titulo:'🔴 CPI Australia',fecha:'Mié 8 Oct',color:'rojo',desc:'Inflación Australia. Impacta AUD.'},
+      'BoE Decision':{titulo:'🟠 BoE — Decisión de Tasas',fecha:'Jue 9 Oct',color:'naranja',desc:'Hold esperado en 5%. Impacta GBP.'},
+      'RBNZ Decision':{titulo:'🟠 RBNZ — Decisión de Tasas',fecha:'Mié 8 Oct',color:'naranja',desc:'Suba esperada 25bps. Impacta NZD.'},
+      'US PPI':{titulo:'🟠 US PPI',fecha:'Vie 10 Oct',color:'naranja',desc:'Precios al productor. Impacta USD.'},
+      'Ninguna directa':{titulo:'✅ Sin noticias directas',fecha:'Semana tranquila',color:'verde',desc:'Menor riesgo.'},
+      'China Trade':{titulo:'🟡 China Trade Balance',fecha:'Mar 7 Oct',color:'verde',desc:'Impacta AUD, NZD.'},
     },
     pairs: {
-      'AUD/USD': {
-        tendencia:'BAJISTA', volatilidad:'ALTA', sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA', sesgDesc:'El AUD sigue bajo presión después del resultado del RBA esta semana. El CPI Australia del miércoles 8 oct será el próximo catalizador clave. USD mantiene fortaleza por expectativas Fed.',
-        probUp:38, probDown:62, zonaActual:'.750 / .000',
-        noticias:['CPI Australia','FOMC Minutes'],
-        estrategias:{AR:'posible',BR:'recomendada',CR:'evitar',DR:'posible'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'0.6920 – 0.6950',zonaDesc:'Zona .750 / resistencia — orden Limit de venta. CPI el miércoles puede acelerar la caída',sl:'0.6990',tp:'0.6770'},
-        niveles:[
-          {tag:'res',price:'0.6950',desc:'Resistencia principal semana',explain:'Zona de venta. Si el precio llega acá antes del CPI, entrada BR con señal.',rec:'venta',recLabel:'→ BR — ENTRADA PRINCIPAL'},
-          {tag:'psi',price:'0.6875',desc:'Zona .875 AUD',explain:'Soporte psicológico intermedio. Mover SL a break-even si el precio llega aquí.',rec:'observar',recLabel:'→ MOVER SL'},
-          {tag:'sop',price:'0.6750',desc:'Zona .750 AUD — target',explain:'Target de la semana. Zona muy respetada históricamente.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'0.6920–0.6950',sl:'0.6990',tp:'0.6770',dir:'venta',nota:'CPI Australia el miércoles 8 oct es el evento clave. Si el CPI sale bajo, el AUD cae fuerte.'}],
-        macro:'El resultado del RBA y el CPI de la próxima semana definirán la dirección del AUD. USD mantiene fortaleza por FOMC Minutes que probablemente confirmen el sesgo hawkish.',
-        finviz:{AUD:'down',USD:'up'},
-      },
-      'USD/JPY': {
-        tendencia:'ALCISTA', volatilidad:'MUY ALTA', sesgo:'alcista',
-        sesgDir:'⚠️ ALCISTA — Riesgo intervención',sesgDesc:'USD/JPY continúa su uptrend. Las minutas del FOMC el miércoles 8 oct pueden impulsar al USD. El riesgo de intervención japonesa persiste en zona 162+. Mantener precaución.',
-        probUp:58, probDown:42, zonaActual:'.500 JPY',
-        noticias:['FOMC Minutes'],
-        estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en pullback (NO en 162+)',zona:'160.50 – 161.00',zonaDesc:'Zona .500/.000 JPY — espera pullback con orden Limit. FOMC Minutes el miércoles pueden catalizar el movimiento',sl:'160.00',tp:'162.00'},
-        niveles:[
-          {tag:'res',price:'162.50',desc:'Zona intervención MoF',explain:'Riesgo de intervención extremo. No abrir largos aquí.',rec:'cuidado',recLabel:'⚠ EVITAR — RIESGO INTERVENCIÓN'},
-          {tag:'psi',price:'161.50',desc:'Zona .500 JPY',explain:'Resistencia psicológica. Evalúa CR con señal.',rec:'venta',recLabel:'→ EVALUAR CR'},
-          {tag:'sop',price:'160.50',desc:'Soporte clave — entrada AR',explain:'Mejor punto de entrada AR de la semana.',rec:'compra',recLabel:'→ AR — MEJOR ENTRADA'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'160.50–161.00',sl:'160.00',tp:'162.00',dir:'compra',nota:'FOMC Minutes el miércoles puede ser el catalizador. Espera el pullback.'}],
-        macro:'Fed hawkish vs BoJ dovish sigue siendo el driver estructural. FOMC Minutes confirmarán o negarán más subas.',
-        finviz:{USD:'up',JPY:'down'},
-      },
-      'CHF/JPY': {
-        tendencia:'ALCISTA', volatilidad:'BAJA-MEDIA', sesgo:'alcista',
-        sesgDir:'🟢 ALCISTA — Continuación',sesgDesc:'Si el CHF/JPY alcanzó el target 202.30 esta semana, la próxima semana puede haber una re-acumulación antes de continuar al alza. Sin noticias directas que afecten el par.',
-        probUp:62, probDown:38, zonaActual:'.000 / .500',
-        noticias:['Ninguna directa'],
-        estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en re-acumulación',zona:'201.00 – 201.50',zonaDesc:'Zona .000/.500 JPY — soporte tras posible toma de ganancias. Orden Limit de compra',sl:'200.40',tp:'203.50'},
-        niveles:[
-          {tag:'res',price:'203.50',desc:'Target próxima semana',explain:'Target alcista. Toma ganancias aquí.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},
-          {tag:'sop',price:'201.00',desc:'Zona de entrada AR',explain:'Re-acumulación tras toma de ganancias. Entrada AR con señal.',rec:'compra',recLabel:'→ AR — ENTRADA'},
-          {tag:'sop',price:'200.40',desc:'Soporte — SL',explain:'Si rompe este nivel, espera nueva consolidación antes de re-entrar.',rec:'cuidado',recLabel:'⚠ SL AQUÍ'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'201.00–201.50',sl:'200.40',tp:'203.50',dir:'compra',nota:'Setup depende de si el par llegó o no al target 202.30 esta semana.'}],
-        macro:'Sin noticias directas la próxima semana. El diferencial CHF/JPY se mantiene estructuralmente favorable.',
-        finviz:{CHF:'up',JPY:'down'},
-      },
-      'NZD/JPY': {
-        tendencia:'BAJISTA', volatilidad:'MEDIA', sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA',sesgDesc:'NZD/JPY continúa tendencia bajista. El RBNZ decide el miércoles 8 oct — si sube pero el guidance es dovish, el NZD cae fuerte. Si no sube, colapso del NZD.',
-        probUp:35, probDown:65, zonaActual:'.500 JPY',
-        noticias:['RBNZ Decision'],
-        estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'evitar'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'91.50 – 92.00',zonaDesc:'Zona .500 JPY — resistencia. Espera el resultado del RBNZ antes de entrar',sl:'92.50',tp:'89.50'},
-        niveles:[
-          {tag:'res',price:'92.00',desc:'Zona .000 JPY',explain:'Resistencia psicológica. Entrada BR principal.',rec:'venta',recLabel:'→ BR — ENTRADA PRINCIPAL'},
-          {tag:'sop',price:'90.00',desc:'Zona .000 JPY — target',explain:'Target bajista. Nivel .000 muy respetado.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'91.50–92.00',sl:'92.50',tp:'89.50',dir:'venta',nota:'RBNZ el miércoles 8 oct es el evento clave. Espera el resultado antes de entrar.'}],
-        macro:'RBNZ es el catalizador. Si sube pero guidance dovish → NZD cae. Si no sube → colapso NZD.',
-        finviz:{NZD:'down',JPY:'down'},
-      },
-      'EUR/GBP': {
-        tendencia:'BAJISTA', volatilidad:'BAJA', sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA — BoE el jueves',sesgDesc:'EUR/GBP bajista. El BoE decide el jueves 9 oct — se espera hold en 5%. Si el BoE es hawkish, la libra se fortalece y el EUR/GBP baja más.',
-        probUp:38, probDown:62, zonaActual:'.500 / .750',
-        noticias:['BoE Decision'],
-        estrategias:{AR:'evitar',BR:'posible',CR:'recomendada',DR:'evitar'},
-        rec:{accion:'VENTA',color:'red',estrategia:'CR — Venta contra-tendencia en resistencia',zona:'0.8650 – 0.8680',zonaDesc:'Zona .500/.750 GBP — resistencia. BoE el jueves puede acelerar la caída',sl:'0.8720',tp:'0.8520'},
-        niveles:[
-          {tag:'res',price:'0.8680',desc:'Resistencia — zona .500',explain:'Zona de venta. Si el precio llega acá antes del BoE, entrada CR.',rec:'venta',recLabel:'→ CR — ENTRADA'},
-          {tag:'sop',price:'0.8520',desc:'Target bajista',explain:'Target de la semana. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'CR (Venta)',entrada:'0.8650–0.8680',sl:'0.8720',tp:'0.8520',dir:'venta',nota:'BoE el jueves 9 oct. Si es hawkish, el GBP sube y el EUR/GBP baja.'}],
-        macro:'BoE el jueves es el catalizador. Hold esperado pero tono hawkish daría impulso bajista al par.',
-        finviz:{EUR:'down',GBP:'down'},
-      },
-      'AUD/CAD': {
-        tendencia:'ALCISTA', volatilidad:'BAJA', sesgo:'alcista',
-        sesgDir:'🟢 ALCISTA — Continuación',sesgDesc:'AUD/CAD continúa canal alcista. CPI Australia el miércoles 8 oct es el catalizador. Si el CPI sale alto, el AUD se fortalece y el par sube.',
-        probUp:58, probDown:42, zonaActual:'.750 / .000',
-        noticias:['CPI Australia'],
-        estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en continuación alcista',zona:'0.9770 – 0.9800',zonaDesc:'Zona .750/.000 AUD — soporte del canal. CPI Australia el miércoles es el catalizador',sl:'0.9720',tp:'0.9900'},
-        niveles:[
-          {tag:'res',price:'0.9900',desc:'Target alcista próxima semana',explain:'Target. Toma ganancias aquí.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},
-          {tag:'sop',price:'0.9780',desc:'Zona de entrada AR',explain:'Zona de entrada. CPI Australia puede catalizar el movimiento.',rec:'compra',recLabel:'→ AR — ENTRADA'},
-          {tag:'sop',price:'0.9720',desc:'Soporte — SL',explain:'Si rompe, el setup queda invalidado.',rec:'cuidado',recLabel:'⚠ SL AQUÍ'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'0.9770–0.9800',sl:'0.9720',tp:'0.9900',dir:'compra',nota:'CPI Australia el miércoles es el catalizador. AUD puede ganar terreno si el CPI sale alto.'}],
-        macro:'CPI Australia es el evento clave para este par. Si el CPI sale alto, la RBA podría subir más → AUD fuerte.',
-        finviz:{AUD:'down',CAD:'down'},
-      },
-      'EUR/NZD': {
-        tendencia:'ALCISTA', volatilidad:'MEDIA', sesgo:'alcista',
-        sesgDir:'🟢 ALCISTA — RBNZ es el catalizador',sesgDesc:'EUR/NZD puede subir fuerte si el RBNZ decepciona el miércoles. Si el RBNZ no sube o el guidance es dovish, el NZD cae y el EUR/NZD sube hacia 2.00.',
-        probUp:62, probDown:38, zonaActual:'.000 / .750',
-        noticias:['RBNZ Decision'],
-        estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra por debilidad del NZD (RBNZ)',zona:'1.9650 – 1.9700',zonaDesc:'Zona .500/.000 — soporte psicológico. Espera el RBNZ antes de entrar',sl:'1.9550',tp:'1.9900'},
-        niveles:[
-          {tag:'res',price:'2.0000',desc:'Zona .000 — target psicológico',explain:'Nivel .000 muy importante. Alta probabilidad de pausa aquí.',rec:'observar',recLabel:'→ OBSERVAR REACCIÓN'},
-          {tag:'sop',price:'1.9650',desc:'Zona de entrada AR',explain:'Zona de entrada. Espera resultado RBNZ.',rec:'compra',recLabel:'→ AR — ENTRADA'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'1.9650–1.9700',sl:'1.9550',tp:'1.9900',dir:'compra',nota:'RBNZ el miércoles 8 oct es el catalizador. Si decepciona, el NZD cae y este par sube.'}],
-        macro:'RBNZ es el catalizador principal. Dovish surprise → NZD cae → EUR/NZD sube fuerte.',
-        finviz:{EUR:'down',NZD:'down'},
-      },
-      'GBP/USD': {
-        tendencia:'BAJISTA', volatilidad:'ALTA', sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA — BoE el jueves',sesgDesc:'GBP/USD continúa bajista. BoE el jueves 9 oct — hold esperado en 5%. FOMC Minutes el miércoles pueden fortalecer aún más al USD.',
-        probUp:35, probDown:65, zonaActual:'.250 / .000',
-        noticias:['BoE Decision','FOMC Minutes'],
-        estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'1.3200 – 1.3230',zonaDesc:'Zona .200/.250 GBP — resistencia. Orden Limit de venta antes del BoE',sl:'1.3290',tp:'1.3050'},
-        niveles:[
-          {tag:'res',price:'1.3230',desc:'Resistencia semana',explain:'Zona de venta. FOMC Minutes pueden presionar al GBP.',rec:'venta',recLabel:'→ BR — ENTRADA'},
-          {tag:'sop',price:'1.3050',desc:'Target bajista',explain:'Target de la semana. Zona .000/.050.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'1.3200–1.3230',sl:'1.3290',tp:'1.3050',dir:'venta',nota:'FOMC Minutes mié + BoE jue son los catalizadores de la semana.'}],
-        macro:'Doble catalizador: FOMC Minutes (USD) y BoE (GBP). Si el BoE es dovish, el GBP cae más fuerte.',
-        finviz:{GBP:'down',USD:'up'},
-      },
-      'EUR/USD': {
-        tendencia:'BAJISTA', volatilidad:'ALTA', sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA',sesgDesc:'EUR/USD continúa bajista. FOMC Minutes el miércoles 8 oct pueden confirmar más subas de la Fed → USD más fuerte → EUR más débil.',
-        probUp:32, probDown:68, zonaActual:'.000 / .250',
-        noticias:['FOMC Minutes','US PPI'],
-        estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'1.1380 – 1.1420',zonaDesc:'Zona .000/.500 EUR — resistencia. Orden Limit de venta. FOMC Minutes es el catalizador',sl:'1.1480',tp:'1.1220'},
-        niveles:[
-          {tag:'res',price:'1.1420',desc:'Resistencia semana',explain:'Zona de venta. FOMC Minutes pueden presionar al EUR.',rec:'venta',recLabel:'→ BR — ENTRADA'},
-          {tag:'sop',price:'1.1250',desc:'Zona .250 EUR — soporte/target',explain:'Target bajista. Zona .250 muy respetada.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'1.1380–1.1420',sl:'1.1480',tp:'1.1220',dir:'venta',nota:'FOMC Minutes el miércoles es el catalizador principal para el USD.'}],
-        macro:'FOMC Minutes confirmarán o negarán el sesgo hawkish de la Fed. Si es hawkish → EUR/USD baja fuerte.',
-        finviz:{EUR:'down',USD:'up'},
-      },
-      'USD/CAD': {
-        tendencia:'ALCISTA', volatilidad:'MEDIA', sesgo:'alcista',
-        sesgDir:'🟢 ALCISTA',sesgDesc:'USD/CAD continúa alcista. FOMC Minutes el miércoles 8 oct pueden fortalecer al USD. El CAD sigue débil por perspectivas económicas canadienses.',
-        probUp:62, probDown:38, zonaActual:'.000 / .500',
-        noticias:['FOMC Minutes'],
-        estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en continuación alcista',zona:'1.4130 – 1.4160',zonaDesc:'Zona .000/.500 — soporte. Orden Limit de compra. FOMC Minutes el catalizador',sl:'1.4080',tp:'1.4310'},
-        niveles:[
-          {tag:'res',price:'1.4310',desc:'Target alcista',explain:'Target de la semana. Toma ganancias aquí.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},
-          {tag:'sop',price:'1.4140',desc:'Zona de entrada AR',explain:'Zona de entrada. FOMC Minutes pueden catalizar el movimiento al alza.',rec:'compra',recLabel:'→ AR — ENTRADA'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'1.4130–1.4160',sl:'1.4080',tp:'1.4310',dir:'compra',nota:'FOMC Minutes el miércoles son el catalizador. USD puede ganar terreno si el tono es hawkish.'}],
-        macro:'USD sigue fuerte. CAD sigue débil. FOMC Minutes pueden acelerar el movimiento alcista.',
-        finviz:{USD:'up',CAD:'down'},
-      },
-      'EUR/CAD': {
-        tendencia:'LATERAL', volatilidad:'BAJA', sesgo:'neutral',
-        sesgDir:'🟡 NEUTRAL — Rango',sesgDesc:'EUR/CAD continúa en rango. Sin catalizador claro la próxima semana que favorezca a una divisa sobre la otra. Mejor evitar.',
-        probUp:48, probDown:52, zonaActual:'.000 / .500',
-        noticias:['Ninguna directa'],
-        estrategias:{AR:'evitar',BR:'posible',CR:'evitar',DR:'evitar'},
-        rec:{accion:'ESPERAR',color:'yellow',estrategia:'Sin setup claro — rango sin dirección',zona:'Techo: 1.6280 – 1.6300',zonaDesc:'Solo entrar si el precio llega al extremo del rango con señal clara.',sl:'1.6360',tp:'1.6050'},
-        niveles:[
-          {tag:'res',price:'1.6300',desc:'Techo del rango',explain:'Única entrada viable. Busca señal bajista.',rec:'venta',recLabel:'→ EVALUAR BR EN TECHO'},
-          {tag:'sop',price:'1.6050',desc:'Base del rango',explain:'Soporte del rango. Evalúa DR con señal.',rec:'compra',recLabel:'→ EVALUAR DR EN BASE'},
-        ],
-        setup:[],
-        macro:'Par sin dirección. Prioriza otros pares con catalizadores claros la próxima semana.',
-        finviz:{EUR:'down',CAD:'down'},
-      },
-      'GBP/JPY': {
-        tendencia:'ALCISTA', volatilidad:'MUY ALTA', sesgo:'alcista',
-        sesgDir:'🟢 ALCISTA — BoE + JPY débil',sesgDesc:'GBP/JPY alcista por diferencial BoE (5%) vs BoJ (1%). BoE el jueves 9 oct puede impulsar al GBP. Es el par más volátil.',
-        probUp:58, probDown:42, zonaActual:'.500 JPY',
-        noticias:['BoE Decision'],
-        estrategias:{AR:'posible',BR:'evitar',CR:'posible',DR:'evitar'},
-        rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en retroceso antes del BoE',zona:'205.00 – 205.50',zonaDesc:'Zona .000/.500 JPY — soporte. Entrar antes del BoE con orden Limit',sl:'204.40',tp:'207.50'},
-        niveles:[
-          {tag:'res',price:'207.50',desc:'Target alcista',explain:'Target. BoE hawkish puede impulsar hasta acá.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},
-          {tag:'sop',price:'205.00',desc:'Zona de entrada AR',explain:'Zona de entrada. Entrar antes del BoE.',rec:'compra',recLabel:'→ AR — ENTRADA'},
-        ],
-        setup:[{tipo:'AR (Compra)',entrada:'205.00–205.50',sl:'204.40',tp:'207.50',dir:'compra',nota:'BoE el jueves 9 oct. Si es hawkish o neutral, el GBP puede subir fuerte.'}],
-        macro:'BoE es el catalizador. Hawkish BoE → GBP sube → GBP/JPY sube fuerte. Par muy volátil.',
-        finviz:{GBP:'down',JPY:'down'},
-      },
-      'AUD/JPY': {
-        tendencia:'BAJISTA', volatilidad:'MEDIA', sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA',sesgDesc:'AUD/JPY continúa bajista. CPI Australia el miércoles 8 oct es el catalizador. Si el CPI sale bajo, el AUD cae y el par baja más.',
-        probUp:38, probDown:62, zonaActual:'.500 JPY',
-        noticias:['CPI Australia'],
-        estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'99.50 – 100.00',zonaDesc:'Zona .000/.500 JPY — resistencia. Espera resultado CPI Australia',sl:'100.50',tp:'97.00'},
-        niveles:[
-          {tag:'res',price:'100.00',desc:'Zona .000 JPY',explain:'Nivel .000 más importante. Alta probabilidad de rechazo.',rec:'venta',recLabel:'→ BR CON SEÑAL'},
-          {tag:'sop',price:'97.00',desc:'Target bajista',explain:'Target de la semana. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'99.50–100.00',sl:'100.50',tp:'97.00',dir:'venta',nota:'CPI Australia el miércoles 8 oct define la dirección.'}],
-        macro:'CPI Australia el miércoles es el catalizador. Si sale bajo → AUD cae → AUD/JPY baja.',
-        finviz:{AUD:'down',JPY:'down'},
-      },
-      'NZD/USD': {
-        tendencia:'BAJISTA', volatilidad:'ALTA', sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA — RBNZ es el catalizador',sesgDesc:'NZD/USD bajo presión. RBNZ el miércoles 8 oct — si sube pero guidance dovish, el NZD cae. FOMC Minutes también presionan al par.',
-        probUp:35, probDown:65, zonaActual:'.000 / .250',
-        noticias:['RBNZ Decision','FOMC Minutes'],
-        estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},
-        rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'0.6180 – 0.6220',zonaDesc:'Zona .000/.250 NZD — resistencia. Espera resultado RBNZ antes de entrar',sl:'0.6270',tp:'0.6020'},
-        niveles:[
-          {tag:'res',price:'0.6220',desc:'Resistencia semana',explain:'Zona de venta. RBNZ puede presionar al NZD a la baja.',rec:'venta',recLabel:'→ BR — ENTRADA'},
-          {tag:'sop',price:'0.6000',desc:'Zona .000 — target',explain:'Target bajista. Nivel .000 muy respetado.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'BR (Venta)',entrada:'0.6180–0.6220',sl:'0.6270',tp:'0.6020',dir:'venta',nota:'RBNZ el miércoles 8 oct. Si guidance dovish → NZD cae fuerte.'}],
-        macro:'RBNZ y FOMC Minutes son los catalizadores. Ambos pueden presionar al NZD/USD a la baja.',
-        finviz:{NZD:'down',USD:'up'},
-      },
-      'EUR/JPY': {
-        tendencia:'BAJISTA', volatilidad:'ALTA', sesgo:'bajista',
-        sesgDir:'🔴 BAJISTA',sesgDesc:'EUR/JPY continúa bajista. FOMC Minutes el miércoles pueden fortalecer al USD y debilitar al EUR indirectamente. Sin catalizador directo para JPY.',
-        probUp:40, probDown:60, zonaActual:'.500 JPY',
-        noticias:['FOMC Minutes'],
-        estrategias:{AR:'evitar',BR:'recomendada',CR:'posible',DR:'evitar'},
-        rec:{accion:'VENTA',color:'red',estrategia:'CR — Venta contra-tendencia en resistencia',zona:'161.50 – 162.00',zonaDesc:'Zona .500/.000 JPY — resistencia. Espera señal de vela bajista',sl:'162.50',tp:'159.00'},
-        niveles:[
-          {tag:'res',price:'162.00',desc:'Zona .000 JPY',explain:'Resistencia psicológica fuerte. Entrada CR con señal.',rec:'venta',recLabel:'→ CR — ENTRADA'},
-          {tag:'sop',price:'159.00',desc:'Target bajista',explain:'Target. Toma ganancias aquí.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'},
-        ],
-        setup:[{tipo:'CR (Venta)',entrada:'161.50–162.00',sl:'162.50',tp:'159.00',dir:'venta',nota:'Espera señal clara de vela bajista. No entrar sin confirmación.'}],
-        macro:'EUR débil por Fed hawkish. JPY débil por BoJ dovish. La combinación crea movimientos volátiles.',
-        finviz:{EUR:'down',JPY:'down'},
-      },
-      'GBP/CAD': {
-        tendencia:'LATERAL', volatilidad:'MEDIA', sesgo:'neutral',
-        sesgDir:'🟡 NEUTRAL — Evitar',sesgDesc:'GBP/CAD sin dirección clara. El BoE el jueves puede darle algo de momentum al GBP pero no es suficiente para una operación clara.',
-        probUp:50, probDown:50, zonaActual:'.000 / .500',
-        noticias:['BoE Decision'],
-        estrategias:{AR:'evitar',BR:'evitar',CR:'evitar',DR:'evitar'},
-        rec:{accion:'ESPERAR',color:'yellow',estrategia:'Sin setup claro — no operar',zona:'Sin zona clara',zonaDesc:'Par sin dirección. Prioriza otros pares con catalizadores más claros.',sl:'—',tp:'—'},
-        niveles:[
-          {tag:'res',price:'1.7500',desc:'Resistencia del rango',explain:'Solo relevante si el BoE sorprende al alza.',rec:'observar',recLabel:'→ OBSERVAR'},
-        ],
-        setup:[],
-        macro:'Sin setup claro. El BoE el jueves puede mover al GBP pero no hay dirección definida vs CAD.',
-        finviz:{GBP:'down',CAD:'down'},
-      },
+      'AUD/USD':{tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'AUD sigue bajo presión después del RBA. CPI Australia el miércoles 8 oct es el próximo catalizador clave.',probUp:38,probDown:62,zonaActual:'.750 / .000',noticias:['CPI Australia','FOMC Minutes'],estrategias:{AR:'posible',BR:'recomendada',CR:'evitar',DR:'posible'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'0.6920 – 0.6950',zonaDesc:'Zona .750 / resistencia — orden Limit de venta. CPI el miércoles acelera.',sl:'0.6990',tp:'0.6770'},niveles:[{tag:'res',price:'0.6950',desc:'Resistencia principal',explain:'Zona de venta. Entrada BR con señal.',rec:'venta',recLabel:'→ BR — ENTRADA'},{tag:'psi',price:'0.6875',desc:'Zona .875 AUD',explain:'Soporte psicológico. Mover SL aquí.',rec:'observar',recLabel:'→ MOVER SL'},{tag:'sop',price:'0.6750',desc:'Zona .750 AUD — target',explain:'Target de la semana.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'BR (Venta)',entrada:'0.6920–0.6950',sl:'0.6990',tp:'0.6770',dir:'venta',nota:'CPI Australia miércoles 8 oct es el evento clave.'}],macro:'CPI Australia define la dirección del AUD. FOMC Minutes confirmarán sesgo hawkish Fed.',finviz:{AUD:'down',USD:'up'}},
+      'USD/JPY':{tendencia:'ALCISTA',volatilidad:'MUY ALTA',sesgo:'alcista',sesgDir:'⚠️ ALCISTA — Riesgo intervención',sesgDesc:'USD/JPY continúa uptrend. FOMC Minutes el miércoles pueden impulsar al USD. Riesgo de intervención en 162+.',probUp:58,probDown:42,zonaActual:'.500 JPY',noticias:['FOMC Minutes'],estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en pullback (NO en 162+)',zona:'160.50 – 161.00',zonaDesc:'Zona .500/.000 JPY — espera pullback. FOMC Minutes el catalizador.',sl:'160.00',tp:'162.00'},niveles:[{tag:'res',price:'162.50',desc:'Zona intervención MoF',explain:'Riesgo de intervención extremo.',rec:'cuidado',recLabel:'⚠ EVITAR'},{tag:'sop',price:'160.50',desc:'Soporte clave — entrada AR',explain:'Mejor punto de entrada AR.',rec:'compra',recLabel:'→ AR — MEJOR ENTRADA'}],setup:[{tipo:'AR (Compra)',entrada:'160.50–161.00',sl:'160.00',tp:'162.00',dir:'compra',nota:'FOMC Minutes el miércoles es el catalizador.'}],macro:'Fed hawkish vs BoJ dovish. FOMC Minutes definirán el momentum.',finviz:{USD:'up',JPY:'down'}},
+      'CHF/JPY':{tendencia:'ALCISTA',volatilidad:'MEDIA',sesgo:'alcista',sesgDir:'🟢 ALCISTA — Continuación',sesgDesc:'Si CHF/JPY llegó a 202.30 esta semana, la próxima puede haber re-acumulación antes de continuar.',probUp:62,probDown:38,zonaActual:'.000 / .500',noticias:['Ninguna directa'],estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en re-acumulación',zona:'201.00 – 201.50',zonaDesc:'Zona .000/.500 JPY — soporte tras toma de ganancias.',sl:'200.40',tp:'203.50'},niveles:[{tag:'res',price:'203.50',desc:'Target próxima semana',explain:'Target alcista.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},{tag:'sop',price:'201.00',desc:'Zona de entrada AR',explain:'Re-acumulación. Entrada AR con señal.',rec:'compra',recLabel:'→ AR — ENTRADA'}],setup:[{tipo:'AR (Compra)',entrada:'201.00–201.50',sl:'200.40',tp:'203.50',dir:'compra',nota:'Depende de si el par llegó al target 202.30 esta semana.'}],macro:'Sin noticias directas. Diferencial CHF/JPY structuralmente favorable.',finviz:{CHF:'up',JPY:'down'}},
+      'EUR/GBP':{tendencia:'BAJISTA',volatilidad:'BAJA',sesgo:'bajista',sesgDir:'🔴 BAJISTA — BoE el jueves',sesgDesc:'EUR/GBP bajista. BoE decide el jueves 9 oct. Si es hawkish, la libra sube y el par baja más.',probUp:38,probDown:62,zonaActual:'.500 / .750',noticias:['BoE Decision'],estrategias:{AR:'evitar',BR:'posible',CR:'recomendada',DR:'evitar'},rec:{accion:'VENTA',color:'red',estrategia:'CR — Venta contra-tendencia',zona:'0.8650 – 0.8680',zonaDesc:'Zona .500/.750 GBP — resistencia. BoE el jueves puede acelerar la caída.',sl:'0.8720',tp:'0.8520'},niveles:[{tag:'res',price:'0.8680',desc:'Resistencia — zona .500',explain:'Zona de venta antes del BoE.',rec:'venta',recLabel:'→ CR — ENTRADA'},{tag:'sop',price:'0.8520',desc:'Target bajista',explain:'Target de la semana.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'CR (Venta)',entrada:'0.8650–0.8680',sl:'0.8720',tp:'0.8520',dir:'venta',nota:'BoE el jueves 9 oct. Hawkish BoE → GBP sube → par baja.'}],macro:'BoE el jueves es el catalizador. Hold esperado pero tono hawkish impulsa al GBP.',finviz:{EUR:'down',GBP:'down'}},
+      'NZD/JPY':{tendencia:'BAJISTA',volatilidad:'MEDIA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'NZD/JPY continúa bajista. RBNZ el miércoles 8 oct — si sube pero guidance dovish, el NZD cae fuerte.',probUp:35,probDown:65,zonaActual:'.500 JPY',noticias:['RBNZ Decision'],estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'evitar'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'91.50 – 92.00',zonaDesc:'Zona .500 JPY — resistencia. Espera resultado RBNZ.',sl:'92.50',tp:'89.50'},niveles:[{tag:'res',price:'92.00',desc:'Zona .000 JPY',explain:'Resistencia. Entrada BR principal.',rec:'venta',recLabel:'→ BR — ENTRADA'},{tag:'sop',price:'90.00',desc:'Zona .000 JPY — target',explain:'Target bajista.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'BR (Venta)',entrada:'91.50–92.00',sl:'92.50',tp:'89.50',dir:'venta',nota:'RBNZ el miércoles 8 oct es el evento clave.'}],macro:'RBNZ es el catalizador. Dovish guidance → NZD cae fuerte.',finviz:{NZD:'down',JPY:'down'}},
+      'AUD/CAD':{tendencia:'ALCISTA',volatilidad:'BAJA',sesgo:'alcista',sesgDir:'🟢 ALCISTA — Continuación',sesgDesc:'AUD/CAD continúa canal alcista. CPI Australia el miércoles es el catalizador.',probUp:58,probDown:42,zonaActual:'.750 / .000',noticias:['CPI Australia'],estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en continuación alcista',zona:'0.9770 – 0.9800',zonaDesc:'Zona .750/.000 AUD — soporte. CPI Australia el catalizador.',sl:'0.9720',tp:'0.9900'},niveles:[{tag:'res',price:'0.9900',desc:'Target alcista',explain:'Target.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},{tag:'sop',price:'0.9780',desc:'Zona de entrada AR',explain:'Zona de entrada.',rec:'compra',recLabel:'→ AR — ENTRADA'}],setup:[{tipo:'AR (Compra)',entrada:'0.9770–0.9800',sl:'0.9720',tp:'0.9900',dir:'compra',nota:'CPI Australia el miércoles es el catalizador.'}],macro:'CPI Australia es el evento clave. AUD puede ganar si el CPI sale alto.',finviz:{AUD:'down',CAD:'down'}},
+      'EUR/CAD':{tendencia:'LATERAL',volatilidad:'BAJA',sesgo:'neutral',sesgDir:'🟡 NEUTRAL — Rango',sesgDesc:'EUR/CAD continúa en rango. Sin catalizador claro la próxima semana.',probUp:48,probDown:52,zonaActual:'.000 / .500',noticias:['Ninguna directa'],estrategias:{AR:'evitar',BR:'posible',CR:'evitar',DR:'evitar'},rec:{accion:'ESPERAR',color:'yellow',estrategia:'Sin setup claro',zona:'Techo: 1.6280 – 1.6300',zonaDesc:'Solo entrar en extremo del rango con señal clara.',sl:'1.6360',tp:'1.6050'},niveles:[{tag:'res',price:'1.6300',desc:'Techo del rango',explain:'Única entrada viable.',rec:'venta',recLabel:'→ EVALUAR BR'},{tag:'sop',price:'1.6050',desc:'Base del rango',explain:'Evalúa DR con señal.',rec:'compra',recLabel:'→ EVALUAR DR'}],setup:[],macro:'Par sin dirección. Prioriza otros pares con catalizadores claros.',finviz:{EUR:'down',CAD:'down'}},
+      'EUR/NZD':{tendencia:'ALCISTA',volatilidad:'MEDIA',sesgo:'alcista',sesgDir:'🟢 ALCISTA — RBNZ es el catalizador',sesgDesc:'EUR/NZD puede subir fuerte si el RBNZ decepciona el miércoles.',probUp:62,probDown:38,zonaActual:'.000 / .750',noticias:['RBNZ Decision'],estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra por debilidad del NZD (RBNZ)',zona:'1.9650 – 1.9700',zonaDesc:'Zona .500/.000 — soporte. Espera resultado RBNZ.',sl:'1.9550',tp:'1.9900'},niveles:[{tag:'res',price:'2.0000',desc:'Zona .000 — target',explain:'Nivel .000 muy importante.',rec:'observar',recLabel:'→ OBSERVAR'},{tag:'sop',price:'1.9650',desc:'Zona de entrada AR',explain:'Espera resultado RBNZ.',rec:'compra',recLabel:'→ AR — ENTRADA'}],setup:[{tipo:'AR (Compra)',entrada:'1.9650–1.9700',sl:'1.9550',tp:'1.9900',dir:'compra',nota:'RBNZ el miércoles 8 oct. Dovish surprise → NZD cae → par sube.'}],macro:'RBNZ es el catalizador principal. Dovish → NZD cae → EUR/NZD sube fuerte.',finviz:{EUR:'down',NZD:'down'}},
+      'GBP/USD':{tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',sesgDir:'🔴 BAJISTA — BoE el jueves',sesgDesc:'GBP/USD continúa bajista. BoE el jueves 9 oct. FOMC Minutes el miércoles.',probUp:35,probDown:65,zonaActual:'.250 / .000',noticias:['BoE Decision','FOMC Minutes'],estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'1.3200 – 1.3230',zonaDesc:'Zona .200/.250 GBP — resistencia. Orden Limit de venta.',sl:'1.3290',tp:'1.3050'},niveles:[{tag:'res',price:'1.3230',desc:'Resistencia semana',explain:'Zona de venta.',rec:'venta',recLabel:'→ BR — ENTRADA'},{tag:'sop',price:'1.3050',desc:'Target bajista',explain:'Target de la semana.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'BR (Venta)',entrada:'1.3200–1.3230',sl:'1.3290',tp:'1.3050',dir:'venta',nota:'FOMC Minutes mié + BoE jue son los catalizadores.'}],macro:'Doble catalizador: FOMC Minutes (USD) + BoE (GBP).',finviz:{GBP:'down',USD:'up'}},
+      'EUR/USD':{tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'EUR/USD continúa bajista. FOMC Minutes el miércoles pueden confirmar más subas Fed.',probUp:32,probDown:68,zonaActual:'.000 / .250',noticias:['FOMC Minutes','US PPI'],estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'1.1380 – 1.1420',zonaDesc:'Zona .000/.500 EUR — resistencia. FOMC Minutes es el catalizador.',sl:'1.1480',tp:'1.1220'},niveles:[{tag:'res',price:'1.1420',desc:'Resistencia semana',explain:'Zona de venta.',rec:'venta',recLabel:'→ BR — ENTRADA'},{tag:'sop',price:'1.1250',desc:'Zona .250 EUR — target',explain:'Target bajista.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'BR (Venta)',entrada:'1.1380–1.1420',sl:'1.1480',tp:'1.1220',dir:'venta',nota:'FOMC Minutes el miércoles es el catalizador principal.'}],macro:'FOMC Minutes confirmarán o negarán el sesgo hawkish.',finviz:{EUR:'down',USD:'up'}},
+      'USD/CAD':{tendencia:'ALCISTA',volatilidad:'MEDIA',sesgo:'alcista',sesgDir:'🟢 ALCISTA',sesgDesc:'USD/CAD continúa alcista. FOMC Minutes el miércoles pueden fortalecer al USD.',probUp:62,probDown:38,zonaActual:'.000 / .500',noticias:['FOMC Minutes'],estrategias:{AR:'recomendada',BR:'evitar',CR:'posible',DR:'evitar'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en continuación alcista',zona:'1.4130 – 1.4160',zonaDesc:'Zona .000/.500 — soporte. FOMC Minutes el catalizador.',sl:'1.4080',tp:'1.4310'},niveles:[{tag:'res',price:'1.4310',desc:'Target alcista',explain:'Target.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},{tag:'sop',price:'1.4140',desc:'Zona de entrada AR',explain:'Entrada.',rec:'compra',recLabel:'→ AR — ENTRADA'}],setup:[{tipo:'AR (Compra)',entrada:'1.4130–1.4160',sl:'1.4080',tp:'1.4310',dir:'compra',nota:'FOMC Minutes el miércoles son el catalizador.'}],macro:'USD sigue fuerte. CAD sigue débil.',finviz:{USD:'up',CAD:'down'}},
+      'GBP/JPY':{tendencia:'ALCISTA',volatilidad:'MUY ALTA',sesgo:'alcista',sesgDir:'🟢 ALCISTA — BoE + JPY débil',sesgDesc:'GBP/JPY alcista. BoE el jueves 9 oct puede impulsar al GBP.',probUp:58,probDown:42,zonaActual:'.500 JPY',noticias:['BoE Decision'],estrategias:{AR:'posible',BR:'evitar',CR:'posible',DR:'evitar'},rec:{accion:'COMPRA',color:'green',estrategia:'AR — Compra en retroceso antes del BoE',zona:'205.00 – 205.50',zonaDesc:'Zona .000/.500 JPY — soporte. Entrar antes del BoE.',sl:'204.40',tp:'207.50'},niveles:[{tag:'res',price:'207.50',desc:'Target alcista',explain:'BoE hawkish puede impulsar hasta acá.',rec:'venta',recLabel:'→ TOMAR GANANCIAS'},{tag:'sop',price:'205.00',desc:'Zona de entrada AR',explain:'Entrar antes del BoE.',rec:'compra',recLabel:'→ AR — ENTRADA'}],setup:[{tipo:'AR (Compra)',entrada:'205.00–205.50',sl:'204.40',tp:'207.50',dir:'compra',nota:'BoE el jueves 9 oct. Hawkish → GBP sube fuerte.'}],macro:'BoE es el catalizador. Par muy volátil.',finviz:{GBP:'down',JPY:'down'}},
+      'AUD/JPY':{tendencia:'BAJISTA',volatilidad:'MEDIA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'AUD/JPY continúa bajista. CPI Australia el miércoles 8 oct es el catalizador.',probUp:38,probDown:62,zonaActual:'.500 JPY',noticias:['CPI Australia'],estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'99.50 – 100.00',zonaDesc:'Zona .000/.500 JPY — resistencia. Espera CPI Australia.',sl:'100.50',tp:'97.00'},niveles:[{tag:'res',price:'100.00',desc:'Zona .000 JPY',explain:'Nivel .000 más importante.',rec:'venta',recLabel:'→ BR CON SEÑAL'},{tag:'sop',price:'97.00',desc:'Target bajista',explain:'Target.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'BR (Venta)',entrada:'99.50–100.00',sl:'100.50',tp:'97.00',dir:'venta',nota:'CPI Australia el miércoles 8 oct define la dirección.'}],macro:'CPI Australia bajo → AUD cae → AUD/JPY baja.',finviz:{AUD:'down',JPY:'down'}},
+      'NZD/USD':{tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',sesgDir:'🔴 BAJISTA — RBNZ es el catalizador',sesgDesc:'NZD/USD bajo presión. RBNZ el miércoles + FOMC Minutes.',probUp:35,probDown:65,zonaActual:'.000 / .250',noticias:['RBNZ Decision','FOMC Minutes'],estrategias:{AR:'evitar',BR:'recomendada',CR:'evitar',DR:'posible'},rec:{accion:'VENTA',color:'red',estrategia:'BR — Venta en tendencia bajista',zona:'0.6180 – 0.6220',zonaDesc:'Zona .000/.250 NZD — resistencia. Espera RBNZ.',sl:'0.6270',tp:'0.6020'},niveles:[{tag:'res',price:'0.6220',desc:'Resistencia semana',explain:'Zona de venta.',rec:'venta',recLabel:'→ BR — ENTRADA'},{tag:'sop',price:'0.6000',desc:'Zona .000 — target',explain:'Target.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'BR (Venta)',entrada:'0.6180–0.6220',sl:'0.6270',tp:'0.6020',dir:'venta',nota:'RBNZ el miércoles 8 oct. Dovish guidance → NZD cae.'}],macro:'RBNZ y FOMC Minutes presionan al NZD/USD a la baja.',finviz:{NZD:'down',USD:'up'}},
+      'EUR/JPY':{tendencia:'BAJISTA',volatilidad:'ALTA',sesgo:'bajista',sesgDir:'🔴 BAJISTA',sesgDesc:'EUR/JPY continúa bajista. FOMC Minutes el miércoles.',probUp:40,probDown:60,zonaActual:'.500 JPY',noticias:['FOMC Minutes'],estrategias:{AR:'evitar',BR:'recomendada',CR:'posible',DR:'evitar'},rec:{accion:'VENTA',color:'red',estrategia:'CR — Venta en resistencia',zona:'161.50 – 162.00',zonaDesc:'Zona .500/.000 JPY — resistencia. Señal de vela bajista requerida.',sl:'162.50',tp:'159.00'},niveles:[{tag:'res',price:'162.00',desc:'Zona .000 JPY',explain:'Resistencia psicológica fuerte.',rec:'venta',recLabel:'→ CR — ENTRADA'},{tag:'sop',price:'159.00',desc:'Target bajista',explain:'Target.',rec:'compra',recLabel:'→ TOMAR GANANCIAS'}],setup:[{tipo:'CR (Venta)',entrada:'161.50–162.00',sl:'162.50',tp:'159.00',dir:'venta',nota:'Espera señal clara antes de entrar.'}],macro:'EUR débil. JPY débil. FOMC Minutes pueden mover el par.',finviz:{EUR:'down',JPY:'down'}},
+      'GBP/CAD':{tendencia:'LATERAL',volatilidad:'MEDIA',sesgo:'neutral',sesgDir:'🟡 NEUTRAL — Evitar',sesgDesc:'GBP/CAD sin dirección. BoE el jueves puede dar algo de momentum pero no suficiente.',probUp:50,probDown:50,zonaActual:'.000 / .500',noticias:['BoE Decision'],estrategias:{AR:'evitar',BR:'evitar',CR:'evitar',DR:'evitar'},rec:{accion:'ESPERAR',color:'yellow',estrategia:'Sin setup claro — no operar',zona:'Sin zona clara',zonaDesc:'Prioriza otros pares con catalizadores más claros.',sl:'—',tp:'—'},niveles:[{tag:'res',price:'1.7500',desc:'Resistencia del rango',explain:'Solo relevante si el BoE sorprende.',rec:'observar',recLabel:'→ OBSERVAR'}],setup:[],macro:'Sin setup claro.',finviz:{GBP:'down',CAD:'down'}},
     }
   }
 };
-
-// ─── UI FUNCTIONS ─────────────────────────────────────────────────────────────
 
 function setWeek(week) {
   currentWeek = week;
   document.getElementById('btnEsta').classList.toggle('active', week === 'esta');
   document.getElementById('btnProx').classList.toggle('active', week === 'proxima');
   document.getElementById('result').style.display = 'none';
-  if (selectedPair) analyzePair();
 }
 
 function initGrid() {
@@ -869,7 +423,6 @@ function initGrid() {
 }
 
 async function fetchLiveData(pair) {
-  const symbol = pair.replace('/', '_');
   try {
     const [priceRes, rsiRes, ema20Res, ema50Res, atrRes] = await Promise.all([
       fetch(`https://api.twelvedata.com/price?symbol=${pair}&apikey=${API_KEY}`),
@@ -889,7 +442,7 @@ async function fetchLiveData(pair) {
       atr: atrData.values ? atrData.values[0].atr : null,
     };
   } catch(e) {
-    return {price:null, rsi:null, ema20:null, ema50:null, atr:null};
+    return {price:null,rsi:null,ema20:null,ema50:null,atr:null};
   }
 }
 
@@ -915,15 +468,15 @@ async function analyzePair() {
   const weekData = WEEKLY_DATA[currentWeek];
   const d = weekData.pairs[selectedPair] || weekData.pairs['EUR/USD'];
   const noticias_semana = weekData.noticias_semana;
-  const weekLabel = weekData.label;
 
-  // Update noticias title
-  document.getElementById('noticiasTitle').textContent = `Noticias — ${weekLabel}`;
+  document.getElementById('noticiasTitle').textContent = `Noticias — ${weekData.label}`;
 
-  // Live price
+  // Live
   document.getElementById('livePair').textContent = selectedPair;
+  const isJPY = selectedPair.includes('JPY');
+  const decimals = isJPY ? 3 : 5;
   if (liveData.price) {
-    document.getElementById('livePrice').textContent = parseFloat(liveData.price).toFixed(selectedPair.includes('JPY') ? 3 : 5);
+    document.getElementById('livePrice').textContent = parseFloat(liveData.price).toFixed(decimals);
     const aboveEma = liveData.ema20 && parseFloat(liveData.price) > parseFloat(liveData.ema20);
     document.getElementById('liveChange').textContent = aboveEma ? '▲ Por encima EMA20' : '▼ Por debajo EMA20';
     document.getElementById('liveChange').className = 'live-change ' + (aboveEma ? 'up' : 'down');
@@ -932,18 +485,13 @@ async function analyzePair() {
     document.getElementById('liveChange').textContent = '';
   }
 
-  // Indicators
   const rsi = liveData.rsi ? parseFloat(liveData.rsi).toFixed(1) : '--';
-  const ema20 = liveData.ema20 ? parseFloat(liveData.ema20).toFixed(selectedPair.includes('JPY') ? 3 : 5) : '--';
-  const ema50 = liveData.ema50 ? parseFloat(liveData.ema50).toFixed(selectedPair.includes('JPY') ? 3 : 5) : '--';
-  const atr = liveData.atr ? parseFloat(liveData.atr).toFixed(selectedPair.includes('JPY') ? 3 : 5) : '--';
   document.getElementById('indRSI').textContent = rsi;
   document.getElementById('indRSI').style.color = rsi !== '--' ? (parseFloat(rsi) > 70 ? 'var(--red)' : parseFloat(rsi) < 30 ? 'var(--green)' : 'var(--text)') : 'var(--muted)';
-  document.getElementById('indEMA20').textContent = ema20;
-  document.getElementById('indEMA50').textContent = ema50;
-  document.getElementById('indATR').textContent = atr;
+  document.getElementById('indEMA20').textContent = liveData.ema20 ? parseFloat(liveData.ema20).toFixed(decimals) : '--';
+  document.getElementById('indEMA50').textContent = liveData.ema50 ? parseFloat(liveData.ema50).toFixed(decimals) : '--';
+  document.getElementById('indATR').textContent = liveData.atr ? parseFloat(liveData.atr).toFixed(decimals) : '--';
 
-  // Zona cercana alert
   const zonaAlert = document.getElementById('zonaAlert');
   const zonaCercana = checkZonaCercana(liveData.price, d.niveles);
   if (zonaCercana) {
@@ -953,10 +501,9 @@ async function analyzePair() {
     zonaAlert.style.display = 'none';
   }
 
-  // Recomendación principal
   const r = d.rec;
-  const colorMap = {green:'var(--green)', red:'var(--red)', yellow:'var(--yellow)'};
-  const bgMap = {green:'rgba(0,229,160,0.07)', red:'rgba(255,64,96,0.07)', yellow:'rgba(255,209,102,0.07)'};
+  const colorMap = {green:'var(--green)',red:'var(--red)',yellow:'var(--yellow)'};
+  const bgMap = {green:'rgba(0,229,160,0.07)',red:'rgba(255,64,96,0.07)',yellow:'rgba(255,209,102,0.07)'};
   const rb = document.getElementById('recBox');
   rb.style.borderColor = colorMap[r.color];
   rb.style.background = bgMap[r.color];
@@ -969,23 +516,18 @@ async function analyzePair() {
   document.getElementById('recSL').textContent = r.sl;
   document.getElementById('recTP').textContent = r.tp;
 
-  // Warning noticias rojas
   const redNews = d.noticias.filter(n => noticias_semana[n] && noticias_semana[n].color === 'rojo');
   const wb = document.getElementById('warningBox');
   if (redNews.length > 0) {
     wb.style.display = 'block';
-    document.getElementById('warningText').textContent = `Hay ${redNews.length} noticias rojas que afectan este par: ${redNews.join(', ')}. Evalúa cerrar órdenes abiertas antes de los eventos.`;
-  } else {
-    wb.style.display = 'none';
-  }
+    document.getElementById('warningText').textContent = `${redNews.length} noticias rojas afectan este par: ${redNews.join(', ')}. Evalúa cerrar órdenes abiertas antes de los eventos.`;
+  } else { wb.style.display = 'none'; }
 
-  // Sesgo
   const sb = document.getElementById('sesgBox');
   sb.className = 'sesgo-box ' + d.sesgo;
   document.getElementById('sesgDir').textContent = d.sesgDir;
   document.getElementById('sesgDesc').textContent = d.sesgDesc;
 
-  // Métricas
   const tEl = document.getElementById('mTendencia');
   tEl.textContent = d.tendencia;
   tEl.className = 'metric-val ' + (d.tendencia==='ALCISTA'?'green':d.tendencia==='BAJISTA'?'red':'yellow');
@@ -994,10 +536,9 @@ async function analyzePair() {
   vEl.className = 'metric-val ' + (d.volatilidad.includes('MUY')?'red':d.volatilidad==='ALTA'?'yellow':'blue');
   document.getElementById('mZona').textContent = d.zonaActual;
 
-  // Estrategias
   const eg = document.getElementById('estrategiasGrid');
   eg.innerHTML = '';
-  const strats = {AR:{label:'AR',desc:'Compra alcista'}, BR:{label:'BR',desc:'Venta bajista'}, CR:{label:'CR',desc:'Venta contra-tend.'}, DR:{label:'DR',desc:'Compra contra-tend.'}};
+  const strats = {AR:{label:'AR',desc:'Compra alcista'},BR:{label:'BR',desc:'Venta bajista'},CR:{label:'CR',desc:'Venta contra-tend.'},DR:{label:'DR',desc:'Compra contra-tend.'}};
   Object.entries(strats).forEach(([k,v]) => {
     const tipo = d.estrategias[k] || 'evitar';
     const el = document.createElement('div');
@@ -1006,79 +547,51 @@ async function analyzePair() {
     eg.appendChild(el);
   });
 
-  // Probabilidad
   const pu = d.probUp, pd = d.probDown;
   document.getElementById('probUp').textContent = pu+'%';
   document.getElementById('probDown').textContent = pd+'%';
-  setTimeout(() => {
-    document.getElementById('barUp').style.width = pu+'%';
-    document.getElementById('barDown').style.width = pd+'%';
-  }, 100);
+  setTimeout(() => { document.getElementById('barUp').style.width = pu+'%'; document.getElementById('barDown').style.width = pd+'%'; }, 100);
   const mainProb = Math.max(pu,pd);
-  const sc = document.getElementById('scoreCircle');
   document.getElementById('scoreNum').textContent = mainProb+'%';
-  sc.className = 'score-circle ' + (mainProb>=65?'high':mainProb>=55?'med':'low');
+  document.getElementById('scoreCircle').className = 'score-circle ' + (mainProb>=65?'high':mainProb>=55?'med':'low');
 
-  // Setups
   const sc2 = document.getElementById('setupsContainer');
   sc2.innerHTML = '';
   if (!d.setup || d.setup.length === 0) {
     sc2.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0;">No hay setup claro esta semana. Mejor esperar o elegir otro par.</div>';
   } else {
     d.setup.forEach(s => {
-      sc2.innerHTML += `<div class="setup-box">
-        <div class="setup-header"><span class="setup-type">${s.tipo}</span><span class="setup-badge ${s.dir}">${s.dir.toUpperCase()}</span></div>
-        <div class="setup-row"><span>Entrada (Limit)</span><span>${s.entrada}</span></div>
-        <div class="setup-row"><span>Stop Loss (25 pips)</span><span>${s.sl}</span></div>
-        <div class="setup-row"><span>Take Profit (75 pips)</span><span>${s.tp}</span></div>
-        <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5;border-top:1px solid var(--border);padding-top:10px;">${s.nota}</div>
-      </div>`;
+      sc2.innerHTML += `<div class="setup-box"><div class="setup-header"><span class="setup-type">${s.tipo}</span><span class="setup-badge ${s.dir}">${s.dir.toUpperCase()}</span></div><div class="setup-row"><span>Entrada (Limit)</span><span>${s.entrada}</span></div><div class="setup-row"><span>Stop Loss</span><span>${s.sl}</span></div><div class="setup-row"><span>Take Profit</span><span>${s.tp}</span></div><div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5;border-top:1px solid var(--border);padding-top:10px;">${s.nota}</div></div>`;
     });
   }
 
-  // Niveles
   const nl = document.getElementById('nivelesList');
   nl.innerHTML = '';
   d.niveles.forEach(n => {
-    nl.innerHTML += `<li class="nivel-item">
-      <div class="nivel-top">
-        <div style="display:flex;align-items:center;gap:8px;"><span class="nivel-tag ${n.tag}">${n.tag.toUpperCase()}</span><span class="nivel-price">${n.price}</span></div>
-        <span class="nivel-desc">${n.desc}</span>
-      </div>
-      ${n.explain ? `<div class="nivel-explain">${n.explain}<br><span class="nivel-rec ${n.rec}">${n.recLabel}</span></div>` : ''}
-    </li>`;
+    nl.innerHTML += `<li class="nivel-item"><div class="nivel-top"><div style="display:flex;align-items:center;gap:8px;"><span class="nivel-tag ${n.tag}">${n.tag.toUpperCase()}</span><span class="nivel-price">${n.price}</span></div><span class="nivel-desc">${n.desc}</span></div>${n.explain?`<div class="nivel-explain">${n.explain}<br><span class="nivel-rec ${n.rec}">${n.recLabel}</span></div>`:''}</li>`;
   });
 
-  // Noticias
   const noticiasList = document.getElementById('noticiasList');
   noticiasList.innerHTML = '';
   d.noticias.forEach(n => {
     const nd = noticias_semana[n];
     if (!nd) return;
-    noticiasList.innerHTML += `<div class="noticia-item">
-      <div class="noticia-dot ${nd.color}"></div>
-      <div>
-        <div class="noticia-titulo">${nd.titulo}</div>
-        <div class="noticia-fecha">${nd.fecha}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${nd.desc}</div>
-      </div>
-    </div>`;
+    noticiasList.innerHTML += `<div class="noticia-item"><div class="noticia-dot ${nd.color}"></div><div><div class="noticia-titulo">${nd.titulo}</div><div class="noticia-fecha">${nd.fecha}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${nd.desc}</div></div></div>`;
   });
 
-  // Finviz
   const fr = document.getElementById('finvizRow');
   fr.innerHTML = '';
   Object.entries(d.finviz).forEach(([cur,dir]) => {
     fr.innerHTML += `<span class="finviz-pill ${dir}">${cur} ${dir==='up'?'▲':'▼'}</span>`;
   });
 
-  // Macro
   document.getElementById('macroText').textContent = d.macro;
-
   document.getElementById('result').style.display = 'block';
   document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+// Init
+checkSession();
 initGrid();
 </script>
 </body>
