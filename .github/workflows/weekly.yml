@@ -2,12 +2,39 @@ name: Weekly RADAR FX Update
 
 on:
   schedule:
-    - cron: "0 12 * * 1"
-  workflow_dispatch:
+    - cron: "0 10 * * 1"  # Every Monday at 10:00 UTC (5am ET)
+  workflow_dispatch:       # Manual trigger from GitHub UI
 
 jobs:
-  update:
+  update-site:
     runs-on: ubuntu-latest
     steps:
-      - name: Log weekly update
-        run: echo "RADAR FX weekly update - $(date)"
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Update week dates in index.html
+        run: |
+          # Calculate current week and next week dates
+          THIS_MON=$(date -d "monday" +"%d %b")
+          THIS_FRI=$(date -d "friday" +"%d %b %Y")
+          NEXT_MON=$(date -d "next monday" +"%d %b")
+          NEXT_FRI=$(date -d "next friday" +"%d %b %Y")
+          
+          echo "This week: $THIS_MON - $THIS_FRI"
+          echo "Next week: $NEXT_MON - $NEXT_FRI"
+          
+          # Update the week labels in the HTML
+          sed -i "s/28 Sep – 2 Oct/$THIS_MON – $(date -d 'friday' +'%-d %b')/g" index.html
+          sed -i "s/5 Oct – 9 Oct/$NEXT_MON – $(date -d 'next friday' +'%-d %b')/g" index.html
+          
+          echo "Week dates updated"
+
+      - name: Commit and push if changed
+        run: |
+          git config user.email "radarfx-bot@auto.com"
+          git config user.name "RADAR FX Bot"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Auto-update: Week $(date +'%d %b %Y')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
