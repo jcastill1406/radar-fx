@@ -1,0 +1,13 @@
+name: Weekly RADAR FX Update
+
+on:
+  schedule:
+    - cron: "0 12 * * 1"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log weekly update
+        run: echo "RADAR FX weekly update - $(date)"
