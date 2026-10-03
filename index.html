@@ -1426,8 +1426,6 @@ async function renderTracker() {
 
   const filtered = filter === 'all' ? trades : trades.filter(t => t.semana === filter);
 
-  const list = document.getElementById('trackerList');
-
   if (filtered.length === 0) {
     list.innerHTML = '<div class="tracker-empty">📭 No hay operaciones registradas.<br>Analiza un par y usa el botón<br>"+ INCLUIR EN TRADING TRACKER"</div>';
     return;
