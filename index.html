@@ -255,6 +255,42 @@
   .vela-pill-dir { font-size: 10px; font-family: 'Space Mono', monospace; }
   .vela-pill-dir.alcista { color: var(--green); }
   .vela-pill-dir.bajista { color: var(--red); }
+
+  /* Tracker */
+  .tracker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+  .tracker-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  .tracker-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+  .tracker-stat-val { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .tracker-stat-label { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 1px; }
+  .tracker-week-group { margin-bottom: 20px; }
+  .tracker-week-label { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--muted); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .tracker-trade { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 8px; }
+  .tracker-trade.ganadora { border-left: 3px solid var(--green); }
+  .tracker-trade.perdedora { border-left: 3px solid var(--red); }
+  .tracker-trade.pendiente { border-left: 3px solid var(--yellow); }
+  .tracker-trade-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .tracker-pair { font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; color: var(--text); }
+  .tracker-result-badge { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; cursor: pointer; }
+  .tracker-result-badge.ganadora { background: rgba(0,229,160,0.15); color: var(--green); }
+  .tracker-result-badge.perdedora { background: rgba(255,64,96,0.15); color: var(--red); }
+  .tracker-result-badge.pendiente { background: rgba(255,209,102,0.15); color: var(--yellow); }
+  .tracker-prices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .tracker-price-cell { text-align: center; }
+  .tracker-price-label { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; margin-bottom: 3px; }
+  .tracker-price-val { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; }
+  .tracker-price-val.entrada { color: var(--text); }
+  .tracker-price-val.sl { color: var(--red); }
+  .tracker-price-val.tp { color: var(--green); }
+  .tracker-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; flex-wrap: wrap; gap: 4px; }
+  .tracker-note { font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .tracker-note input { width: 100%; background: transparent; border: none; color: var(--muted); font-family: 'Space Grotesk', sans-serif; font-size: 12px; outline: none; }
+  .tracker-note input::placeholder { color: var(--border); }
+  .tracker-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .tracker-action-btn { font-size: 10px; font-family: 'Space Mono', monospace; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
+  .tracker-action-btn:hover { border-color: var(--red); color: var(--red); }
+  .tracker-empty { text-align: center; padding: 40px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 12px; }
+  .add-trade-btn { background: var(--green); color: #0a0a0f; border: none; border-radius: 8px; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 8px 16px; cursor: pointer; letter-spacing: 1px; }
+  .week-filter { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 11px; padding: 7px 12px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -299,6 +335,7 @@
     <button class="tab-btn active" onclick="switchTab('analisis')">📡 ANÁLISIS</button>
     <button class="tab-btn" onclick="switchTab('calculadora')">🧮 CALCULADORA</button>
     <button class="tab-btn" onclick="switchTab('estrategia')">📋 ESTRATEGIA</button>
+    <button class="tab-btn" onclick="switchTab('tracker')">📊 TRACKER</button>
   </div>
 
   <!-- Tab: Analisis -->
@@ -428,6 +465,13 @@
     </div>
 
     <div class="card"><div class="card-title">Setup Sugerido</div><div id="setupsContainer"></div></div>
+
+    <!-- Tracker button -->
+    <div id="trackerBtnWrap" style="display:none; margin-bottom:16px;">
+      <button onclick="addToTracker()" style="width:100%;background:var(--surface2);border:1px solid var(--green);color:var(--green);border-radius:10px;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;padding:12px;cursor:pointer;letter-spacing:1px;transition:all 0.15s;" onmouseover="this.style.background='var(--green)';this.style.color='#0a0a0f'" onmouseout="this.style.background='var(--surface2)';this.style.color='var(--green)'">
+        + INCLUIR EN TRADING TRACKER
+      </button>
+    </div>
     <div class="card"><div class="card-title">Niveles Clave</div><ul style="list-style:none" id="nivelesList"></ul></div>
     <div class="card"><div class="card-title" id="noticiasTitle">Noticias Relevantes</div><div id="noticiasList"></div></div>
     <div class="card">
@@ -650,6 +694,43 @@
 
   </div><!-- end tab-estrategia -->
 
+
+
+  <!-- Tab: Tracker -->
+  <div class="tab-content" id="tab-tracker">
+
+    <!-- Stats summary -->
+    <div class="tracker-stats">
+      <div class="tracker-stat">
+        <div class="tracker-stat-val" id="statTotal" style="color:var(--text)">0</div>
+        <div class="tracker-stat-label">TOTAL</div>
+      </div>
+      <div class="tracker-stat">
+        <div class="tracker-stat-val" id="statGanadoras" style="color:var(--green)">0</div>
+        <div class="tracker-stat-label">GANADORAS</div>
+      </div>
+      <div class="tracker-stat">
+        <div class="tracker-stat-val" id="statPerdedoras" style="color:var(--red)">0</div>
+        <div class="tracker-stat-label">PERDEDORAS</div>
+      </div>
+      <div class="tracker-stat">
+        <div class="tracker-stat-val" id="statWinrate" style="color:var(--yellow)">0%</div>
+        <div class="tracker-stat-label">WIN RATE</div>
+      </div>
+    </div>
+
+    <div class="tracker-header">
+      <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--muted);">
+        <span id="trackerCount">0</span> operaciones registradas
+      </div>
+      <select class="week-filter" id="weekFilter" onchange="renderTracker()">
+        <option value="all">Todas las semanas</option>
+      </select>
+    </div>
+
+    <div id="trackerList"></div>
+
+  </div><!-- end tab-tracker -->
 
 <footer>RADAR FX · DATOS EN VIVO · SL=25 PIPS · TP=75 PIPS · R:R 1:3</footer>
 </div>
@@ -1149,10 +1230,244 @@ async function analyzePair() {
   document.getElementById('macroText').textContent = d.macro;
   document.getElementById('result').style.display = 'block';
   autoFillCalc(selectedPair, r, liveData.price);
+  document.getElementById('trackerBtnWrap').style.display = 'block';
   document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 
+
+
+// ─── TRADING TRACKER ──────────────────────────────────────────────────────────
+const TRACKER_KEY = 'radorfx_trades';
+
+function getTrades() {
+  try { return JSON.parse(localStorage.getItem(TRACKER_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function saveTrades(trades) {
+  localStorage.setItem(TRACKER_KEY, JSON.stringify(trades));
+}
+
+function addToTracker() {
+  if (!selectedPair) return;
+  const weekData = WEEKLY_DATA[currentWeek];
+  const d = weekData ? weekData.pairs[selectedPair] : null;
+  if (!d) return;
+
+  // Get data from calculator if filled, else from recommendation
+  const entradaInput = document.getElementById('pipEntrada').value;
+  const slInput = document.getElementById('pipSLPrice').textContent;
+  const tpInput = document.getElementById('pipTPPrice').textContent;
+  const dir = pipDir;
+
+  const entrada = entradaInput ? parseFloat(entradaInput) : null;
+  const sl = slInput !== '--' ? slInput : d.rec.sl;
+  const tp = tpInput !== '--' ? tpInput : d.rec.tp;
+
+  if (!entrada) {
+    alert('Primero ingresa un precio de entrada en la Calculadora o analiza el par para obtener precios en vivo.');
+    return;
+  }
+
+  const isJPY = selectedPair.includes('JPY');
+  const decimals = isJPY ? 3 : 5;
+
+  const trade = {
+    id: Date.now(),
+    par: selectedPair,
+    direccion: dir.toUpperCase(),
+    estrategia: d.rec.estrategia.split('—')[0].trim(),
+    entrada: entrada.toFixed(decimals),
+    sl: sl,
+    tp: tp,
+    resultado: 'pendiente',
+    pips: null,
+    semana: weekData.label,
+    fecha: new Date().toLocaleDateString('es', {day:'2-digit', month:'short', year:'numeric'}),
+    nota: ''
+  };
+
+  const trades = getTrades();
+  trades.unshift(trade);
+  saveTrades(trades);
+  renderTracker();
+  updateTrackerStats();
+
+  // Switch to tracker tab
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-tracker').classList.add('active');
+  document.querySelectorAll('.tab-btn')[3].classList.add('active');
+
+  alert('✅ Operación agregada al Tracker');
+}
+
+function setTradeResult(id, resultado) {
+  const trades = getTrades();
+  const trade = trades.find(t => t.id === id);
+  if (!trade) return;
+
+  trade.resultado = resultado;
+
+  // Calculate pips won/lost
+  if (resultado !== 'pendiente' && trade.entrada && trade.tp && trade.sl) {
+    const isJPY = trade.par.includes('JPY');
+    const pipMult = isJPY ? 100 : 10000;
+    if (resultado === 'ganadora') {
+      trade.pips = Math.abs(parseFloat(trade.tp) - parseFloat(trade.entrada)) * pipMult;
+    } else if (resultado === 'perdedora') {
+      trade.pips = -Math.abs(parseFloat(trade.sl) - parseFloat(trade.entrada)) * pipMult;
+    }
+    trade.pips = parseFloat(trade.pips.toFixed(1));
+  }
+
+  saveTrades(trades);
+  renderTracker();
+  updateTrackerStats();
+}
+
+function saveNote(id, nota) {
+  const trades = getTrades();
+  const trade = trades.find(t => t.id === id);
+  if (trade) { trade.nota = nota; saveTrades(trades); }
+}
+
+function deleteTrade(id) {
+  if (!confirm('¿Eliminar esta operación?')) return;
+  const trades = getTrades().filter(t => t.id !== id);
+  saveTrades(trades);
+  renderTracker();
+  updateTrackerStats();
+}
+
+function updateTrackerStats() {
+  const trades = getTrades();
+  const ganadoras = trades.filter(t => t.resultado === 'ganadora').length;
+  const perdedoras = trades.filter(t => t.resultado === 'perdedora').length;
+  const total = trades.length;
+  const cerradas = ganadoras + perdedoras;
+  const winrate = cerradas > 0 ? Math.round((ganadoras / cerradas) * 100) : 0;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statGanadoras').textContent = ganadoras;
+  document.getElementById('statPerdedoras').textContent = perdedoras;
+  document.getElementById('statWinrate').textContent = winrate + '%';
+  document.getElementById('trackerCount').textContent = total;
+}
+
+function renderTracker() {
+  const trades = getTrades();
+  const filter = document.getElementById('weekFilter').value;
+
+  // Update week filter options
+  const weeks = [...new Set(trades.map(t => t.semana))];
+  const filterEl = document.getElementById('weekFilter');
+  const currentFilter = filterEl.value;
+  filterEl.innerHTML = '<option value="all">Todas las semanas</option>';
+  weeks.forEach(w => {
+    const opt = document.createElement('option');
+    opt.value = w; opt.textContent = w;
+    if (w === currentFilter) opt.selected = true;
+    filterEl.appendChild(opt);
+  });
+
+  const filtered = filter === 'all' ? trades : trades.filter(t => t.semana === filter);
+
+  const list = document.getElementById('trackerList');
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="tracker-empty">📭 No hay operaciones registradas.<br>Analiza un par y usa el botón<br>"+ INCLUIR EN TRADING TRACKER"</div>';
+    return;
+  }
+
+  // Group by week
+  const byWeek = {};
+  filtered.forEach(t => {
+    if (!byWeek[t.semana]) byWeek[t.semana] = [];
+    byWeek[t.semana].push(t);
+  });
+
+  list.innerHTML = '';
+  Object.entries(byWeek).forEach(([week, weekTrades]) => {
+    const totalPips = weekTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
+    const pipsColor = totalPips >= 0 ? 'var(--green)' : 'var(--red)';
+    const pipsSign = totalPips >= 0 ? '+' : '';
+
+    let weekHTML = `<div class="tracker-week-group">
+      <div class="tracker-week-label">
+        📅 ${week}
+        <span style="float:right;color:${pipsColor}">${pipsSign}${totalPips.toFixed(1)} pips</span>
+      </div>`;
+
+    weekTrades.forEach(trade => {
+      const dirColor = trade.direccion === 'COMPRA' ? 'var(--green)' : 'var(--red)';
+      const dirArrow = trade.direccion === 'COMPRA' ? '▲' : '▼';
+      const pipsText = trade.pips !== null ? (trade.pips >= 0 ? '+' : '') + trade.pips + ' pips' : '--';
+      const pipsCol = trade.pips !== null ? (trade.pips >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--muted)';
+
+      weekHTML += `<div class="tracker-trade ${trade.resultado}">
+        <div class="tracker-trade-header">
+          <div>
+            <span class="tracker-pair">${trade.par}</span>
+            <span style="font-size:11px;color:${dirColor};font-family:'Space Mono',monospace;margin-left:8px;">${dirArrow} ${trade.direccion}</span>
+            <span style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-left:6px;">${trade.estrategia}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:${pipsCol}">${pipsText}</span>
+            <span class="tracker-result-badge ${trade.resultado}" onclick="cycleResult(${trade.id})">
+              ${trade.resultado === 'ganadora' ? '✅ GANADORA' : trade.resultado === 'perdedora' ? '❌ PERDEDORA' : '⏳ PENDIENTE'}
+            </span>
+          </div>
+        </div>
+        <div class="tracker-prices">
+          <div class="tracker-price-cell">
+            <div class="tracker-price-label">ENTRADA</div>
+            <div class="tracker-price-val entrada">${trade.entrada}</div>
+          </div>
+          <div class="tracker-price-cell">
+            <div class="tracker-price-label">STOP LOSS</div>
+            <div class="tracker-price-val sl">${trade.sl}</div>
+          </div>
+          <div class="tracker-price-cell">
+            <div class="tracker-price-label">TAKE PROFIT</div>
+            <div class="tracker-price-val tp">${trade.tp}</div>
+          </div>
+        </div>
+        <div class="tracker-meta">
+          <span>📅 ${trade.fecha}</span>
+          <span>R:R 1:3</span>
+        </div>
+        <div class="tracker-note">
+          <input type="text" placeholder="Agregar nota sobre esta operación..." 
+            value="${trade.nota || ''}"
+            onchange="saveNote(${trade.id}, this.value)"
+            onblur="saveNote(${trade.id}, this.value)">
+        </div>
+        <div class="tracker-actions">
+          <button class="tracker-action-btn" onclick="deleteTrade(${trade.id})">🗑 Eliminar</button>
+        </div>
+      </div>`;
+    });
+
+    weekHTML += '</div>';
+    list.innerHTML += weekHTML;
+  });
+}
+
+function cycleResult(id) {
+  const trades = getTrades();
+  const trade = trades.find(t => t.id === id);
+  if (!trade) return;
+  const cycle = {pendiente: 'ganadora', ganadora: 'perdedora', perdedora: 'pendiente'};
+  setTradeResult(id, cycle[trade.resultado]);
+}
+
+// Init tracker on load
+function initTracker() {
+  renderTracker();
+  updateTrackerStats();
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 function switchTab(tab) {
@@ -1238,6 +1553,7 @@ function autoFillCalc(pair, recData, livePrice) {
 // Init
 checkSession();
 initGrid();
+initTracker();
 </script>
 </body>
 </html>
