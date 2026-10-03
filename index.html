@@ -156,6 +156,15 @@
 
   .warning-box { background: rgba(255,64,96,0.08); border: 1px solid rgba(255,64,96,0.3); border-radius: 10px; padding: 14px; font-size: 13px; color: var(--red); margin-bottom: 16px; }
   .warning-box .w-title { font-weight: 700; margin-bottom: 4px; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 1px; }
+
+  .info-msg { border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; border: 1px solid; }
+  .info-msg .info-title { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; margin-bottom: 6px; }
+  .info-msg.ok { background: rgba(0,229,160,0.07); border-color: var(--green); color: var(--text); }
+  .info-msg.ok .info-title { color: var(--green); }
+  .info-msg.warn { background: rgba(255,209,102,0.07); border-color: var(--yellow); color: var(--text); }
+  .info-msg.warn .info-title { color: var(--yellow); }
+  .info-msg.danger { background: rgba(255,64,96,0.07); border-color: var(--red); color: var(--text); }
+  .info-msg.danger .info-title { color: var(--red); }
   .zona-alert { background: rgba(255,209,102,0.1); border: 1px solid var(--yellow); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--yellow); margin-bottom: 12px; display: none; font-family: 'Space Mono', monospace; }
   .loading { text-align: center; padding: 40px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 12px; display: none; }
   .dot-anim::after { content: ''; animation: dots 1.2s steps(4,end) infinite; }
@@ -268,6 +277,12 @@
     <div class="zona-alert" id="zonaAlert"></div>
     <div class="warning-box" id="warningBox" style="display:none"><div class="w-title">⚠ NOTICIAS ROJAS ESTA SEMANA</div><div id="warningText"></div></div>
 
+
+    <!-- Mensaje informativo -->
+    <div class="info-msg" id="infoMsg" style="display:none">
+      <div class="info-title" id="infoTitle"></div>
+      <div id="infoText"></div>
+    </div>
     <div class="rec-box" id="recBox">
       <div style="font-size:11px;font-family:'Space Mono',monospace;letter-spacing:3px;color:var(--muted);margin-bottom:10px;">RECOMENDACIÓN RADAR FX</div>
       <div class="rec-accion" id="recAccion"></div>
@@ -628,6 +643,111 @@ async function analyzePair() {
   document.getElementById('recSL').textContent = r.sl;
   document.getElementById('recTP').textContent = r.tp;
 
+
+
+  // ── Mensaje informativo de condiciones ───────────────────────────────────
+  const infoMsg = document.getElementById('infoMsg');
+  const infoTitle = document.getElementById('infoTitle');
+  const infoText = document.getElementById('infoText');
+
+  if (currentPrice && r.zona !== 'Sin zona clara') {
+    // Parse entry zone
+    const zonaStr = r.zona.replace(/[^0-9.\-–]/g, ' ').trim();
+    const zonaParts = r.zona.replace('–','-').split(/[-–]/).map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+    const zonaMin = zonaParts.length >= 2 ? Math.min(...zonaParts) : null;
+    const zonaMax = zonaParts.length >= 2 ? Math.max(...zonaParts) : null;
+    const rsiNum = rsi !== '--' ? parseFloat(rsi) : null;
+
+    // Distance from entry zone
+    let distanciaMsg = '';
+    let enZona = false;
+    if (zonaMin && zonaMax) {
+      if (currentPrice >= zonaMin * 0.9995 && currentPrice <= zonaMax * 1.0005) {
+        enZona = true;
+        distanciaMsg = '✅ El precio está en la zona de entrada ahora mismo.';
+      } else if (r.accion === 'COMPRA') {
+        const diff = currentPrice - zonaMax;
+        const pips = isJPY ? Math.abs(diff * 100).toFixed(0) : Math.abs(diff * 10000).toFixed(0);
+        if (currentPrice > zonaMax) {
+          distanciaMsg = `El precio está ${pips} pips por encima de la zona de entrada (${r.zona}). Espera que baje hasta esa zona antes de entrar.`;
+        } else {
+          distanciaMsg = `El precio está ${pips} pips por debajo de la zona de entrada. Ya pasó — espera la próxima oportunidad.`;
+        }
+      } else if (r.accion === 'VENTA') {
+        const diff = zonaMin - currentPrice;
+        const pips = isJPY ? Math.abs(diff * 100).toFixed(0) : Math.abs(diff * 10000).toFixed(0);
+        if (currentPrice < zonaMin) {
+          distanciaMsg = `El precio está ${pips} pips por debajo de la zona de entrada (${r.zona}). Espera que suba hasta esa zona antes de entrar.`;
+        } else {
+          distanciaMsg = `El precio ya superó la zona de entrada. Espera la próxima oportunidad.`;
+        }
+      }
+    }
+
+    // RSI message
+    let rsiMsg = '';
+    let rsiAlert = false;
+    if (rsiNum !== null) {
+      if (r.accion === 'COMPRA' && rsiNum > 70) {
+        rsiMsg = `RSI en ${rsiNum} — sobrecomprado. El precio subió demasiado rápido. Espera el pullback a la zona de entrada antes de comprar.`;
+        rsiAlert = true;
+      } else if (r.accion === 'VENTA' && rsiNum < 30) {
+        rsiMsg = `RSI en ${rsiNum} — sobrevendido. El precio bajó demasiado rápido. Espera el rebote a la zona de entrada antes de vender.`;
+        rsiAlert = true;
+      } else if (r.accion === 'COMPRA' && rsiNum < 30) {
+        rsiMsg = `RSI en ${rsiNum} — sobrevendido. El momentum bajista se está agotando. Condiciones favorables para buscar la compra.`;
+      } else if (r.accion === 'VENTA' && rsiNum > 70) {
+        rsiMsg = `RSI en ${rsiNum} — sobrecomprado. El momentum alcista se está agotando. Condiciones favorables para buscar la venta.`;
+      } else {
+        rsiMsg = `RSI en ${rsiNum} — zona neutral. Sin señal extrema de momentum.`;
+      }
+    }
+
+    // EMA context
+    let emaMsg = '';
+    if (currentPrice && liveData.ema20 && liveData.ema50) {
+      const above20 = currentPrice > parseFloat(liveData.ema20);
+      const above50 = currentPrice > parseFloat(liveData.ema50);
+      if (above20 && above50) {
+        emaMsg = 'Precio por encima de EMA 20 y EMA 50 — tendencia alcista confirmada en ambos plazos.';
+      } else if (!above20 && !above50) {
+        emaMsg = 'Precio por debajo de EMA 20 y EMA 50 — tendencia bajista confirmada en ambos plazos.';
+      } else if (above20 && !above50) {
+        emaMsg = 'Precio por encima de EMA 20 pero por debajo de EMA 50 — tendencia de corto plazo alcista pero largo plazo aún bajista.';
+      } else {
+        emaMsg = 'Precio por debajo de EMA 20 pero por encima de EMA 50 — posible corrección en tendencia alcista de largo plazo.';
+      }
+    }
+
+    // Determine overall status
+    let status = 'ok';
+    let titleText = '✅ CONDICIONES FAVORABLES';
+    if (rsiAlert || !enZona) {
+      if (rsiAlert) {
+        status = 'danger';
+        titleText = '⚠️ NO ENTRAR TODAVÍA — ESPERAR';
+      } else {
+        status = 'warn';
+        titleText = '⏳ PRECIO FUERA DE ZONA — ESPERAR';
+      }
+    } else if (enZona) {
+      status = 'ok';
+      titleText = '✅ PRECIO EN ZONA — BUSCAR SEÑAL DE ENTRADA';
+    }
+
+    infoMsg.style.display = 'block';
+    infoMsg.className = 'info-msg ' + status;
+    infoTitle.textContent = titleText;
+    
+    let fullText = '';
+    if (distanciaMsg) fullText += distanciaMsg + ' ';
+    if (rsiMsg) fullText += rsiMsg + ' ';
+    if (emaMsg) fullText += emaMsg;
+    infoText.textContent = fullText.trim();
+  } else {
+    infoMsg.style.display = 'none';
+  }
+  // ─────────────────────────────────────────────────────────────────────────
 
   // ── Comparacion semanal ──────────────────────────────────────────────────
   const hist = HISTORICAL[selectedPair] || { pasada: 'neutral', pasadaLabel: '🟡 NEUTRAL' };
