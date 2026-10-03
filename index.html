@@ -743,19 +743,22 @@ const SESSION_KEY = 'radorfx_session';
 
 function doLogin() {
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const pass = document.getElementById('loginPass').value;
-  if (email === VALID_EMAIL.toLowerCase() && pass === VALID_PASS) {
-    sessionStorage.setItem(SESSION_KEY, 'authenticated');
+  const pass = document.getElementById('loginPass').value.trim();
+  const validEmail = VALID_EMAIL.trim().toLowerCase();
+  const validPass = VALID_PASS.trim();
+  if (email === validEmail && pass === validPass) {
+    sessionStorage.setItem(SESSION_KEY, 'authenticated'); localStorage.setItem(SESSION_KEY, 'authenticated');
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appScreen').style.display = 'block';
   } else {
     document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginError').textContent = '❌ Email o contraseña incorrectos';
     document.getElementById('loginPass').value = '';
   }
 }
 
 function doLogout() {
-  sessionStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY); localStorage.removeItem(SESSION_KEY);
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('loginEmail').value = '';
@@ -763,7 +766,7 @@ function doLogout() {
 }
 
 function checkSession() {
-  if (sessionStorage.getItem(SESSION_KEY) === 'authenticated') {
+  if (sessionStorage.getItem(SESSION_KEY) === 'authenticated' || localStorage.getItem(SESSION_KEY) === 'authenticated') {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('appScreen').style.display = 'block';
   }
