@@ -576,6 +576,47 @@ async function analyzePair() {
   document.getElementById('recSL').textContent = r.sl;
   document.getElementById('recTP').textContent = r.tp;
 
+
+  // ── Comparacion semanal ──────────────────────────────────────────────────
+  const hist = HISTORICAL[selectedPair] || { pasada: 'neutral', pasadaLabel: '🟡 NEUTRAL' };
+  const estaData = WEEKLY_DATA['esta'].pairs[selectedPair];
+  const proxData = WEEKLY_DATA['proxima'].pairs[selectedPair];
+
+  const sesgoPasada = hist.pasada;
+  const sesgoPasadaLabel = hist.pasadaLabel;
+  const sesgEsta = estaData ? estaData.sesgo : 'neutral';
+  const sesgEstaLabel = estaData ? estaData.sesgDir.split('—')[0].trim() : '🟡 NEUTRAL';
+  const sesgProx = proxData ? proxData.sesgo : 'neutral';
+  const sesgProxLabel = proxData ? proxData.sesgDir.split('—')[0].trim() : '🟡 NEUTRAL';
+
+  document.getElementById('compPasada').textContent = sesgoPasadaLabel;
+  document.getElementById('compPasada').className = 'comp-badge ' + sesgoPasada;
+  document.getElementById('compActual').textContent = sesgEstaLabel;
+  document.getElementById('compActual').className = 'comp-badge ' + sesgEsta;
+  document.getElementById('compProxima').textContent = sesgProxLabel;
+  document.getElementById('compProxima').className = 'comp-badge ' + sesgProx;
+
+  const arr1 = sesgoPasada === sesgEsta ? '→' : (sesgEsta === 'alcista' ? '↗' : sesgEsta === 'bajista' ? '↘' : '→');
+  const arr2 = sesgEsta === sesgProx ? '→' : (sesgProx === 'alcista' ? '↗' : sesgProx === 'bajista' ? '↘' : '→');
+  document.getElementById('compArrow').textContent = arr1;
+  document.getElementById('compArrow2').textContent = arr2;
+
+  const verd = document.getElementById('compVeredicto');
+  if (sesgoPasada === sesgEsta && sesgEsta === sesgProx) {
+    verd.className = 'comp-veredicto continua';
+    verd.textContent = '✅ TENDENCIA CONSISTENTE — Las 3 semanas coinciden. Alta probabilidad de continuación.';
+  } else if (sesgoPasada !== sesgEsta && sesgEsta === sesgProx) {
+    verd.className = sesgEsta === 'alcista' ? 'comp-veredicto cambio-alcista' : sesgEsta === 'bajista' ? 'comp-veredicto cambio-bajista' : 'comp-veredicto neutral';
+    verd.textContent = '🔄 CAMBIO DE TENDENCIA — Esta semana y la próxima coinciden. El giro está confirmándose.';
+  } else if (sesgoPasada === sesgEsta && sesgEsta !== sesgProx) {
+    verd.className = 'comp-veredicto neutral';
+    verd.textContent = '⚠️ POSIBLE CAMBIO — La semana pasada y esta coinciden pero la próxima diverge. Precaución.';
+  } else {
+    verd.className = 'comp-veredicto neutral';
+    verd.textContent = '🟡 MIXTO — Las semanas no coinciden. Operar con precaución y esperar confirmación.';
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
   const redNews = d.noticias.filter(n => noticias_semana[n] && noticias_semana[n].color === 'rojo');
   const wb = document.getElementById('warningBox');
   if (redNews.length > 0) {
