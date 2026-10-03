@@ -160,6 +160,23 @@
   .result { display: none; }
   footer { text-align: center; margin-top: 32px; font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
   .context-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+  /* Comparacion semanas */
+  .comp-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .comp-title { font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
+  .comp-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .comp-week { text-align: center; flex: 1; }
+  .comp-week-label { font-size: 10px; font-family: 'Space Mono', monospace; color: var(--muted); margin-bottom: 6px; letter-spacing: 1px; }
+  .comp-badge { font-size: 13px; font-weight: 700; font-family: 'Space Mono', monospace; padding: 8px 12px; border-radius: 8px; display: inline-block; }
+  .comp-badge.alcista { background: rgba(0,229,160,0.12); color: var(--green); }
+  .comp-badge.bajista { background: rgba(255,64,96,0.12); color: var(--red); }
+  .comp-badge.neutral { background: rgba(255,209,102,0.12); color: var(--yellow); }
+  .comp-arrow { font-size: 24px; flex-shrink: 0; }
+  .comp-veredicto { margin-top: 12px; text-align: center; font-size: 12px; font-family: 'Space Mono', monospace; padding: 8px; border-radius: 6px; }
+  .comp-veredicto.continua { background: rgba(77,159,255,0.1); color: var(--blue); }
+  .comp-veredicto.cambio-alcista { background: rgba(0,229,160,0.1); color: var(--green); }
+  .comp-veredicto.cambio-bajista { background: rgba(255,64,96,0.1); color: var(--red); }
+  .comp-veredicto.neutral { background: rgba(255,209,102,0.1); color: var(--yellow); }
 </style>
 </head>
 <body>
@@ -254,6 +271,28 @@
       <div class="sesgo-desc" id="sesgDesc"></div>
     </div>
 
+
+    <!-- Comparacion semanas -->
+    <div class="comp-box">
+      <div class="comp-title">📊 Comparación Semanal</div>
+      <div class="comp-row">
+        <div class="comp-week">
+          <div class="comp-week-label">SEMANA PASADA</div>
+          <div class="comp-badge" id="compPasada">--</div>
+        </div>
+        <div class="comp-arrow" id="compArrow">→</div>
+        <div class="comp-week">
+          <div class="comp-week-label">ESTA SEMANA</div>
+          <div class="comp-badge" id="compActual">--</div>
+        </div>
+        <div class="comp-arrow" id="compArrow2">→</div>
+        <div class="comp-week">
+          <div class="comp-week-label">PRÓXIMA SEMANA</div>
+          <div class="comp-badge" id="compProxima">--</div>
+        </div>
+      </div>
+      <div class="comp-veredicto" id="compVeredicto">--</div>
+    </div>
     <div class="metrics-grid">
       <div class="metric"><div class="metric-label">Tendencia</div><div class="metric-val" id="mTendencia"></div></div>
       <div class="metric"><div class="metric-label">Volatilidad</div><div class="metric-val" id="mVolatilidad"></div></div>
@@ -396,6 +435,27 @@ const WEEKLY_DATA = {
       'GBP/CAD':{tendencia:'LATERAL',volatilidad:'MEDIA',sesgo:'neutral',sesgDir:'🟡 NEUTRAL — Evitar',sesgDesc:'GBP/CAD sin dirección. BoE el jueves puede dar algo de momentum pero no suficiente.',probUp:50,probDown:50,zonaActual:'.000 / .500',noticias:['BoE Decision'],estrategias:{AR:'evitar',BR:'evitar',CR:'evitar',DR:'evitar'},rec:{accion:'ESPERAR',color:'yellow',estrategia:'Sin setup claro — no operar',zona:'Sin zona clara',zonaDesc:'Prioriza otros pares con catalizadores más claros.',sl:'—',tp:'—'},niveles:[{tag:'res',price:'1.7500',desc:'Resistencia del rango',explain:'Solo relevante si el BoE sorprende.',rec:'observar',recLabel:'→ OBSERVAR'}],setup:[],macro:'Sin setup claro.',finviz:{GBP:'down',CAD:'down'}},
     }
   }
+};
+
+
+// ─── DATOS HISTORICOS (semana anterior para comparacion) ─────────────────────
+const HISTORICAL = {
+  'AUD/USD': { pasada: 'bajista', pasadaLabel: '🔴 BAJISTA' },
+  'USD/JPY': { pasada: 'alcista', pasadaLabel: '🟢 ALCISTA' },
+  'CHF/JPY': { pasada: 'neutral', pasadaLabel: '🟡 NEUTRAL' },
+  'EUR/GBP': { pasada: 'neutral', pasadaLabel: '🟡 NEUTRAL' },
+  'NZD/JPY': { pasada: 'bajista', pasadaLabel: '🔴 BAJISTA' },
+  'AUD/CAD': { pasada: 'neutral', pasadaLabel: '🟡 NEUTRAL' },
+  'EUR/CAD': { pasada: 'neutral', pasadaLabel: '🟡 NEUTRAL' },
+  'EUR/NZD': { pasada: 'neutral', pasadaLabel: '🟡 NEUTRAL' },
+  'GBP/USD': { pasada: 'bajista', pasadaLabel: '🔴 BAJISTA' },
+  'EUR/USD': { pasada: 'bajista', pasadaLabel: '🔴 BAJISTA' },
+  'USD/CAD': { pasada: 'neutral', pasadaLabel: '🟡 NEUTRAL' },
+  'GBP/JPY': { pasada: 'alcista', pasadaLabel: '🟢 ALCISTA' },
+  'AUD/JPY': { pasada: 'bajista', pasadaLabel: '🔴 BAJISTA' },
+  'NZD/USD': { pasada: 'bajista', pasadaLabel: '🔴 BAJISTA' },
+  'EUR/JPY': { pasada: 'neutral', pasadaLabel: '🟡 NEUTRAL' },
+  'GBP/CAD': { pasada: 'neutral', pasadaLabel: '🟡 NEUTRAL' },
 };
 
 function setWeek(week) {
