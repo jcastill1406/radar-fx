@@ -216,6 +216,45 @@
   .pip-dir-btn { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; cursor: pointer; transition: all 0.15s; font-weight: 700; }
   .pip-dir-btn.active-compra { border-color: var(--green); color: var(--green); background: rgba(0,229,160,0.08); }
   .pip-dir-btn.active-venta { border-color: var(--red); color: var(--red); background: rgba(255,64,96,0.08); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 0; margin-bottom: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
+  .tab-btn { flex: 1; padding: 10px 8px; border: none; border-radius: 7px; background: transparent; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; transition: all 0.15s; font-weight: 700; }
+  .tab-btn.active { background: var(--green); color: #0a0a0f; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Strategy tab */
+  .strat-section { margin-bottom: 24px; }
+  .strat-section-title { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--green); text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .strat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+  .strat-card-title { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+  .strat-card-title.ar { color: var(--green); }
+  .strat-card-title.br { color: var(--red); }
+  .strat-card-title.cr { color: var(--yellow); }
+  .strat-card-title.dr { color: var(--blue); }
+  .strat-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .strat-text strong { color: var(--text); }
+  .strat-rule { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .strat-rule:last-child { border-bottom: none; }
+  .strat-rule-num { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--green); font-weight: 700; flex-shrink: 0; width: 24px; }
+  .strat-rule-text { color: var(--text); line-height: 1.5; }
+  .psy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .psy-cell { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+  .psy-cur { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .psy-levels { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--yellow); }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--muted); }
+  .stat-val { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--text); }
+  .stat-val.green { color: var(--green); }
+  .stat-val.red { color: var(--red); }
+  .vela-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .vela-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 12px; }
+  .vela-pill-title { font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .vela-pill-dir { font-size: 10px; font-family: 'Space Mono', monospace; }
+  .vela-pill-dir.alcista { color: var(--green); }
+  .vela-pill-dir.bajista { color: var(--red); }
 </style>
 </head>
 <body>
@@ -254,6 +293,16 @@
     <p class="subtitle">Precios en vivo · Análisis semanal · Estrategia Ren</p>
   </header>
 
+
+  <!-- Tab Navigation -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('analisis')">📡 ANÁLISIS</button>
+    <button class="tab-btn" onclick="switchTab('calculadora')">🧮 CALCULADORA</button>
+    <button class="tab-btn" onclick="switchTab('estrategia')">📋 ESTRATEGIA</button>
+  </div>
+
+  <!-- Tab: Analisis -->
+  <div class="tab-content active" id="tab-analisis">
   <div class="card">
     <div class="card-title">Semana a Analizar</div>
     <div class="week-toggle">
@@ -441,6 +490,167 @@
       <div class="pip-summary" id="pipSummary"></div>
     </div>
   </div>
+
+  </div><!-- end tab-analisis -->
+
+  <!-- Tab: Calculadora -->
+  <div class="tab-content" id="tab-calculadora">
+
+  </div><!-- end tab-calculadora -->
+
+  <!-- Tab: Estrategia -->
+  <div class="tab-content" id="tab-estrategia">
+
+    <!-- Parametros del sistema -->
+    <div class="strat-section">
+      <div class="strat-section-title">⚙️ Parámetros del Sistema</div>
+      <div class="card">
+        <div class="stat-row"><span class="stat-label">Pares por semana</span><span class="stat-val">6 pares</span></div>
+        <div class="stat-row"><span class="stat-label">Entradas por par</span><span class="stat-val">2 (1 compra + 1 venta)</span></div>
+        <div class="stat-row"><span class="stat-label">Total entradas semana</span><span class="stat-val">12 entradas</span></div>
+        <div class="stat-row"><span class="stat-label">Tipo de orden</span><span class="stat-val green">LIMIT — siempre</span></div>
+        <div class="stat-row"><span class="stat-label">Stop Loss</span><span class="stat-val red">25 pips</span></div>
+        <div class="stat-row"><span class="stat-label">Take Profit</span><span class="stat-val green">75 pips</span></div>
+        <div class="stat-row"><span class="stat-label">Ratio R:R mínimo</span><span class="stat-val green">1 : 3</span></div>
+        <div class="stat-row"><span class="stat-label">Duración operaciones</span><span class="stat-val">20h – 50h (GBP: 5h–25h)</span></div>
+        <div class="stat-row"><span class="stat-label">Timeframes</span><span class="stat-val">D2, 4H, 1H, 15min</span></div>
+      </div>
+    </div>
+
+    <!-- 4 Estrategias -->
+    <div class="strat-section">
+      <div class="strat-section-title">🎯 Las 4 Estrategias de Entrada</div>
+      <div class="strat-card">
+        <div class="strat-card-title ar">AR — Compra en Tendencia Alcista</div>
+        <div class="strat-text">Buscar compras cuando el mercado está en <strong>tendencia alcista</strong>. Identificar zonas de oferta y demanda en gráficos D2–4H. Entrar en zonas psicológicas (.000, .250, .500, .750) con señal clara de vela. Es la estrategia de mayor probabilidad cuando la tendencia es clara.</div>
+      </div>
+      <div class="strat-card">
+        <div class="strat-card-title br">BR — Venta en Tendencia Bajista</div>
+        <div class="strat-text">Buscar ventas cuando el mercado está en <strong>tendencia bajista</strong>. Lo más importante es encontrar reversiones en zonas psicológicas importantes. Los máximos anteriores suben rápido y caen rápido. No entrar en noches en gráficos diarios.</div>
+      </div>
+      <div class="strat-card">
+        <div class="strat-card-title cr">CR — Venta Contra-Tendencia Alcista</div>
+        <div class="strat-text">Vender <strong>contra la tendencia alcista</strong> cuando no tenemos contexto claro. Buscar si hay una tendencia alcista total o acumulación que rompe máximos anteriores. Si el precio está subiendo y buscamos ventas, necesitamos una señal muy clara. El par gira siempre en zonas .000 o .500.</div>
+      </div>
+      <div class="strat-card">
+        <div class="strat-card-title dr">DR — Compra Contra-Tendencia Bajista</div>
+        <div class="strat-text">Comprar <strong>contra la tendencia bajista</strong>. Tendencia bajista → venta, pero con entradas estratégicas. 2 razones: toca mínimo y rompe mínimo. Lo que baja rápido sube rápido. También se puede buscar en gráficos de 1H o 15 minutos. Estrategia 15 pips — lo que baja rápido sube rápido.</div>
+      </div>
+    </div>
+
+    <!-- Niveles psicologicos -->
+    <div class="strat-section">
+      <div class="strat-section-title">🔢 Niveles Psicológicos por Divisa</div>
+      <div class="psy-grid">
+        <div class="psy-cell"><div class="psy-cur">EUR</div><div class="psy-levels">.000 .250 .500 .750</div></div>
+        <div class="psy-cell"><div class="psy-cur">USD</div><div class="psy-levels">.000 .250 .500 .750</div></div>
+        <div class="psy-cell"><div class="psy-cur">GBP</div><div class="psy-levels">.000 .250 .500 .750</div></div>
+        <div class="psy-cell"><div class="psy-cur">AUD</div><div class="psy-levels">.000 .250 .500 .750</div></div>
+        <div class="psy-cell"><div class="psy-cur">JPY</div><div class="psy-levels">.500 (el más importante)</div></div>
+        <div class="psy-cell"><div class="psy-cur">NZD</div><div class="psy-levels">.000 .250</div></div>
+        <div class="psy-cell"><div class="psy-cur">CAD</div><div class="psy-levels">.000 .500 .550</div></div>
+        <div class="psy-cell"><div class="psy-cur">CHF</div><div class="psy-levels">.000 .500</div></div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6;background:var(--surface2);border-radius:8px;padding:12px;">
+        💡 <strong style="color:var(--text)">Regla clave:</strong> Más ceros tiene el nivel, más probable la reversión.<br>
+        .000 = 3 ceros → más probable | .250 = 1 cero | .500 = 2 ceros | .750 = 1 cero<br>
+        CHF, JPY, GBP y USD son los que más respetan la zona .000
+      </div>
+    </div>
+
+    <!-- Estructura del mercado -->
+    <div class="strat-section">
+      <div class="strat-section-title">📈 Estructura del Mercado</div>
+      <div class="card">
+        <div class="stat-row"><span class="stat-label">Acumulación</span><span class="stat-val" style="color:var(--blue)">Volumen alto y constante → base</span></div>
+        <div class="stat-row"><span class="stat-label">Fase alcista</span><span class="stat-val green">No oferta → demanda presiona</span></div>
+        <div class="stat-row"><span class="stat-label">Distribución</span><span class="stat-val" style="color:var(--yellow)">Volumen alto → techo</span></div>
+        <div class="stat-row"><span class="stat-label">Fase bajista</span><span class="stat-val red">No demanda → oferta presiona</span></div>
+        <div class="stat-row"><span class="stat-label">Rango</span><span class="stat-val" style="color:var(--muted)">No comprar en medio — solo extremos</span></div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6;background:var(--surface2);border-radius:8px;padding:12px;">
+        💡 <strong style="color:var(--text)">Fortaleza vs Debilidad:</strong> Impulso muy vertical = fortaleza (traders prof. comprando). Movimiento más horizontal = debilidad. Cuando los impulsos no son tan fuertes como los anteriores → señal de agotamiento.
+      </div>
+    </div>
+
+    <!-- Patrones de velas -->
+    <div class="strat-section">
+      <div class="strat-section-title">🕯️ Patrones de Velas Clave</div>
+      <div style="margin-bottom:8px;font-size:11px;font-family:'Space Mono',monospace;color:var(--muted);">ALCISTAS</div>
+      <div class="vela-grid">
+        <div class="vela-pill"><div class="vela-pill-title">Martillo</div><div class="vela-pill-dir alcista">▲ Señal de compra</div></div>
+        <div class="vela-pill"><div class="vela-pill-title">Martillo invertido</div><div class="vela-pill-dir alcista">▲ Señal de compra</div></div>
+        <div class="vela-pill"><div class="vela-pill-title">Envolvente alcista</div><div class="vela-pill-dir alcista">▲ Señal de compra</div></div>
+        <div class="vela-pill"><div class="vela-pill-title">Estrella de la mañana</div><div class="vela-pill-dir alcista">▲ Señal de compra</div></div>
+        <div class="vela-pill"><div class="vela-pill-title">Tres soldados blancos</div><div class="vela-pill-dir alcista">▲ Señal de compra</div></div>
+      </div>
+      <div style="margin:12px 0 8px;font-size:11px;font-family:'Space Mono',monospace;color:var(--muted);">BAJISTAS</div>
+      <div class="vela-grid">
+        <div class="vela-pill"><div class="vela-pill-title">Hombre colgado</div><div class="vela-pill-dir bajista">▼ Señal de venta</div></div>
+        <div class="vela-pill"><div class="vela-pill-title">Estrella fugaz</div><div class="vela-pill-dir bajista">▼ Señal de venta</div></div>
+        <div class="vela-pill"><div class="vela-pill-title">Envolvente bajista</div><div class="vela-pill-dir bajista">▼ Señal de venta</div></div>
+        <div class="vela-pill"><div class="vela-pill-title">Estrella del atardecer</div><div class="vela-pill-dir bajista">▼ Señal de venta</div></div>
+        <div class="vela-pill"><div class="vela-pill-title">Tres cuervos negros</div><div class="vela-pill-dir bajista">▼ Señal de venta</div></div>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:var(--muted);line-height:1.6;background:var(--surface2);border-radius:8px;padding:12px;">
+        💡 <strong style="color:var(--text)">Velas direccionales:</strong> A1 (alcista más arriba que la última bajista), Rechazo (martillo), Envolvente, Interior, Carril (mismo recorrido o mayor que anterior).
+      </div>
+    </div>
+
+    <!-- Noticias -->
+    <div class="strat-section">
+      <div class="strat-section-title">📰 Regla de Noticias</div>
+      <div class="card">
+        <div class="stat-row"><span class="stat-label">Fuente</span><span class="stat-val">Forex Factory Calendar</span></div>
+        <div class="stat-row"><span class="stat-label">Filtrar</span><span class="stat-val red">Solo noticias rojas y naranjas</span></div>
+        <div class="stat-row"><span class="stat-label">Regla</span><span class="stat-val red">NO operar cuando hay noticias rojas</span></div>
+        <div class="stat-row"><span class="stat-label">Acción</span><span class="stat-val">Cerrar órdenes abiertas antes del evento</span></div>
+      </div>
+    </div>
+
+    <!-- Reglas del sistema -->
+    <div class="strat-section">
+      <div class="strat-section-title">📏 Reglas del Sistema</div>
+      <div class="card">
+        <div class="strat-rule"><span class="strat-rule-num">1</span><span class="strat-rule-text">Respetar las reglas siempre, sin excepción</span></div>
+        <div class="strat-rule"><span class="strat-rule-num">2</span><span class="strat-rule-text">Aplicar el sistema — no improvisar</span></div>
+        <div class="strat-rule"><span class="strat-rule-num">3</span><span class="strat-rule-text">Pensar en probabilidades, no en certezas</span></div>
+        <div class="strat-rule"><span class="strat-rule-num">4</span><span class="strat-rule-text">Siempre registrar las operaciones</span></div>
+        <div class="strat-rule"><span class="strat-rule-num">5</span><span class="strat-rule-text">Primero la zona, después la señal de vela</span></div>
+        <div class="strat-rule"><span class="strat-rule-num">6</span><span class="strat-rule-text">No entrar por ver un impulso o subida/bajada rápida</span></div>
+        <div class="strat-rule"><span class="strat-rule-num">7</span><span class="strat-rule-text">Respetar el SL y TP — no moverlos por miedo</span></div>
+        <div class="strat-rule"><span class="strat-rule-num">8</span><span class="strat-rule-text">Gestionar el riesgo antes de abrir la operación</span></div>
+        <div class="strat-rule"><span class="strat-rule-num">9</span><span class="strat-rule-text">Anotar el porqué de cada entrada y salida</span></div>
+        <div class="strat-rule"><span class="strat-rule-num">10</span><span class="strat-rule-text">Aprovechar solo entradas psicológicas — no forzar</span></div>
+      </div>
+    </div>
+
+    <!-- Finviz -->
+    <div class="strat-section">
+      <div class="strat-section-title">📊 Cómo usar Finviz</div>
+      <div class="card">
+        <div class="stat-row"><span class="stat-label">URL</span><span class="stat-val" style="color:var(--blue)">finviz.com → Forex</span></div>
+        <div class="stat-row"><span class="stat-label">Verde ▲</span><span class="stat-val green">Divisa alcista esta semana</span></div>
+        <div class="stat-row"><span class="stat-label">Rojo ▼</span><span class="stat-val red">Divisa bajista esta semana</span></div>
+        <div class="stat-row"><span class="stat-label">Uso</span><span class="stat-val">Confirmar dirección antes de elegir AR/BR/CR/DR</span></div>
+        <div class="stat-row"><span class="stat-label">Importante</span><span class="stat-val" style="color:var(--muted)">Puede cambiar en cada sesión</span></div>
+      </div>
+    </div>
+
+    <!-- RSI -->
+    <div class="strat-section">
+      <div class="strat-section-title">📉 RSI — Solo Contexto</div>
+      <div class="card">
+        <div class="stat-row"><span class="stat-label">Qué mide</span><span class="stat-val">Fuerza relativa — momentum del precio</span></div>
+        <div class="stat-row"><span class="stat-label">Mayor de 70</span><span class="stat-val red">Sobrecompra → más probable que baje</span></div>
+        <div class="stat-row"><span class="stat-label">Menor de 30</span><span class="stat-val green">Sobreventa → más probable que suba</span></div>
+        <div class="stat-row"><span class="stat-label">Regla clave</span><span class="stat-val" style="color:var(--yellow)">NO se usa para entrar — solo como contexto</span></div>
+      </div>
+    </div>
+
+  </div><!-- end tab-estrategia -->
+
+
 <footer>RADAR FX · DATOS EN VIVO · SL=25 PIPS · TP=75 PIPS · R:R 1:3</footer>
 </div>
 
@@ -942,6 +1152,16 @@ async function analyzePair() {
   document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 // ─── PIP CALCULATOR ──────────────────────────────────────────────────────────
 let pipDir = 'compra';
