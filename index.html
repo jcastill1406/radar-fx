@@ -1238,17 +1238,56 @@ async function analyzePair() {
 
 
 // ─── TRADING TRACKER ──────────────────────────────────────────────────────────
-const TRACKER_KEY = 'radorfx_trades';
 
-function getTrades() {
-  try { return JSON.parse(localStorage.getItem(TRACKER_KEY) || '[]'); } catch(e) { return []; }
+// ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://vmlyhugkggeophxjxyqe.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtbHlodWdrZ2dlb3BoeGp4eXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTAyNDgsImV4cCI6MjEwNjU4NjI0OH0.jIcM5pmeZztE9dMxUdNnpv1u6BilKLZJhY4LeSYhoZ4';
+
+async function sbGet(table, params = '') {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?order=created_at.desc${params}`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+  });
+  return res.json();
 }
 
-function saveTrades(trades) {
-  localStorage.setItem(TRACKER_KEY, JSON.stringify(trades));
+async function sbInsert(table, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  });
+  return res.json();
 }
 
-function addToTracker() {
+async function sbUpdate(table, id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return res.ok;
+}
+
+async function sbDelete(table, id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+  });
+  return res.ok;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+
+async function addToTracker() {
   if (!selectedPair) return;
   const weekData = WEEKLY_DATA[currentWeek];
   const d = weekData ? weekData.pairs[selectedPair] : null;
@@ -1287,61 +1326,61 @@ function addToTracker() {
     nota: ''
   };
 
-  const trades = getTrades();
-  trades.unshift(trade);
-  saveTrades(trades);
-  renderTracker();
-  updateTrackerStats();
+  // Save to Supabase
+  const result = await sbInsert('trades', {
+    par: trade.par,
+    direccion: trade.direccion,
+    estrategia: trade.estrategia,
+    entrada: parseFloat(trade.entrada),
+    sl: parseFloat(trade.sl) || 0,
+    tp: parseFloat(trade.tp) || 0,
+    resultado: 'pendiente',
+    semana: trade.semana,
+    fecha: trade.fecha,
+    nota: ''
+  });
 
-  // Switch to tracker tab
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-tracker').classList.add('active');
-  document.querySelectorAll('.tab-btn')[3].classList.add('active');
-
-  alert('✅ Operación agregada al Tracker');
-}
-
-function setTradeResult(id, resultado) {
-  const trades = getTrades();
-  const trade = trades.find(t => t.id === id);
-  if (!trade) return;
-
-  trade.resultado = resultado;
-
-  // Calculate pips won/lost
-  if (resultado !== 'pendiente' && trade.entrada && trade.tp && trade.sl) {
-    const isJPY = trade.par.includes('JPY');
-    const pipMult = isJPY ? 100 : 10000;
-    if (resultado === 'ganadora') {
-      trade.pips = Math.abs(parseFloat(trade.tp) - parseFloat(trade.entrada)) * pipMult;
-    } else if (resultado === 'perdedora') {
-      trade.pips = -Math.abs(parseFloat(trade.sl) - parseFloat(trade.entrada)) * pipMult;
-    }
-    trade.pips = parseFloat(trade.pips.toFixed(1));
+  if (result && result[0]) {
+    await renderTracker();
+    await updateTrackerStats();
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-tracker').classList.add('active');
+    document.querySelectorAll('.tab-btn')[3].classList.add('active');
+    alert('✅ Operación guardada en la base de datos');
+  } else {
+    alert('❌ Error al guardar. Verifica que la tabla "trades" existe en Supabase.');
   }
-
-  saveTrades(trades);
-  renderTracker();
-  updateTrackerStats();
 }
 
-function saveNote(id, nota) {
-  const trades = getTrades();
-  const trade = trades.find(t => t.id === id);
-  if (trade) { trade.nota = nota; saveTrades(trades); }
+async function setTradeResult(id, resultado, trade) {
+  const isJPY = trade.par.includes('JPY');
+  const pipMult = isJPY ? 100 : 10000;
+  let pips = null;
+  if (resultado === 'ganadora') {
+    pips = parseFloat((Math.abs(parseFloat(trade.tp) - parseFloat(trade.entrada)) * pipMult).toFixed(1));
+  } else if (resultado === 'perdedora') {
+    pips = parseFloat((-Math.abs(parseFloat(trade.sl) - parseFloat(trade.entrada)) * pipMult).toFixed(1));
+  }
+  await sbUpdate('trades', id, { resultado, pips });
+  await renderTracker();
+  await updateTrackerStats();
 }
 
-function deleteTrade(id) {
+async function saveNote(id, nota) {
+  await sbUpdate('trades', id, { nota });
+}
+
+async function deleteTrade(id) {
   if (!confirm('¿Eliminar esta operación?')) return;
-  const trades = getTrades().filter(t => t.id !== id);
-  saveTrades(trades);
-  renderTracker();
-  updateTrackerStats();
+  await sbDelete('trades', id);
+  await renderTracker();
+  await updateTrackerStats();
 }
 
-function updateTrackerStats() {
-  const trades = getTrades();
+async function updateTrackerStats() {
+  const trades = await sbGet('trades');
+  if (!Array.isArray(trades)) return;
   const ganadoras = trades.filter(t => t.resultado === 'ganadora').length;
   const perdedoras = trades.filter(t => t.resultado === 'perdedora').length;
   const total = trades.length;
@@ -1355,8 +1394,19 @@ function updateTrackerStats() {
   document.getElementById('trackerCount').textContent = total;
 }
 
-function renderTracker() {
-  const trades = getTrades();
+async function renderTracker() {
+  const list = document.getElementById('trackerList');
+  list.innerHTML = '<div class="tracker-empty">⏳ Cargando operaciones...</div>';
+  
+  const trades = await sbGet('trades');
+  if (!Array.isArray(trades)) {
+    list.innerHTML = '<div class="tracker-empty">❌ Error conectando a la base de datos.<br>Verifica que la tabla "trades" existe en Supabase.</div>';
+    return;
+  }
+
+  // Auto-check results for pending trades
+  await autoCheckResults(trades);
+
   const filter = document.getElementById('weekFilter').value;
 
   // Update week filter options
@@ -1414,7 +1464,7 @@ function renderTracker() {
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:${pipsCol}">${pipsText}</span>
-            <span class="tracker-result-badge ${trade.resultado}" onclick="cycleResult(${trade.id})">
+            <span class="tracker-result-badge ${trade.resultado}" onclick="cycleResult(${trade.id}, ${JSON.stringify(trade).replace(/"/g, '&quot;')})">
               ${trade.resultado === 'ganadora' ? '✅ GANADORA' : trade.resultado === 'perdedora' ? '❌ PERDEDORA' : '⏳ PENDIENTE'}
             </span>
           </div>
@@ -1454,18 +1504,52 @@ function renderTracker() {
   });
 }
 
-function cycleResult(id) {
-  const trades = getTrades();
-  const trade = trades.find(t => t.id === id);
-  if (!trade) return;
+async function cycleResult(id, trade) {
   const cycle = {pendiente: 'ganadora', ganadora: 'perdedora', perdedora: 'pendiente'};
-  setTradeResult(id, cycle[trade.resultado]);
+  await setTradeResult(id, cycle[trade.resultado], trade);
 }
 
 // Init tracker on load
-function initTracker() {
-  renderTracker();
-  updateTrackerStats();
+
+async function autoCheckResults(trades) {
+  const pending = trades.filter(t => t.resultado === 'pendiente');
+  if (pending.length === 0) return;
+
+  for (const trade of pending) {
+    try {
+      const res = await fetch(`https://api.twelvedata.com/price?symbol=${trade.par}&apikey=${API_KEY}`);
+      const data = await res.json();
+      if (!data.price) continue;
+      const price = parseFloat(data.price);
+      const tp = parseFloat(trade.tp);
+      const sl = parseFloat(trade.sl);
+      const entrada = parseFloat(trade.entrada);
+
+      let resultado = null;
+      if (trade.direccion === 'COMPRA') {
+        if (price >= tp) resultado = 'ganadora';
+        else if (price <= sl) resultado = 'perdedora';
+      } else {
+        if (price <= tp) resultado = 'ganadora';
+        else if (price >= sl) resultado = 'perdedora';
+      }
+
+      if (resultado) {
+        const isJPY = trade.par.includes('JPY');
+        const pipMult = isJPY ? 100 : 10000;
+        let pips = resultado === 'ganadora'
+          ? parseFloat((Math.abs(tp - entrada) * pipMult).toFixed(1))
+          : parseFloat((-Math.abs(sl - entrada) * pipMult).toFixed(1));
+        await sbUpdate('trades', trade.id, { resultado, pips });
+        console.log(`Auto-result: ${trade.par} → ${resultado} (${pips} pips)`);
+      }
+    } catch(e) { continue; }
+  }
+}
+
+async function initTracker() {
+  await renderTracker();
+  await updateTrackerStats();
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
