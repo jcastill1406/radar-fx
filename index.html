@@ -189,6 +189,33 @@
   .comp-veredicto.cambio-alcista { background: rgba(0,229,160,0.1); color: var(--green); }
   .comp-veredicto.cambio-bajista { background: rgba(255,64,96,0.1); color: var(--red); }
   .comp-veredicto.neutral { background: rgba(255,209,102,0.1); color: var(--yellow); }
+
+  /* Pip Calculator */
+  .pip-calc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .pip-calc-title { font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 16px; }
+  .pip-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .pip-field label { font-size: 10px; font-family: 'Space Mono', monospace; letter-spacing: 1.5px; color: var(--muted); display: block; margin-bottom: 6px; }
+  .pip-field input, .pip-field select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 14px; padding: 10px 12px; outline: none; transition: border-color 0.15s; }
+  .pip-field input:focus, .pip-field select:focus { border-color: var(--green); }
+  .pip-calc-btn { width: 100%; background: var(--surface2); border: 1px solid var(--green); color: var(--green); border-radius: 8px; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; padding: 12px; cursor: pointer; letter-spacing: 1px; transition: all 0.15s; margin-bottom: 14px; }
+  .pip-calc-btn:hover { background: var(--green); color: #0a0a0f; }
+  .pip-results { display: none; }
+  .pip-result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .pip-result-cell { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+  .pip-result-cell.sl-cell { border-color: rgba(255,64,96,0.4); background: rgba(255,64,96,0.06); }
+  .pip-result-cell.tp-cell { border-color: rgba(0,229,160,0.4); background: rgba(0,229,160,0.06); }
+  .pip-result-cell.rr-cell { border-color: rgba(155,127,255,0.4); background: rgba(155,127,255,0.06); }
+  .pip-result-label { font-size: 10px; font-family: 'Space Mono', monospace; color: var(--muted); margin-bottom: 4px; letter-spacing: 1px; }
+  .pip-result-val { font-size: 16px; font-weight: 700; font-family: 'Space Mono', monospace; }
+  .pip-result-cell.sl-cell .pip-result-val { color: var(--red); }
+  .pip-result-cell.tp-cell .pip-result-val { color: var(--green); }
+  .pip-result-cell.rr-cell .pip-result-val { color: var(--purple); }
+  .pip-result-sub { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 3px; }
+  .pip-summary { background: var(--surface2); border-radius: 8px; padding: 12px 14px; font-size: 12px; color: var(--muted); line-height: 1.6; font-family: 'Space Mono', monospace; }
+  .pip-dir-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
+  .pip-dir-btn { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; cursor: pointer; transition: all 0.15s; font-weight: 700; }
+  .pip-dir-btn.active-compra { border-color: var(--green); color: var(--green); background: rgba(0,229,160,0.08); }
+  .pip-dir-btn.active-venta { border-color: var(--red); color: var(--red); background: rgba(255,64,96,0.08); }
 </style>
 </head>
 <body>
@@ -363,7 +390,58 @@
     </div>
   </div>
 
-  <footer>RADAR FX · DATOS EN VIVO · SL=25 PIPS · TP=75 PIPS · R:R 1:3</footer>
+  
+  <!-- Pip Calculator -->
+  <div class="pip-calc" id="pipCalc">
+    <div class="pip-calc-title">🧮 Calculadora de Pips — SL &amp; TP</div>
+    <div class="pip-dir-toggle">
+      <button class="pip-dir-btn active-compra" id="dirCompra" onclick="setPipDir('compra')">▲ COMPRA</button>
+      <button class="pip-dir-btn" id="dirVenta" onclick="setPipDir('venta')">▼ VENTA</button>
+    </div>
+    <div class="pip-inputs">
+      <div class="pip-field">
+        <label>PAR</label>
+        <select id="pipPar" onchange="updatePipPar()">
+          <option value="normal">Majors / Crosses (5 dec)</option>
+          <option value="jpy">Pares JPY (3 dec)</option>
+        </select>
+      </div>
+      <div class="pip-field">
+        <label>PRECIO ENTRADA</label>
+        <input type="number" id="pipEntrada" placeholder="Ej: 1.41050" step="0.00001" oninput="calcPips()">
+      </div>
+      <div class="pip-field">
+        <label>PIPS STOP LOSS</label>
+        <input type="number" id="pipSL" placeholder="25" value="25" step="1" oninput="calcPips()">
+      </div>
+      <div class="pip-field">
+        <label>RATIO R:R</label>
+        <input type="number" id="pipRR" placeholder="3" value="3" step="0.5" oninput="calcPips()">
+      </div>
+    </div>
+    <button class="pip-calc-btn" onclick="calcPips()">CALCULAR SL &amp; TP</button>
+    <div class="pip-results" id="pipResults">
+      <div class="pip-result-grid">
+        <div class="pip-result-cell sl-cell">
+          <div class="pip-result-label">STOP LOSS</div>
+          <div class="pip-result-val" id="pipSLPrice">--</div>
+          <div class="pip-result-sub" id="pipSLPips">-- pips</div>
+        </div>
+        <div class="pip-result-cell tp-cell">
+          <div class="pip-result-label">TAKE PROFIT</div>
+          <div class="pip-result-val" id="pipTPPrice">--</div>
+          <div class="pip-result-sub" id="pipTPPips">-- pips</div>
+        </div>
+        <div class="pip-result-cell rr-cell">
+          <div class="pip-result-label">R : R</div>
+          <div class="pip-result-val" id="pipRRVal">1:3</div>
+          <div class="pip-result-sub">ratio</div>
+        </div>
+      </div>
+      <div class="pip-summary" id="pipSummary"></div>
+    </div>
+  </div>
+<footer>RADAR FX · DATOS EN VIVO · SL=25 PIPS · TP=75 PIPS · R:R 1:3</footer>
 </div>
 
 <script>
@@ -860,8 +938,82 @@ async function analyzePair() {
 
   document.getElementById('macroText').textContent = d.macro;
   document.getElementById('result').style.display = 'block';
+  autoFillCalc(selectedPair, r, liveData.price);
   document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
 }
+
+
+// ─── PIP CALCULATOR ──────────────────────────────────────────────────────────
+let pipDir = 'compra';
+let pipType = 'normal'; // normal = 5 decimals, jpy = 3 decimals
+
+function setPipDir(dir) {
+  pipDir = dir;
+  document.getElementById('dirCompra').className = 'pip-dir-btn' + (dir === 'compra' ? ' active-compra' : '');
+  document.getElementById('dirVenta').className = 'pip-dir-btn' + (dir === 'venta' ? ' active-venta' : '');
+  calcPips();
+}
+
+function updatePipPar() {
+  pipType = document.getElementById('pipPar').value;
+  calcPips();
+}
+
+function calcPips() {
+  const entradaStr = document.getElementById('pipEntrada').value;
+  const slPips = parseFloat(document.getElementById('pipSL').value) || 25;
+  const rr = parseFloat(document.getElementById('pipRR').value) || 3;
+
+  if (!entradaStr) return;
+  const entrada = parseFloat(entradaStr);
+  if (isNaN(entrada)) return;
+
+  const pipSize = pipType === 'jpy' ? 0.01 : 0.0001;
+  const decimals = pipType === 'jpy' ? 3 : 5;
+  const slValue = slPips * pipSize;
+  const tpPips = slPips * rr;
+  const tpValue = tpPips * pipSize;
+
+  let slPrice, tpPrice;
+  if (pipDir === 'compra') {
+    slPrice = entrada - slValue;
+    tpPrice = entrada + tpValue;
+  } else {
+    slPrice = entrada + slValue;
+    tpPrice = entrada - tpValue;
+  }
+
+  document.getElementById('pipSLPrice').textContent = slPrice.toFixed(decimals);
+  document.getElementById('pipTPPrice').textContent = tpPrice.toFixed(decimals);
+  document.getElementById('pipSLPips').textContent = slPips + ' pips';
+  document.getElementById('pipTPPips').textContent = tpPips + ' pips';
+  document.getElementById('pipRRVal').textContent = '1:' + rr;
+
+  const dir = pipDir === 'compra' ? 'COMPRA' : 'VENTA';
+  const slDir = pipDir === 'compra' ? 'por debajo' : 'por encima';
+  const tpDir = pipDir === 'compra' ? 'por encima' : 'por debajo';
+
+  document.getElementById('pipSummary').textContent =
+    `${dir} en ${entrada.toFixed(decimals)} → ` +
+    `SL ${slPips} pips ${slDir} = ${slPrice.toFixed(decimals)} → ` +
+    `TP ${tpPips} pips ${tpDir} = ${tpPrice.toFixed(decimals)} → ` +
+    `Si pierdes 1 unidad, ganas ${rr} unidades. R:R 1:${rr}.`;
+
+  document.getElementById('pipResults').style.display = 'block';
+}
+
+// Auto-fill calculator when a pair is analyzed
+function autoFillCalc(pair, recData, livePrice) {
+  if (!livePrice) return;
+  const isJPY = pair.includes('JPY');
+  document.getElementById('pipPar').value = isJPY ? 'jpy' : 'normal';
+  pipType = isJPY ? 'jpy' : 'normal';
+  document.getElementById('pipEntrada').value = parseFloat(livePrice).toFixed(isJPY ? 3 : 5);
+  if (recData.accion === 'COMPRA') setPipDir('compra');
+  else if (recData.accion === 'VENTA') setPipDir('venta');
+  calcPips();
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Init
 checkSession();
