@@ -291,6 +291,45 @@
   .tracker-empty { text-align: center; padding: 40px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 12px; }
   .add-trade-btn { background: var(--green); color: #0a0a0f; border: none; border-radius: 8px; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 8px 16px; cursor: pointer; letter-spacing: 1px; }
   .week-filter { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 11px; padding: 7px 12px; cursor: pointer; }
+
+  /* Session Clock */
+  .session-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .session-bar-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+  .market-status { display: flex; align-items: center; gap: 8px; }
+  .market-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .market-status-dot.open { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 1.5s infinite; }
+  .market-status-dot.closed { background: var(--red); }
+  .market-status-text { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; }
+  .market-status-text.open { color: var(--green); }
+  .market-status-text.closed { color: var(--red); }
+  .session-time { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); }
+
+  .session-sessions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
+  .session-pill { border-radius: 8px; padding: 8px 6px; text-align: center; border: 1px solid var(--border); background: var(--surface2); transition: all 0.3s; }
+  .session-pill.active { border-color: var(--green); background: rgba(0,229,160,0.08); }
+  .session-pill.next { border-color: var(--yellow); background: rgba(255,209,102,0.05); }
+  .session-pill-name { font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 3px; letter-spacing: 1px; }
+  .session-pill.active .session-pill-name { color: var(--green); }
+  .session-pill.next .session-pill-name { color: var(--yellow); }
+  .session-pill-time { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; }
+  .session-pill-status { font-size: 9px; margin-top: 3px; font-family: 'Space Mono', monospace; }
+  .session-pill.active .session-pill-status { color: var(--green); }
+  .session-pill.next .session-pill-status { color: var(--yellow); }
+
+  .session-counters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .session-counter { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
+  .session-counter-label { font-size: 10px; font-family: 'Space Mono', monospace; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
+  .session-counter-time { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; letter-spacing: 2px; }
+  .session-counter-sub { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 3px; }
+  .session-counter.cierre .session-counter-time { color: var(--red); }
+  .session-counter.apertura .session-counter-time { color: var(--green); }
+  .session-counter.cierre .session-counter-label { color: var(--red); }
+  .session-counter.apertura .session-counter-label { color: var(--green); }
+
+  .session-current-box { background: rgba(0,229,160,0.06); border: 1px solid rgba(0,229,160,0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .session-current-name { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; color: var(--green); }
+  .session-next-info { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; text-align: right; }
+  .session-closed-box { background: rgba(255,64,96,0.06); border: 1px solid rgba(255,64,96,0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; text-align: center; font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; color: var(--red); }
 </style>
 </head>
 <body>
@@ -336,6 +375,56 @@
     <button class="tab-btn" onclick="switchTab('calculadora')">🧮 CALCULADORA</button>
     <button class="tab-btn" onclick="switchTab('estrategia')">📋 ESTRATEGIA</button>
     <button class="tab-btn" onclick="switchTab('tracker')">📊 TRACKER</button>
+  </div>
+
+
+  <!-- Session Clock Bar -->
+  <div class="session-bar" id="sessionBar">
+    <div class="session-bar-top">
+      <div class="market-status">
+        <div class="market-status-dot" id="mktDot"></div>
+        <div class="market-status-text" id="mktStatus">CARGANDO...</div>
+      </div>
+      <div class="session-time" id="sessionLocalTime"></div>
+    </div>
+
+    <div id="sessionCurrentBox"></div>
+
+    <div class="session-sessions">
+      <div class="session-pill" id="pillSydney">
+        <div class="session-pill-name">SYDNEY</div>
+        <div class="session-pill-time">4pm–1am CST</div>
+        <div class="session-pill-status" id="pillSydneyStatus">—</div>
+      </div>
+      <div class="session-pill" id="pillTokyo">
+        <div class="session-pill-name">TOKYO</div>
+        <div class="session-pill-time">6pm–3am CST</div>
+        <div class="session-pill-status" id="pillTokyoStatus">—</div>
+      </div>
+      <div class="session-pill" id="pillLondon">
+        <div class="session-pill-name">LONDON</div>
+        <div class="session-pill-time">2am–11am CST</div>
+        <div class="session-pill-status" id="pillLondonStatus">—</div>
+      </div>
+      <div class="session-pill" id="pillNY">
+        <div class="session-pill-name">NEW YORK</div>
+        <div class="session-pill-time">7am–4pm CST</div>
+        <div class="session-pill-status" id="pillNYStatus">—</div>
+      </div>
+    </div>
+
+    <div class="session-counters">
+      <div class="session-counter cierre">
+        <div class="session-counter-label">⏱ CIERRE DEL MERCADO</div>
+        <div class="session-counter-time" id="cntCierre">--:--:--</div>
+        <div class="session-counter-sub" id="cntCierreSub">Viernes 4pm CST</div>
+      </div>
+      <div class="session-counter apertura">
+        <div class="session-counter-label">⏰ APERTURA DEL MERCADO</div>
+        <div class="session-counter-time" id="cntApertura">--:--:--</div>
+        <div class="session-counter-sub" id="cntAperturaSub">Domingo 4pm CST</div>
+      </div>
+    </div>
   </div>
 
   <!-- Tab: Analisis -->
@@ -1243,6 +1332,194 @@ async function analyzePair() {
 
 // ─── TRADING TRACKER ──────────────────────────────────────────────────────────
 
+
+// ─── SESSION CLOCK (Costa Rica = UTC-6, no DST) ───────────────────────────────
+const TZ_OFFSET = -6; // Costa Rica CST — UTC-6 fijo, sin cambio de horario
+
+// Sessions in UTC hours (start, end)
+const SESSIONS = {
+  sydney:  { start: 21, end: 6,  name: 'SYDNEY',   color: 'var(--blue)',   cst: '4pm – 1am' },
+  tokyo:   { start: 23, end: 8,  name: 'TOKYO',    color: 'var(--purple)', cst: '6pm – 2am' },
+  london:  { start: 8,  end: 17, name: 'LONDON',   color: 'var(--yellow)', cst: '2am – 11am' },
+  newyork: { start: 13, end: 21, name: 'NEW YORK', color: 'var(--green)',  cst: '7am – 3pm' },
+};
+
+function utcHourNow() {
+  const now = new Date();
+  return now.getUTCHours() + now.getUTCMinutes() / 60 + now.getUTCSeconds() / 3600;
+}
+
+function isSessionOpen(session) {
+  const h = utcHourNow();
+  const { start, end } = session;
+  if (start < end) return h >= start && h < end;
+  return h >= start || h < end; // overnight session
+}
+
+function isMarketOpen() {
+  const now = new Date();
+  const day = now.getUTCDay(); // 0=Sun,1=Mon,...,5=Fri,6=Sat
+  const h = utcHourNow();
+  // Market open: Sun 21:00 UTC to Fri 21:00 UTC
+  if (day === 6) return false; // Saturday always closed
+  if (day === 0 && h < 21) return false; // Sunday before 21:00 UTC (3pm CST)
+  if (day === 5 && h >= 21) return false; // Friday after 21:00 UTC (3pm CST)
+  return true;
+}
+
+function getActiveSessions() {
+  return Object.entries(SESSIONS).filter(([k, s]) => isSessionOpen(s)).map(([k, s]) => s.name);
+}
+
+function getNextSession() {
+  const h = utcHourNow();
+  const order = ['sydney','tokyo','london','newyork'];
+  for (const key of order) {
+    const s = SESSIONS[key];
+    if (!isSessionOpen(s)) {
+      let diff = s.start - h;
+      if (diff < 0) diff += 24;
+      return { name: s.name, hoursUntil: diff };
+    }
+  }
+  return null;
+}
+
+function fmtCountdown(totalSeconds) {
+  if (totalSeconds < 0) totalSeconds = 0;
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = Math.floor(totalSeconds % 60);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function getSecondsUntilMarketOpen() {
+  const now = new Date();
+  const day = now.getUTCDay();
+  const h = now.getUTCHours();
+  const m = now.getUTCMinutes();
+  const s = now.getUTCSeconds();
+  const totalUTCSeconds = h * 3600 + m * 60 + s;
+  const openUTC = 21 * 3600; // 21:00 UTC Sunday
+
+  if (isMarketOpen()) return 0;
+
+  // Calculate next Sunday 21:00 UTC
+  let daysUntilSunday;
+  if (day === 6) daysUntilSunday = 1; // Saturday → Sunday
+  else if (day === 0) {
+    // Sunday but before 21:00
+    return openUTC - totalUTCSeconds;
+  } else if (day === 5 && h >= 21) daysUntilSunday = 2; // Friday after close → Sunday
+  else daysUntilSunday = (7 - day) % 7 || 7;
+
+  return daysUntilSunday * 86400 + openUTC - totalUTCSeconds;
+}
+
+function getSecondsUntilMarketClose() {
+  if (!isMarketOpen()) return 0;
+  const now = new Date();
+  const day = now.getUTCDay();
+  const h = now.getUTCHours();
+  const m = now.getUTCMinutes();
+  const s = now.getUTCSeconds();
+  const totalUTCSeconds = h * 3600 + m * 60 + s;
+  const closeUTC = 21 * 3600; // Friday 21:00 UTC
+
+  let daysUntilFriday = (5 - day + 7) % 7;
+  if (day === 5 && totalUTCSeconds < closeUTC) daysUntilFriday = 0;
+  else if (day === 5 && totalUTCSeconds >= closeUTC) daysUntilFriday = 7;
+
+  return daysUntilFriday * 86400 + closeUTC - totalUTCSeconds;
+}
+
+function updateSessionClock() {
+  const now = new Date();
+  // Costa Rica time (UTC-6)
+  const crTime = new Date(now.getTime() + TZ_OFFSET * 3600000);
+  const timeStr = crTime.toUTCString().slice(17, 25);
+  const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const dayStr = days[now.getUTCDay()];
+  document.getElementById('sessionLocalTime').textContent = `🇨🇷 Costa Rica — ${dayStr} ${timeStr}`;
+
+  const open = isMarketOpen();
+  const dot = document.getElementById('mktDot');
+  const status = document.getElementById('mktStatus');
+  dot.className = 'market-status-dot ' + (open ? 'open' : 'closed');
+  status.className = 'market-status-text ' + (open ? 'open' : 'closed');
+  status.textContent = open ? '● MERCADO ABIERTO' : '● MERCADO CERRADO';
+
+  // Active sessions
+  const pills = { sydney: 'pillSydney', tokyo: 'pillTokyo', london: 'pillLondon', newyork: 'pillNY' };
+  const statuses = { sydney: 'pillSydneyStatus', tokyo: 'pillTokyoStatus', london: 'pillLondonStatus', newyork: 'pillNYStatus' };
+
+  // Find next session
+  let nextSessionName = null;
+  let minDiff = Infinity;
+  Object.entries(SESSIONS).forEach(([key, s]) => {
+    if (!isSessionOpen(s)) {
+      const h = utcHourNow();
+      let diff = s.start - h;
+      if (diff < 0) diff += 24;
+      if (diff < minDiff) { minDiff = diff; nextSessionName = s.name; }
+    }
+  });
+
+  Object.entries(SESSIONS).forEach(([key, s]) => {
+    const pillEl = document.getElementById(pills[key]);
+    const statEl = document.getElementById(statuses[key]);
+    const active = isSessionOpen(s);
+    const isNext = !active && s.name === nextSessionName;
+    pillEl.className = 'session-pill' + (active ? ' active' : isNext ? ' next' : '');
+    statEl.textContent = active ? '🟢 ABIERTA' : isNext ? '⏳ PRÓXIMA' : '⚫ CERRADA';
+  });
+
+  // Current session box
+  const activeSessions = getActiveSessions();
+  const box = document.getElementById('sessionCurrentBox');
+  if (!open) {
+    box.innerHTML = '<div class="session-closed-box">🔴 MERCADO CERRADO — Abre el Domingo a las 4:00pm hora Costa Rica</div>';
+  } else if (activeSessions.length > 0) {
+    const sessionColors = { 'SYDNEY':'var(--blue)', 'TOKYO':'var(--purple)', 'LONDON':'var(--yellow)', 'NEW YORK':'var(--green)' };
+    const mainSession = activeSessions[activeSessions.length - 1];
+    const overlap = activeSessions.length > 1 ? ` + ${activeSessions.slice(0,-1).join(' + ')} (OVERLAP 🔥)` : '';
+    box.innerHTML = `<div class="session-current-box">
+      <div>
+        <div style="font-size:10px;font-family:'Space Mono',monospace;color:var(--muted);margin-bottom:3px;">SESIÓN ACTIVA</div>
+        <div class="session-current-name" style="color:${sessionColors[mainSession] || 'var(--green)'}">
+          📍 ${mainSession}${overlap}
+        </div>
+      </div>
+      <div class="session-next-info">
+        <div style="margin-bottom:2px;">Próxima sesión</div>
+        <div style="color:var(--yellow);font-weight:700;">${nextSessionName || '—'}</div>
+        <div>en ${minDiff < Infinity ? Math.floor(minDiff) + 'h ' + Math.floor((minDiff % 1) * 60) + 'm' : '—'}</div>
+      </div>
+    </div>`;
+  }
+
+  // Countdown timers
+  const secClose = getSecondsUntilMarketClose();
+  const secOpen = getSecondsUntilMarketOpen();
+
+  if (open) {
+    document.getElementById('cntCierre').textContent = fmtCountdown(secClose);
+    document.getElementById('cntCierreSub').textContent = 'Viernes 3:00pm CST (hora Costa Rica)';
+    document.getElementById('cntApertura').textContent = '——';
+    document.getElementById('cntAperturaSub').textContent = 'Mercado abierto ahora';
+  } else {
+    document.getElementById('cntCierre').textContent = '——';
+    document.getElementById('cntCierreSub').textContent = 'Mercado cerrado ahora';
+    document.getElementById('cntApertura').textContent = fmtCountdown(secOpen);
+    document.getElementById('cntAperturaSub').textContent = 'Domingo 3:00pm CST (hora Costa Rica)';
+  }
+}
+
+// Start clock
+updateSessionClock();
+setInterval(updateSessionClock, 1000);
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://vmlyhugkggeophxjxyqe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtbHlodWdrZ2dlb3BoeGp4eXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTAyNDgsImV4cCI6MjEwNjU4NjI0OH0.jIcM5pmeZztE9dMxUdNnpv1u6BilKLZJhY4LeSYhoZ4';
@@ -1640,6 +1917,7 @@ function autoFillCalc(pair, recData, livePrice) {
 checkSession();
 initGrid();
 initTracker();
+updateSessionClock();
 </script>
 </body>
 </html>
