@@ -1771,6 +1771,7 @@ async function renderTracker() {
             onblur="saveNote(${trade.id}, this.value)">
         </div>
         <div class="tracker-actions">
+          <button class="tracker-action-btn" onclick="resetToPending(${trade.id})" style="border-color:var(--yellow);color:var(--yellow);">↩ Pendiente</button>
           <button class="tracker-action-btn" onclick="deleteTrade(${trade.id})">🗑 Eliminar</button>
         </div>
       </div>`;
@@ -1781,6 +1782,12 @@ async function renderTracker() {
   });
 }
 
+
+async function resetToPending(id) {
+  await sbUpdate('trades', id, { resultado: 'pendiente', pips: null });
+  await renderTracker();
+  await updateTrackerStats();
+}
 async function cycleResult(id) {
   const trades = await sbGet('trades', `&id=eq.${id}`);
   if (!trades || !trades[0]) return;
