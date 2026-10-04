@@ -1741,7 +1741,7 @@ async function renderTracker() {
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:${pipsCol}">${pipsText}</span>
-            <span class="tracker-result-badge ${trade.resultado}" onclick="cycleResult(${trade.id}, ${JSON.stringify(trade).replace(/"/g, '&quot;')})">
+            <span class="tracker-result-badge ${trade.resultado}" onclick="cycleResult(${trade.id})">
               ${trade.resultado === 'ganadora' ? '✅ GANADORA' : trade.resultado === 'perdedora' ? '❌ PERDEDORA' : '⏳ PENDIENTE'}
             </span>
           </div>
@@ -1781,7 +1781,10 @@ async function renderTracker() {
   });
 }
 
-async function cycleResult(id, trade) {
+async function cycleResult(id) {
+  const trades = await sbGet('trades', `&id=eq.${id}`);
+  if (!trades || !trades[0]) return;
+  const trade = trades[0];
   const cycle = {pendiente: 'ganadora', ganadora: 'perdedora', perdedora: 'pendiente'};
   await setTradeResult(id, cycle[trade.resultado], trade);
 }
@@ -1801,19 +1804,42 @@ async function autoCheckResults(trades) {
       const tp = parseFloat(trade.tp);
       const sl = parseFloat(trade.sl);
       const entrada = parseFloat(trade.entrada);
+      const isJPY = trade.par.includes('JPY');
+      const pipMult = isJPY ? 100 : 10000;
+
+      // Minimum pip movement required before checking result
+      // Trade must have moved at least 5 pips from entry before auto-checking
+      const minMovement = 5 / pipMult;
+      const movedEnough = Math.abs(price - entrada) >= minMovement;
+      if (!movedEnough) continue;
 
       let resultado = null;
+
       if (trade.direccion === 'COMPRA') {
+        // Price must have reached or passed TP (above entry)
         if (price >= tp) resultado = 'ganadora';
+        // Price must have reached or passed SL (below entry)
         else if (price <= sl) resultado = 'perdedora';
       } else {
+        // VENTA: TP is below entry, SL is above entry
+        // Price must have reached or passed TP (below entry)
         if (price <= tp) resultado = 'ganadora';
+        // Price must have reached or passed SL (above entry)
         else if (price >= sl) resultado = 'perdedora';
       }
 
+      // Extra validation: for a VENTA, TP must be BELOW entry and SL must be ABOVE entry
+      // For a COMPRA, TP must be ABOVE entry and SL must be BELOW entry
       if (resultado) {
-        const isJPY = trade.par.includes('JPY');
-        const pipMult = isJPY ? 100 : 10000;
+        const validSetup = trade.direccion === 'COMPRA'
+          ? (tp > entrada && sl < entrada)
+          : (tp < entrada && sl > entrada);
+
+        if (!validSetup) {
+          console.log(`Skipping ${trade.par} — invalid SL/TP setup for ${trade.direccion}`);
+          continue;
+        }
+
         let pips = resultado === 'ganadora'
           ? parseFloat((Math.abs(tp - entrada) * pipMult).toFixed(1))
           : parseFloat((-Math.abs(sl - entrada) * pipMult).toFixed(1));
