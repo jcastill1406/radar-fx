@@ -1900,14 +1900,46 @@ function calcPips() {
 
 // Auto-fill calculator when a pair is analyzed
 function autoFillCalc(pair, recData, livePrice) {
-  if (!livePrice) return;
   const isJPY = pair.includes('JPY');
+
+  // Set pair type
   document.getElementById('pipPar').value = isJPY ? 'jpy' : 'normal';
   pipType = isJPY ? 'jpy' : 'normal';
-  document.getElementById('pipEntrada').value = parseFloat(livePrice).toFixed(isJPY ? 3 : 5);
-  if (recData.accion === 'COMPRA') setPipDir('compra');
-  else if (recData.accion === 'VENTA') setPipDir('venta');
+
+  // Auto-select direction from recommendation — always, no matter what
+  if (recData.accion === 'COMPRA') {
+    pipDir = 'compra';
+    document.getElementById('dirCompra').className = 'pip-dir-btn active-compra';
+    document.getElementById('dirVenta').className = 'pip-dir-btn';
+  } else if (recData.accion === 'VENTA') {
+    pipDir = 'venta';
+    document.getElementById('dirVenta').className = 'pip-dir-btn active-venta';
+    document.getElementById('dirCompra').className = 'pip-dir-btn';
+  }
+
+  // Use live price if available, otherwise use the recommended entry zone (first price)
+  if (livePrice) {
+    document.getElementById('pipEntrada').value = parseFloat(livePrice).toFixed(isJPY ? 3 : 5);
+  } else if (recData.zona && recData.zona !== 'Sin zona clara') {
+    // Extract first price from zona range e.g. "1.4100 – 1.4130"
+    const match = recData.zona.match(/[\d.]+/);
+    if (match) document.getElementById('pipEntrada').value = match[0];
+  }
+
+  // Always calculate
   calcPips();
+
+  // Switch to calculator tab automatically and show a toast
+  // (only switch if user is on analisis tab)
+  const calcTab = document.getElementById('tab-calculadora');
+  if (calcTab) {
+    // Don't switch tab — just show indicator that calc is ready
+    const btn = document.querySelector('.tab-btn:nth-child(2)');
+    if (btn) {
+      btn.style.boxShadow = '0 0 10px var(--green)';
+      setTimeout(() => { btn.style.boxShadow = ''; }, 3000);
+    }
+  }
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
