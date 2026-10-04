@@ -1350,6 +1350,7 @@ function utcHourNow() {
 }
 
 function isSessionOpen(session) {
+  if (!isMarketOpen()) return false; // Never show sessions when market is closed
   const h = utcHourNow();
   const { start, end } = session;
   if (start < end) return h >= start && h < end;
@@ -1359,11 +1360,14 @@ function isSessionOpen(session) {
 function isMarketOpen() {
   const now = new Date();
   const day = now.getUTCDay(); // 0=Sun,1=Mon,...,5=Fri,6=Sat
-  const h = utcHourNow();
-  // Market open: Sun 21:00 UTC to Fri 21:00 UTC
+  const utcH = now.getUTCHours();
+  const utcM = now.getUTCMinutes();
+  const utcTotalMin = utcH * 60 + utcM;
+  const openMin = 21 * 60; // 21:00 UTC = 3pm CST
+
   if (day === 6) return false; // Saturday always closed
-  if (day === 0 && h < 21) return false; // Sunday before 21:00 UTC (3pm CST)
-  if (day === 5 && h >= 21) return false; // Friday after 21:00 UTC (3pm CST)
+  if (day === 0 && utcTotalMin < openMin) return false; // Sunday before 3pm CST
+  if (day === 5 && utcTotalMin >= openMin) return false; // Friday after 3pm CST
   return true;
 }
 
@@ -1394,43 +1398,37 @@ function fmtCountdown(totalSeconds) {
 }
 
 function getSecondsUntilMarketOpen() {
+  if (isMarketOpen()) return 0;
   const now = new Date();
   const day = now.getUTCDay();
-  const h = now.getUTCHours();
-  const m = now.getUTCMinutes();
-  const s = now.getUTCSeconds();
-  const totalUTCSeconds = h * 3600 + m * 60 + s;
-  const openUTC = 21 * 3600; // 21:00 UTC Sunday
+  const totalUTCSeconds = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+  const openUTC = 21 * 3600; // 21:00 UTC = 3pm CST
 
-  if (isMarketOpen()) return 0;
-
-  // Calculate next Sunday 21:00 UTC
-  let daysUntilSunday;
-  if (day === 6) daysUntilSunday = 1; // Saturday → Sunday
-  else if (day === 0) {
-    // Sunday but before 21:00
+  if (day === 0) {
+    // Sunday before open
     return openUTC - totalUTCSeconds;
-  } else if (day === 5 && h >= 21) daysUntilSunday = 2; // Friday after close → Sunday
-  else daysUntilSunday = (7 - day) % 7 || 7;
-
-  return daysUntilSunday * 86400 + openUTC - totalUTCSeconds;
+  } else if (day === 6) {
+    // Saturday — next open is Sunday 21:00 UTC
+    return (86400 - totalUTCSeconds) + openUTC;
+  } else if (day === 5) {
+    // Friday after close — next open is Sunday 21:00 UTC (2 days away)
+    return (86400 - totalUTCSeconds) + 86400 + openUTC;
+  }
+  return 0;
 }
 
 function getSecondsUntilMarketClose() {
   if (!isMarketOpen()) return 0;
   const now = new Date();
   const day = now.getUTCDay();
-  const h = now.getUTCHours();
-  const m = now.getUTCMinutes();
-  const s = now.getUTCSeconds();
-  const totalUTCSeconds = h * 3600 + m * 60 + s;
-  const closeUTC = 21 * 3600; // Friday 21:00 UTC
+  const totalUTCSeconds = now.getUTCHours() * 3600 + now.getUTCMinutes() * 60 + now.getUTCSeconds();
+  const closeUTC = 21 * 3600; // Friday 21:00 UTC = 3pm CST
 
   let daysUntilFriday = (5 - day + 7) % 7;
-  if (day === 5 && totalUTCSeconds < closeUTC) daysUntilFriday = 0;
-  else if (day === 5 && totalUTCSeconds >= closeUTC) daysUntilFriday = 7;
+  if (day === 5) daysUntilFriday = 0;
 
-  return daysUntilFriday * 86400 + closeUTC - totalUTCSeconds;
+  const secsUntilClose = daysUntilFriday * 86400 + closeUTC - totalUTCSeconds;
+  return secsUntilClose > 0 ? secsUntilClose : secsUntilClose + 7 * 86400;
 }
 
 function updateSessionClock() {
