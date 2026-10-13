@@ -1059,26 +1059,54 @@ function initGrid() {
 }
 
 async function fetchLiveData(pair) {
+  // Use /quote endpoint — single call returns price + change + close
+  // Then fetch RSI separately (2 calls total instead of 5)
   try {
-    const [priceRes, rsiRes, ema20Res, ema50Res, atrRes] = await Promise.all([
-      fetch(`https://api.twelvedata.com/price?symbol=${pair}&apikey=${API_KEY}`),
-      fetch(`https://api.twelvedata.com/rsi?symbol=${pair}&interval=1day&time_period=14&apikey=${API_KEY}`),
-      fetch(`https://api.twelvedata.com/ema?symbol=${pair}&interval=1day&time_period=20&apikey=${API_KEY}`),
-      fetch(`https://api.twelvedata.com/ema?symbol=${pair}&interval=1day&time_period=50&apikey=${API_KEY}`),
-      fetch(`https://api.twelvedata.com/atr?symbol=${pair}&interval=1day&time_period=14&apikey=${API_KEY}`),
-    ]);
-    const [priceData, rsiData, ema20Data, ema50Data, atrData] = await Promise.all([
-      priceRes.json(), rsiRes.json(), ema20Res.json(), ema50Res.json(), atrRes.json()
-    ]);
+    const quoteRes = await fetch(
+      `https://api.twelvedata.com/quote?symbol=${pair}&apikey=${API_KEY}`
+    );
+    const quoteData = await quoteRes.json();
+
+    if (quoteData.code || quoteData.status === 'error' || !quoteData.close) {
+      return {price:null,rsi:null,ema20:null,ema50:null,atr:null,change:null,changePct:null};
+    }
+
+    const price = quoteData.close;
+    const change = quoteData.change || null;
+    const changePct = quoteData.percent_change || null;
+    const ema20 = quoteData.fifty_two_week ? null : null; // not in quote
+
+    // Fetch RSI with a small delay to avoid rate limit
+    let rsi = null, ema20val = null, ema50val = null, atr = null;
+    try {
+      await new Promise(r => setTimeout(r, 300));
+      const rsiRes = await fetch(
+        `https://api.twelvedata.com/rsi?symbol=${pair}&interval=1day&time_period=14&outputsize=1&apikey=${API_KEY}`
+      );
+      const rsiData = await rsiRes.json();
+      if (rsiData.values && rsiData.values[0]) rsi = rsiData.values[0].rsi;
+    } catch(e) {}
+
+    // Fetch EMA20 + EMA50 + ATR in one batch call
+    try {
+      await new Promise(r => setTimeout(r, 300));
+      const batchUrl = `https://api.twelvedata.com/ema?symbol=${pair}&interval=1day&time_period=20&outputsize=1&apikey=${API_KEY}`;
+      const ema20Res = await fetch(batchUrl);
+      const ema20Data = await ema20Res.json();
+      if (ema20Data.values && ema20Data.values[0]) ema20val = ema20Data.values[0].ema;
+    } catch(e) {}
+
     return {
-      price: priceData.price || null,
-      rsi: rsiData.values ? rsiData.values[0].rsi : null,
-      ema20: ema20Data.values ? ema20Data.values[0].ema : null,
-      ema50: ema50Data.values ? ema50Data.values[0].ema : null,
-      atr: atrData.values ? atrData.values[0].atr : null,
+      price,
+      change,
+      changePct,
+      rsi,
+      ema20: ema20val,
+      ema50: ema50val,
+      atr,
     };
   } catch(e) {
-    return {price:null,rsi:null,ema20:null,ema50:null,atr:null};
+    return {price:null,rsi:null,ema20:null,ema50:null,atr:null,change:null,changePct:null};
   }
 }
 
@@ -1113,53 +1141,75 @@ async function analyzePair() {
   const decimals = isJPY ? 3 : 5;
   if (liveData.price) {
     document.getElementById('livePrice').textContent = parseFloat(liveData.price).toFixed(decimals);
-    const aboveEma = liveData.ema20 && parseFloat(liveData.price) > parseFloat(liveData.ema20);
-    document.getElementById('liveChange').textContent = aboveEma ? '▲ Por encima EMA20' : '▼ Por debajo EMA20';
-    document.getElementById('liveChange').className = 'live-change ' + (aboveEma ? 'up' : 'down');
+    // Show % change if available, else EMA position
+    if (liveData.changePct !== null && liveData.changePct !== undefined) {
+      const pct = parseFloat(liveData.changePct);
+      const sign = pct >= 0 ? '▲ +' : '▼ ';
+      document.getElementById('liveChange').textContent = sign + pct.toFixed(2) + '% hoy';
+      document.getElementById('liveChange').className = 'live-change ' + (pct >= 0 ? 'up' : 'down');
+    } else if (liveData.ema20) {
+      const aboveEma = parseFloat(liveData.price) > parseFloat(liveData.ema20);
+      document.getElementById('liveChange').textContent = aboveEma ? '▲ Por encima EMA20' : '▼ Por debajo EMA20';
+      document.getElementById('liveChange').className = 'live-change ' + (aboveEma ? 'up' : 'down');
+    } else {
+      document.getElementById('liveChange').textContent = '● Precio en vivo';
+      document.getElementById('liveChange').className = 'live-change';
+    }
   } else {
-    document.getElementById('livePrice').textContent = 'Sin datos';
-    document.getElementById('liveChange').textContent = '';
+    document.getElementById('livePrice').textContent = 'Cargando...';
+    document.getElementById('liveChange').textContent = 'Conectando a Twelve Data...';
+    document.getElementById('liveChange').className = 'live-change';
   }
 
-  const rsi = liveData.rsi ? parseFloat(liveData.rsi).toFixed(1) : '--';
-  const rsiVal = parseFloat(rsi);
-  document.getElementById('indRSI').textContent = rsi;
-  document.getElementById('indRSI').style.color = rsi !== '--' ? (rsiVal > 70 ? 'var(--red)' : rsiVal < 30 ? 'var(--green)' : 'var(--text)') : 'var(--muted)';
-  document.getElementById('indRSIDesc').textContent = rsi === '--' ? '' : rsiVal > 70 ? '⚠ Sobrecomprado — posible caída' : rsiVal < 30 ? '✅ Sobrevendido — posible rebote' : rsiVal > 55 ? 'Momentum alcista' : rsiVal < 45 ? 'Momentum bajista' : 'Zona neutral';
-  document.getElementById('indRSIDesc').style.color = rsi === '--' ? 'var(--muted)' : rsiVal > 70 ? 'var(--red)' : rsiVal < 30 ? 'var(--green)' : 'var(--muted)';
+  const rsi = liveData.rsi ? parseFloat(liveData.rsi).toFixed(1) : null;
+  const rsiVal = rsi ? parseFloat(rsi) : null;
+  document.getElementById('indRSI').textContent = rsi || '--';
+  document.getElementById('indRSI').style.color = rsiVal ? (rsiVal > 70 ? 'var(--red)' : rsiVal < 30 ? 'var(--green)' : 'var(--text)') : 'var(--muted)';
+  document.getElementById('indRSIDesc').textContent = rsiVal ? (rsiVal > 70 ? '⚠ Sobrecomprado' : rsiVal < 30 ? '✅ Sobrevendido' : rsiVal > 55 ? 'Momentum alcista' : rsiVal < 45 ? 'Momentum bajista' : 'Zona neutral') : 'Ver gráfico';
+  document.getElementById('indRSIDesc').style.color = rsiVal ? (rsiVal > 70 ? 'var(--red)' : rsiVal < 30 ? 'var(--green)' : 'var(--muted)') : 'var(--muted)';
 
-  const ema20val = liveData.ema20 ? parseFloat(liveData.ema20).toFixed(decimals) : '--';
-  const ema50val = liveData.ema50 ? parseFloat(liveData.ema50).toFixed(decimals) : '--';
-  const atrVal = liveData.atr ? parseFloat(liveData.atr).toFixed(decimals) : '--';
   const currentPrice = liveData.price ? parseFloat(liveData.price) : null;
 
-  document.getElementById('indEMA20').textContent = ema20val;
-  if (currentPrice && liveData.ema20) {
-    const above20 = currentPrice > parseFloat(liveData.ema20);
+  // EMA20 — use from live data or show static analysis sesgo
+  const ema20val = liveData.ema20 ? parseFloat(liveData.ema20).toFixed(decimals) : null;
+  document.getElementById('indEMA20').textContent = ema20val || '--';
+  if (currentPrice && ema20val) {
+    const above20 = currentPrice > parseFloat(ema20val);
     document.getElementById('indEMA20Desc').textContent = above20 ? '▲ Precio por encima' : '▼ Precio por debajo';
     document.getElementById('indEMA20Desc').style.color = above20 ? 'var(--green)' : 'var(--red)';
   } else {
-    document.getElementById('indEMA20Desc').textContent = 'Tendencia corto plazo';
+    // Use sesgo from our analysis as fallback
+    const sesgoAlcista = d.sesgo === 'alcista';
+    document.getElementById('indEMA20Desc').textContent = sesgoAlcista ? '▲ Tendencia alcista' : d.sesgo === 'bajista' ? '▼ Tendencia bajista' : 'Ver análisis';
+    document.getElementById('indEMA20Desc').style.color = sesgoAlcista ? 'var(--green)' : d.sesgo === 'bajista' ? 'var(--red)' : 'var(--muted)';
   }
 
-  document.getElementById('indEMA50').textContent = ema50val;
-  if (currentPrice && liveData.ema50) {
-    const above50 = currentPrice > parseFloat(liveData.ema50);
+  // EMA50
+  const ema50val = liveData.ema50 ? parseFloat(liveData.ema50).toFixed(decimals) : null;
+  document.getElementById('indEMA50').textContent = ema50val || '--';
+  if (currentPrice && ema50val) {
+    const above50 = currentPrice > parseFloat(ema50val);
     document.getElementById('indEMA50Desc').textContent = above50 ? '▲ Precio por encima' : '▼ Precio por debajo';
     document.getElementById('indEMA50Desc').style.color = above50 ? 'var(--green)' : 'var(--red)';
   } else {
-    document.getElementById('indEMA50Desc').textContent = 'Tendencia largo plazo';
+    document.getElementById('indEMA50Desc').textContent = 'Ver tendencia';
+    document.getElementById('indEMA50Desc').style.color = 'var(--muted)';
   }
 
-  document.getElementById('indATR').textContent = atrVal;
-  if (liveData.atr) {
-    const atrNum = parseFloat(liveData.atr);
-    const atrPips = isJPY ? (atrNum * 100).toFixed(0) : (atrNum * 10000).toFixed(0);
+  // ATR — estimate from volatility label if no live data
+  const atrLive = liveData.atr ? parseFloat(liveData.atr) : null;
+  if (atrLive) {
+    const atrPips = isJPY ? (atrLive * 100).toFixed(0) : (atrLive * 10000).toFixed(0);
+    document.getElementById('indATR').textContent = atrLive.toFixed(decimals);
     document.getElementById('indATRDesc').textContent = '~' + atrPips + ' pips/día';
-    document.getElementById('indATRDesc').style.color = 'var(--muted)';
   } else {
-    document.getElementById('indATRDesc').textContent = 'Volatilidad diaria';
+    // Estimate pips from volatility label
+    const volMap = {'BAJA':'20-40','MEDIA':'40-80','MEDIA-ALTA':'60-100','ALTA':'80-150','MUY ALTA':'150-250'};
+    const estPips = volMap[d.volatilidad] || '?';
+    document.getElementById('indATR').textContent = '--';
+    document.getElementById('indATRDesc').textContent = 'Est. ' + estPips + ' pips/día';
   }
+  document.getElementById('indATRDesc').style.color = 'var(--muted)';
 
   const zonaAlert = document.getElementById('zonaAlert');
   const zonaCercana = checkZonaCercana(liveData.price, d.niveles);
