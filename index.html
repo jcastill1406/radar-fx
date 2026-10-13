@@ -1261,17 +1261,17 @@ async function analyzePair() {
         const diff = currentPrice - zonaMax;
         const pips = isJPY ? Math.abs(diff * 100).toFixed(0) : Math.abs(diff * 10000).toFixed(0);
         if (currentPrice > zonaMax) {
-          distanciaMsg = `El precio está ${pips} pips por encima de la zona de entrada (${r.zona}). Espera que baje hasta esa zona antes de entrar.`;
+          distanciaMsg = `✅ Puedes poner tu orden Limit de COMPRA en ${r.zona} ahora mismo. El precio está ${pips} pips por encima — cuando baje hasta tu zona, la orden se ejecuta sola.`;
         } else {
-          distanciaMsg = `El precio está ${pips} pips por debajo de la zona de entrada. Ya pasó — espera la próxima oportunidad.`;
+          distanciaMsg = `⚠️ El precio ya bajó por debajo de tu zona de entrada (${r.zona}). Espera que rebote de regreso a la zona para poner la orden Limit.`;
         }
       } else if (r.accion === 'VENTA') {
         const diff = zonaMin - currentPrice;
         const pips = isJPY ? Math.abs(diff * 100).toFixed(0) : Math.abs(diff * 10000).toFixed(0);
         if (currentPrice < zonaMin) {
-          distanciaMsg = `El precio está ${pips} pips por debajo de la zona de entrada (${r.zona}). Espera que suba hasta esa zona antes de entrar.`;
+          distanciaMsg = `✅ Puedes poner tu orden Limit de VENTA en ${r.zona} ahora mismo. El precio está ${pips} pips por debajo — cuando suba hasta tu zona, la orden se ejecuta sola.`;
         } else {
-          distanciaMsg = `El precio ya superó la zona de entrada. Espera la próxima oportunidad.`;
+          distanciaMsg = `⚠️ El precio ya subió por encima de tu zona de entrada (${r.zona}). Espera que retroceda de regreso a la zona para poner la orden Limit.`;
         }
       }
     }
@@ -1317,14 +1317,14 @@ async function analyzePair() {
     if (rsiAlert || !enZona) {
       if (rsiAlert) {
         status = 'danger';
-        titleText = '⚠️ NO ENTRAR TODAVÍA — ESPERAR';
+        titleText = '⚠️ RSI EXTREMO — ESPERAR CORRECCIÓN';
       } else {
         status = 'warn';
-        titleText = '⏳ PRECIO FUERA DE ZONA — ESPERAR';
+        titleText = '📋 PONER ORDEN LIMIT EN LA ZONA';
       }
     } else if (enZona) {
       status = 'ok';
-      titleText = '✅ PRECIO EN ZONA — BUSCAR SEÑAL DE ENTRADA';
+      titleText = '🎯 PRECIO EN ZONA — VERIFICAR SEÑAL Y COLOCAR LIMIT';
     }
 
     infoMsg.style.display = 'block';
