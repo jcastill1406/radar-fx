@@ -336,6 +336,38 @@
   .session-current-name { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; color: var(--green); }
   .session-next-info { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; text-align: right; }
   .session-closed-box { background: rgba(255,64,96,0.06); border: 1px solid rgba(255,64,96,0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; text-align: center; font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; color: var(--red); }
+
+  /* ── Confirmation System ─────────────────────────────────────── */
+  .confirm-box { background: var(--surface); border-radius: 12px; padding: 18px; margin-bottom: 16px; border: 1px solid var(--border); }
+  .confirm-title { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; text-transform: uppercase; }
+  .confirm-score { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .confirm-score-circle { width: 72px; height: 72px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid; flex-shrink: 0; }
+  .confirm-score-circle.high { border-color: var(--green); background: rgba(0,229,160,0.08); }
+  .confirm-score-circle.med  { border-color: var(--yellow); background: rgba(255,209,102,0.08); }
+  .confirm-score-circle.low  { border-color: var(--red); background: rgba(255,64,96,0.08); }
+  .confirm-score-num { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; line-height: 1; }
+  .confirm-score-circle.high .confirm-score-num { color: var(--green); }
+  .confirm-score-circle.med  .confirm-score-num { color: var(--yellow); }
+  .confirm-score-circle.low  .confirm-score-num { color: var(--red); }
+  .confirm-score-label { font-size: 9px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 1px; }
+  .confirm-verdict { flex: 1; margin-left: 14px; }
+  .confirm-verdict-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .confirm-verdict-title.high { color: var(--green); }
+  .confirm-verdict-title.med  { color: var(--yellow); }
+  .confirm-verdict-title.low  { color: var(--red); }
+  .confirm-verdict-sub { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .confirm-checks { display: flex; flex-direction: column; gap: 8px; }
+  .confirm-check { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); }
+  .confirm-check-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .confirm-check-body { flex: 1; }
+  .confirm-check-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px; color: var(--muted); margin-bottom: 3px; }
+  .confirm-check-val { font-size: 13px; font-weight: 600; }
+  .confirm-check-val.pass { color: var(--green); }
+  .confirm-check-val.fail { color: var(--red); }
+  .confirm-check-val.warn { color: var(--yellow); }
+  .confirm-check-val.neutral { color: var(--text); }
+  .confirm-check-detail { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .confirm-loading { text-align: center; padding: 20px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; }
 </style>
 </head>
 <body>
@@ -513,6 +545,26 @@
       <div class="sesgo-desc" id="sesgDesc"></div>
     </div>
 
+
+
+    <!-- Confirmation System -->
+    <div class="confirm-box" id="confirmBox" style="display:none">
+      <div class="confirm-title">🎯 Sistema de Confirmación — 5 Filtros</div>
+      <div class="confirm-loading" id="confirmLoading">⏳ Analizando múltiples timeframes...</div>
+      <div id="confirmContent" style="display:none">
+        <div class="confirm-score">
+          <div class="confirm-score-circle" id="confirmCircle">
+            <span class="confirm-score-num" id="confirmNum">0</span>
+            <span class="confirm-score-label">/ 5</span>
+          </div>
+          <div class="confirm-verdict">
+            <div class="confirm-verdict-title" id="confirmVerdictTitle"></div>
+            <div class="confirm-verdict-sub" id="confirmVerdictSub"></div>
+          </div>
+        </div>
+        <div class="confirm-checks" id="confirmChecks"></div>
+      </div>
+    </div>
 
     <!-- Comparacion semanas -->
     <div class="comp-box">
@@ -1058,56 +1110,97 @@ function initGrid() {
   });
 }
 
-async function fetchLiveData(pair) {
-  // Use /quote endpoint — single call returns price + change + close
-  // Then fetch RSI separately (2 calls total instead of 5)
+// ── MULTI-TIMEFRAME DATA FETCH ────────────────────────────────────────────────
+async function td(endpoint, params) {
   try {
-    const quoteRes = await fetch(
-      `https://api.twelvedata.com/quote?symbol=${pair}&apikey=${API_KEY}`
-    );
-    const quoteData = await quoteRes.json();
+    const url = `https://api.twelvedata.com/${endpoint}?${params}&apikey=${API_KEY}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return (data.code || data.status === 'error') ? null : data;
+  } catch(e) { return null; }
+}
 
-    if (quoteData.code || quoteData.status === 'error' || !quoteData.close) {
-      return {price:null,rsi:null,ema20:null,ema50:null,atr:null,change:null,changePct:null};
-    }
+async function fetchLiveData(pair) {
+  // 1. Quote (price + change) — 1 call
+  const quote = await td('quote', `symbol=${pair}`);
+  if (!quote || !quote.close) return {price:null,rsi:null,ema20:null,ema50:null,atr:null,change:null,changePct:null,tf:null};
 
-    const price = quoteData.close;
-    const change = quoteData.change || null;
-    const changePct = quoteData.percent_change || null;
-    const ema20 = quoteData.fifty_two_week ? null : null; // not in quote
+  const price = quote.close;
+  const change = quote.change || null;
+  const changePct = quote.percent_change || null;
 
-    // Fetch RSI with a small delay to avoid rate limit
-    let rsi = null, ema20val = null, ema50val = null, atr = null;
-    try {
-      await new Promise(r => setTimeout(r, 300));
-      const rsiRes = await fetch(
-        `https://api.twelvedata.com/rsi?symbol=${pair}&interval=1day&time_period=14&outputsize=1&apikey=${API_KEY}`
-      );
-      const rsiData = await rsiRes.json();
-      if (rsiData.values && rsiData.values[0]) rsi = rsiData.values[0].rsi;
-    } catch(e) {}
+  // 2. Daily RSI — 1 call
+  await new Promise(r => setTimeout(r, 250));
+  const rsiD = await td('rsi', `symbol=${pair}&interval=1day&time_period=14&outputsize=2`);
+  const rsi = rsiD?.values?.[0]?.rsi ? parseFloat(rsiD.values[0].rsi) : null;
 
-    // Fetch EMA20 + EMA50 + ATR in one batch call
-    try {
-      await new Promise(r => setTimeout(r, 300));
-      const batchUrl = `https://api.twelvedata.com/ema?symbol=${pair}&interval=1day&time_period=20&outputsize=1&apikey=${API_KEY}`;
-      const ema20Res = await fetch(batchUrl);
-      const ema20Data = await ema20Res.json();
-      if (ema20Data.values && ema20Data.values[0]) ema20val = ema20Data.values[0].ema;
-    } catch(e) {}
+  // 3. Daily EMA20 — 1 call
+  await new Promise(r => setTimeout(r, 250));
+  const ema20D = await td('ema', `symbol=${pair}&interval=1day&time_period=20&outputsize=1`);
+  const ema20 = ema20D?.values?.[0]?.ema ? parseFloat(ema20D.values[0].ema) : null;
 
-    return {
-      price,
-      change,
-      changePct,
-      rsi,
-      ema20: ema20val,
-      ema50: ema50val,
-      atr,
-    };
-  } catch(e) {
-    return {price:null,rsi:null,ema20:null,ema50:null,atr:null,change:null,changePct:null};
+  // 4. 4H EMA20 + RSI — 1 call each
+  await new Promise(r => setTimeout(r, 250));
+  const rsi4h = await td('rsi', `symbol=${pair}&interval=4h&time_period=14&outputsize=2`);
+  const rsi4hVal = rsi4h?.values?.[0]?.rsi ? parseFloat(rsi4h.values[0].rsi) : null;
+
+  await new Promise(r => setTimeout(r, 250));
+  const ema4h = await td('ema', `symbol=${pair}&interval=4h&time_period=20&outputsize=1`);
+  const ema4hVal = ema4h?.values?.[0]?.ema ? parseFloat(ema4h.values[0].ema) : null;
+
+  // 5. Daily candles for market structure (last 10 candles)
+  await new Promise(r => setTimeout(r, 250));
+  const candles = await td('time_series', `symbol=${pair}&interval=1day&outputsize=10`);
+  let structure = null;
+  if (candles?.values && candles.values.length >= 6) {
+    const vals = candles.values.map(c => ({h: parseFloat(c.high), l: parseFloat(c.low), c: parseFloat(c.close)}));
+    // Compare recent highs/lows vs earlier highs/lows
+    const recent = vals.slice(0, 3);  // last 3 candles
+    const older  = vals.slice(4, 8);  // 4-8 candles ago
+    const recentHigh = Math.max(...recent.map(c => c.h));
+    const olderHigh  = Math.max(...older.map(c => c.h));
+    const recentLow  = Math.min(...recent.map(c => c.l));
+    const olderLow   = Math.min(...older.map(c => c.l));
+    if (recentHigh > olderHigh && recentLow > olderLow) structure = 'alcista';
+    else if (recentHigh < olderHigh && recentLow < olderLow) structure = 'bajista';
+    else structure = 'lateral';
   }
+
+  return { price, change, changePct, rsi, ema20, rsi4h: rsi4hVal, ema4h: ema4hVal, structure };
+}
+
+// ── CURRENCY STRENGTH (derived from majors vs USD) ────────────────────────────
+const STRENGTH_CACHE = {};
+let strengthLastFetch = 0;
+
+async function fetchCurrencyStrength() {
+  const now = Date.now();
+  if (now - strengthLastFetch < 5 * 60 * 1000) return STRENGTH_CACHE; // cache 5 min
+
+  const majors = {
+    EUR: 'EUR/USD', GBP: 'GBP/USD', AUD: 'AUD/USD',
+    NZD: 'NZD/USD', CAD: 'USD/CAD', JPY: 'USD/JPY', CHF: 'USD/CHF'
+  };
+  const strength = {};
+
+  for (const [cur, symbol] of Object.entries(majors)) {
+    try {
+      await new Promise(r => setTimeout(r, 200));
+      const q = await td('quote', `symbol=${symbol}`);
+      if (!q?.percent_change) { strength[cur] = 0; continue; }
+      const pct = parseFloat(q.percent_change);
+      // For USD-quote pairs: pct positive = that currency stronger
+      // For USD-base pairs (CAD,JPY,CHF): invert
+      strength[cur] = ['CAD','JPY','CHF'].includes(cur) ? -pct : pct;
+    } catch(e) { strength[cur] = 0; }
+  }
+  // USD strength = negative average of majors
+  const avgOthers = Object.values(strength).reduce((a,b) => a+b, 0) / Object.keys(strength).length;
+  strength['USD'] = -avgOthers;
+
+  Object.assign(STRENGTH_CACHE, strength);
+  strengthLastFetch = now;
+  return STRENGTH_CACHE;
 }
 
 function checkZonaCercana(price, niveles) {
@@ -1455,6 +1548,8 @@ async function analyzePair() {
   autoFillCalc(selectedPair, r, liveData.price);
   document.getElementById('trackerBtnWrap').style.display = 'block';
   document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
+  // Run 5-filter confirmation system (fills in asynchronously after main render)
+  runConfirmation(selectedPair, d, liveData);
 }
 
 
@@ -1648,6 +1743,183 @@ updateSessionClock();
 setInterval(updateSessionClock, 1000);
 // ─────────────────────────────────────────────────────────────────────────────
 
+
+// ── 5-FILTER CONFIRMATION SYSTEM ─────────────────────────────────────────────
+function checkIcon(pass) { return pass === true ? '✅' : pass === false ? '❌' : '⚠️'; }
+function checkClass(pass) { return pass === true ? 'pass' : pass === false ? 'fail' : 'warn'; }
+
+async function runConfirmation(pair, d, liveData) {
+  const box = document.getElementById('confirmBox');
+  const loading = document.getElementById('confirmLoading');
+  const contentEl = document.getElementById('confirmContent');
+  box.style.display = 'block';
+  loading.style.display = 'block';
+  contentEl.style.display = 'none';
+
+  const dir = d.rec.accion; // 'COMPRA', 'VENTA', 'ESPERAR'
+  const isJPY = pair.includes('JPY');
+  const price = liveData.price ? parseFloat(liveData.price) : null;
+  const checks = [];
+  let score = 0;
+
+  // ── FILTRO 1: Tendencia Daily (EMA 20) ────────────────────────────────────
+  const ema20 = liveData.ema20;
+  let f1pass = null, f1val = '--', f1detail = '';
+  if (price && ema20) {
+    const aboveEma = price > ema20;
+    if (dir === 'COMPRA') {
+      f1pass = aboveEma;
+      f1val = aboveEma ? `▲ Precio sobre EMA20 (${ema20.toFixed(isJPY?3:5)})` : `▼ Precio bajo EMA20 (${ema20.toFixed(isJPY?3:5)})`;
+      f1detail = aboveEma ? 'Tendencia diaria alcista confirmada.' : 'Tendencia diaria bajista — en contra de la compra.';
+    } else if (dir === 'VENTA') {
+      f1pass = !aboveEma;
+      f1val = !aboveEma ? `▼ Precio bajo EMA20 (${ema20.toFixed(isJPY?3:5)})` : `▲ Precio sobre EMA20 (${ema20.toFixed(isJPY?3:5)})`;
+      f1detail = !aboveEma ? 'Tendencia diaria bajista confirmada.' : 'Tendencia diaria alcista — en contra de la venta.';
+    } else { f1pass = null; f1val = 'N/A — no hay dirección clara'; f1detail = 'Sesgo neutral esta semana.'; }
+    if (f1pass === true) score++;
+  } else {
+    f1val = 'Sin datos EMA20';
+    f1detail = 'No se pudo obtener EMA20 diaria de Twelve Data.';
+  }
+  checks.push({ label:'FILTRO 1 — TENDENCIA DIARIA (EMA 20)', val: f1val, detail: f1detail, pass: f1pass });
+
+  // ── FILTRO 2: Tendencia 4H (EMA 4H) ──────────────────────────────────────
+  const ema4h = liveData.ema4h;
+  let f2pass = null, f2val = '--', f2detail = '';
+  if (price && ema4h) {
+    const above4h = price > ema4h;
+    if (dir === 'COMPRA') {
+      f2pass = above4h;
+      f2val = above4h ? `▲ Precio sobre EMA20-4H (${ema4h.toFixed(isJPY?3:5)})` : `▼ Precio bajo EMA20-4H (${ema4h.toFixed(isJPY?3:5)})`;
+      f2detail = above4h ? 'Momentum de corto plazo alcista — alineado con la compra.' : 'Momentum 4H bajista — en contra de la compra. Espera que el 4H se alinee.';
+    } else if (dir === 'VENTA') {
+      f2pass = !above4h;
+      f2val = !above4h ? `▼ Precio bajo EMA20-4H (${ema4h.toFixed(isJPY?3:5)})` : `▲ Precio sobre EMA20-4H (${ema4h.toFixed(isJPY?3:5)})`;
+      f2detail = !above4h ? 'Momentum 4H bajista — alineado con la venta.' : 'Momentum 4H alcista — en contra de la venta. Espera corrección.';
+    } else { f2pass = null; f2val = 'N/A'; f2detail = ''; }
+    if (f2pass === true) score++;
+  } else {
+    f2val = 'Sin datos EMA 4H';
+    f2detail = 'No se pudo obtener EMA20 en 4H.';
+  }
+  checks.push({ label:'FILTRO 2 — MOMENTUM 4H (EMA 20)', val: f2val, detail: f2detail, pass: f2pass });
+
+  // ── FILTRO 3: RSI 4H ──────────────────────────────────────────────────────
+  const rsi4h = liveData.rsi4h;
+  let f3pass = null, f3val = '--', f3detail = '';
+  if (rsi4h !== null) {
+    const rsiN = parseFloat(rsi4h);
+    if (dir === 'COMPRA') {
+      if (rsiN < 30) { f3pass = true; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Sobrevendido`; f3detail = 'RSI sobrevendido = momentum bajista agotado. Buena señal para comprar.'; }
+      else if (rsiN <= 55) { f3pass = true; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Zona neutral/baja`; f3detail = 'RSI en zona favorable para compra.'; }
+      else if (rsiN <= 65) { f3pass = null; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Precaución`; f3detail = 'RSI elevado. El precio ya subió bastante — puede corregir antes de subir más.'; }
+      else { f3pass = false; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Sobrecomprado`; f3detail = 'RSI sobrecomprado — precio ya subió demasiado. NO comprar aquí.'; }
+    } else if (dir === 'VENTA') {
+      if (rsiN > 70) { f3pass = true; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Sobrecomprado`; f3detail = 'RSI sobrecomprado = momentum alcista agotado. Buena señal para vender.'; }
+      else if (rsiN >= 45) { f3pass = true; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Zona neutral/alta`; f3detail = 'RSI en zona favorable para venta.'; }
+      else if (rsiN >= 35) { f3pass = null; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Precaución`; f3detail = 'RSI bajo. El precio ya bajó bastante — puede rebotar antes de caer más.'; }
+      else { f3pass = false; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Sobrevendido`; f3detail = 'RSI sobrevendido — precio ya bajó demasiado. NO vender aquí.'; }
+    } else { f3pass = null; f3val = `RSI 4H: ${rsiN.toFixed(1)}`; f3detail = ''; }
+    if (f3pass === true) score++;
+  } else {
+    f3val = 'Sin datos RSI 4H';
+    f3detail = 'No se pudo obtener RSI 4H.';
+  }
+  checks.push({ label:'FILTRO 3 — RSI 4H (MOMENTUM)', val: f3val, detail: f3detail, pass: f3pass });
+
+  // ── FILTRO 4: Estructura del mercado ──────────────────────────────────────
+  const struct = liveData.structure;
+  let f4pass = null, f4val = '--', f4detail = '';
+  if (struct) {
+    if (dir === 'COMPRA') {
+      f4pass = struct === 'alcista';
+      f4val = struct === 'alcista' ? '📈 Máximos y mínimos crecientes' : struct === 'bajista' ? '📉 Máximos y mínimos decrecientes' : '↔️ Mercado en rango lateral';
+      f4detail = struct === 'alcista' ? 'Estructura alcista confirmada — mercado haciendo máximos más altos.' : struct === 'bajista' ? 'Estructura bajista — mercado haciendo mínimos más bajos. La compra va contra la estructura.' : 'Mercado en rango — esperar ruptura antes de entrar.';
+    } else if (dir === 'VENTA') {
+      f4pass = struct === 'bajista';
+      f4val = struct === 'bajista' ? '📉 Máximos y mínimos decrecientes' : struct === 'alcista' ? '📈 Máximos y mínimos crecientes' : '↔️ Mercado en rango lateral';
+      f4detail = struct === 'bajista' ? 'Estructura bajista confirmada — mercado haciendo mínimos más bajos.' : struct === 'alcista' ? 'Estructura alcista — mercado haciendo máximos más altos. La venta va contra la estructura.' : 'Mercado en rango — esperar ruptura antes de entrar.';
+    } else { f4pass = null; f4val = struct === 'alcista' ? '📈 Alcista' : struct === 'bajista' ? '📉 Bajista' : '↔️ Lateral'; f4detail = ''; }
+    if (f4pass === true) score++;
+  } else {
+    f4val = 'Sin datos de estructura';
+    f4detail = 'No se pudieron obtener velas diarias para analizar estructura.';
+  }
+  checks.push({ label:'FILTRO 4 — ESTRUCTURA DEL MERCADO (DAILY)', val: f4val, detail: f4detail, pass: f4pass });
+
+  // ── FILTRO 5: Fortaleza relativa de divisas ────────────────────────────────
+  let f5pass = null, f5val = '--', f5detail = '';
+  try {
+    const strength = await fetchCurrencyStrength();
+    const parts = pair.split('/');
+    const base = parts[0]; const quote = parts[1];
+    const baseStr = strength[base];
+    const quoteStr = strength[quote];
+
+    if (baseStr !== undefined && quoteStr !== undefined) {
+      const diff = baseStr - quoteStr;
+      const baseLabel = baseStr >= 0 ? `${base} fuerte (+${baseStr.toFixed(2)}%)` : `${base} débil (${baseStr.toFixed(2)}%)`;
+      const quoteLabel = quoteStr >= 0 ? `${quote} fuerte (+${quoteStr.toFixed(2)}%)` : `${quote} débil (${quoteStr.toFixed(2)}%)`;
+
+      if (dir === 'COMPRA') {
+        // Need base strong AND quote weak (diff > 0)
+        if (diff > 0.1) { f5pass = true; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia de +${diff.toFixed(2)}% a favor de la compra. ${base} más fuerte que ${quote} hoy.`; }
+        else if (diff > -0.1) { f5pass = null; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia débil (${diff.toFixed(2)}%). No hay ventaja clara de fuerza relativa.`; }
+        else { f5pass = false; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia de ${diff.toFixed(2)}% EN CONTRA de la compra. ${quote} está más fuerte que ${base} hoy.`; }
+      } else if (dir === 'VENTA') {
+        // Need base weak AND quote strong (diff < 0)
+        if (diff < -0.1) { f5pass = true; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia de ${diff.toFixed(2)}% a favor de la venta. ${quote} más fuerte que ${base} hoy.`; }
+        else if (diff < 0.1) { f5pass = null; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia débil (${diff.toFixed(2)}%). No hay ventaja clara de fuerza relativa.`; }
+        else { f5pass = false; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia de +${diff.toFixed(2)}% EN CONTRA de la venta. ${base} está más fuerte que ${quote} hoy.`; }
+      } else { f5pass = null; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = ''; }
+      if (f5pass === true) score++;
+    }
+  } catch(e) { f5val = 'Sin datos de fortaleza'; f5detail = 'No se pudo calcular la fortaleza relativa de divisas.'; }
+  checks.push({ label:'FILTRO 5 — FORTALEZA RELATIVA DE DIVISAS', val: f5val, detail: f5detail, pass: f5pass });
+
+  // ── RENDER ─────────────────────────────────────────────────────────────────
+  loading.style.display = 'none';
+  contentEl.style.display = 'block';
+
+  const circle = document.getElementById('confirmCircle');
+  const num = document.getElementById('confirmNum');
+  const vtitle = document.getElementById('confirmVerdictTitle');
+  const vsub = document.getElementById('confirmVerdictSub');
+  const checksEl = document.getElementById('confirmChecks');
+
+  num.textContent = score;
+  let level = score >= 4 ? 'high' : score >= 3 ? 'med' : 'low';
+  circle.className = 'confirm-score-circle ' + level;
+
+  if (dir === 'ESPERAR') {
+    vtitle.className = 'confirm-verdict-title warn';
+    vtitle.textContent = '⏳ Sin señal clara — ESPERAR';
+    vsub.textContent = 'El análisis recomienda esperar un catalizador o que el precio llegue a la zona psicológica.';
+  } else if (score >= 4) {
+    vtitle.className = 'confirm-verdict-title high';
+    vtitle.textContent = `✅ ALTA PROBABILIDAD — ${dir}`;
+    vsub.textContent = `${score} de 5 filtros confirman la ${dir.toLowerCase()}. Puedes poner la orden Limit en la zona psicológica.`;
+  } else if (score === 3) {
+    vtitle.className = 'confirm-verdict-title med';
+    vtitle.textContent = `⚠️ PROBABILIDAD MEDIA — ${dir} con precaución`;
+    vsub.textContent = `Solo ${score}/5 filtros confirman. El trade puede funcionar pero hay factores en contra. Reduce el tamaño o espera más confirmación.`;
+  } else {
+    vtitle.className = 'confirm-verdict-title low';
+    vtitle.textContent = `❌ BAJA PROBABILIDAD — NO ${dir} AHORA`;
+    vsub.textContent = `Solo ${score}/5 filtros confirman. Las condiciones NO son favorables para esta operación. Espera o busca otro par.`;
+  }
+
+  checksEl.innerHTML = checks.map(c => `
+    <div class="confirm-check">
+      <div class="confirm-check-icon">${checkIcon(c.pass)}</div>
+      <div class="confirm-check-body">
+        <div class="confirm-check-label">${c.label}</div>
+        <div class="confirm-check-val ${checkClass(c.pass)}">${c.val}</div>
+        ${c.detail ? `<div class="confirm-check-detail">${c.detail}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+// ─────────────────────────────────────────────────────────────────────────────
 // ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://vmlyhugkggeophxjxyqe.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtbHlodWdrZ2dlb3BoeGp4eXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTAyNDgsImV4cCI6MjEwNjU4NjI0OH0.jIcM5pmeZztE9dMxUdNnpv1u6BilKLZJhY4LeSYhoZ4';
