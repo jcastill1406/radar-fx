@@ -566,7 +566,7 @@
     <!-- Confirmation System -->
     <div class="confirm-box" id="confirmBox" style="display:none">
       <div class="confirm-title">🎯 Sistema de Confirmación — 5 Filtros</div>
-      <div class="confirm-loading" id="confirmLoading">⏳ Analizando múltiples timeframes...</div>
+      <div class="confirm-loading" id="confirmLoading">⏳ Analizando datos ya obtenidos...</div>
       <div id="confirmContent" style="display:none">
         <div class="confirm-score">
           <div class="confirm-score-circle" id="confirmCircle">
@@ -1135,52 +1135,85 @@ function initGrid() {
 }
 
 // ── MULTI-TIMEFRAME DATA FETCH ────────────────────────────────────────────────
-async function td(endpoint, params) {
-  try {
-    const url = `https://api.twelvedata.com/${endpoint}?${params}&apikey=${API_KEY}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    return (data.code || data.status === 'error') ? null : data;
-  } catch(e) { return null; }
+async function td(endpoint, params, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      if (i > 0) await new Promise(r => setTimeout(r, 800 * i));
+      const url = `https://api.twelvedata.com/${endpoint}?${params}&apikey=${API_KEY}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.code === 429) { // rate limit
+        await new Promise(r => setTimeout(r, 2000));
+        continue;
+      }
+      return (data.code || data.status === 'error') ? null : data;
+    } catch(e) { if (i === retries) return null; }
+  }
+  return null;
 }
 
 async function fetchLiveData(pair) {
-  // 1. Quote (price + change) — 1 call
+  // Fetch all data needed for both live display AND confirmation system
+  // Uses Twelve Data /batch endpoint to reduce API calls
+
+  // 1. Quote — price + change
   const quote = await td('quote', `symbol=${pair}`);
-  if (!quote || !quote.close) return {price:null,rsi:null,ema20:null,ema50:null,atr:null,change:null,changePct:null,tf:null};
+  if (!quote || !quote.close) return {
+    price:null, change:null, changePct:null,
+    rsi:null, ema20:null, rsi4h:null, ema4h:null, structure:null
+  };
 
-  const price = quote.close;
-  const change = quote.change || null;
-  const changePct = quote.percent_change || null;
+  const price = parseFloat(quote.close);
+  const change = quote.change ? parseFloat(quote.change) : null;
+  const changePct = quote.percent_change ? parseFloat(quote.percent_change) : null;
 
-  // 2. Daily RSI — 1 call
-  await new Promise(r => setTimeout(r, 250));
-  const rsiD = await td('rsi', `symbol=${pair}&interval=1day&time_period=14&outputsize=2`);
-  const rsi = rsiD?.values?.[0]?.rsi ? parseFloat(rsiD.values[0].rsi) : null;
+  // 2. Use /batch to get RSI daily + EMA20 daily in ONE call
+  await new Promise(r => setTimeout(r, 500));
+  const batchDaily = await td('batch', `q=rsi&q=ema&symbol=${pair}&interval=1day&time_period=14&outputsize=2`);
 
-  // 3. Daily EMA20 — 1 call
-  await new Promise(r => setTimeout(r, 250));
-  const ema20D = await td('ema', `symbol=${pair}&interval=1day&time_period=20&outputsize=1`);
-  const ema20 = ema20D?.values?.[0]?.ema ? parseFloat(ema20D.values[0].ema) : null;
+  // Batch endpoint returns differently — fallback to individual if batch fails
+  let rsi = null, ema20 = null;
+  if (batchDaily && typeof batchDaily === 'object') {
+    // Try batch response format
+    const rsiData = batchDaily.rsi || batchDaily;
+    const emaData = batchDaily.ema;
+    if (rsiData?.values?.[0]?.rsi) rsi = parseFloat(rsiData.values[0].rsi);
+    if (emaData?.values?.[0]?.ema) ema20 = parseFloat(emaData.values[0].ema);
+  }
 
-  // 4. 4H EMA20 + RSI — 1 call each
-  await new Promise(r => setTimeout(r, 250));
-  const rsi4h = await td('rsi', `symbol=${pair}&interval=4h&time_period=14&outputsize=2`);
-  const rsi4hVal = rsi4h?.values?.[0]?.rsi ? parseFloat(rsi4h.values[0].rsi) : null;
+  // Fallback: individual calls if batch didn't work
+  if (rsi === null) {
+    await new Promise(r => setTimeout(r, 400));
+    const rsiD = await td('rsi', `symbol=${pair}&interval=1day&time_period=14&outputsize=2`);
+    if (rsiD?.values?.[0]?.rsi) rsi = parseFloat(rsiD.values[0].rsi);
+  }
 
-  await new Promise(r => setTimeout(r, 250));
-  const ema4h = await td('ema', `symbol=${pair}&interval=4h&time_period=20&outputsize=1`);
-  const ema4hVal = ema4h?.values?.[0]?.ema ? parseFloat(ema4h.values[0].ema) : null;
+  if (ema20 === null) {
+    await new Promise(r => setTimeout(r, 400));
+    const ema20D = await td('ema', `symbol=${pair}&interval=1day&time_period=20&outputsize=1`);
+    if (ema20D?.values?.[0]?.ema) ema20 = parseFloat(ema20D.values[0].ema);
+  }
 
-  // 5. Daily candles for market structure (last 10 candles)
-  await new Promise(r => setTimeout(r, 250));
+  // 3. 4H RSI
+  await new Promise(r => setTimeout(r, 400));
+  const rsi4hD = await td('rsi', `symbol=${pair}&interval=4h&time_period=14&outputsize=2`);
+  const rsi4h = rsi4hD?.values?.[0]?.rsi ? parseFloat(rsi4hD.values[0].rsi) : null;
+
+  // 4. 4H EMA20
+  await new Promise(r => setTimeout(r, 400));
+  const ema4hD = await td('ema', `symbol=${pair}&interval=4h&time_period=20&outputsize=1`);
+  const ema4h = ema4hD?.values?.[0]?.ema ? parseFloat(ema4hD.values[0].ema) : null;
+
+  // 5. Daily candles for market structure
+  await new Promise(r => setTimeout(r, 400));
   const candles = await td('time_series', `symbol=${pair}&interval=1day&outputsize=10`);
   let structure = null;
   if (candles?.values && candles.values.length >= 6) {
-    const vals = candles.values.map(c => ({h: parseFloat(c.high), l: parseFloat(c.low), c: parseFloat(c.close)}));
-    // Compare recent highs/lows vs earlier highs/lows
-    const recent = vals.slice(0, 3);  // last 3 candles
-    const older  = vals.slice(4, 8);  // 4-8 candles ago
+    const vals = candles.values.map(c => ({
+      h: parseFloat(c.high), l: parseFloat(c.low)
+    }));
+    const recent = vals.slice(0, 3);
+    const older  = vals.slice(4, 8);
     const recentHigh = Math.max(...recent.map(c => c.h));
     const olderHigh  = Math.max(...older.map(c => c.h));
     const recentLow  = Math.min(...recent.map(c => c.l));
@@ -1190,7 +1223,7 @@ async function fetchLiveData(pair) {
     else structure = 'lateral';
   }
 
-  return { price, change, changePct, rsi, ema20, rsi4h: rsi4hVal, ema4h: ema4hVal, structure };
+  return { price, change, changePct, rsi, ema20, rsi4h, ema4h, structure };
 }
 
 // ── CURRENCY STRENGTH (derived from majors vs USD) ────────────────────────────
@@ -1240,11 +1273,15 @@ function checkZonaCercana(price, niveles) {
 
 async function analyzePair() {
   if (!selectedPair) return;
-  document.getElementById('loading').style.display = 'block';
+  const loadingEl = document.getElementById('loading');
+  loadingEl.style.display = 'block';
+  loadingEl.textContent = '⏳ Obteniendo precio en vivo...';
   document.getElementById('result').style.display = 'none';
+  // Hide confirmation box while loading
+  document.getElementById('confirmBox').style.display = 'none';
 
   const liveData = await fetchLiveData(selectedPair);
-  document.getElementById('loading').style.display = 'none';
+  loadingEl.style.display = 'none';
 
   const weekData = WEEKLY_DATA[currentWeek];
   const d = weekData.pairs[selectedPair] || weekData.pairs['EUR/USD'];
@@ -1282,7 +1319,7 @@ async function analyzePair() {
   const rsiVal = rsi ? parseFloat(rsi) : null;
   document.getElementById('indRSI').textContent = rsi || '--';
   document.getElementById('indRSI').style.color = rsiVal ? (rsiVal > 70 ? 'var(--red)' : rsiVal < 30 ? 'var(--green)' : 'var(--text)') : 'var(--muted)';
-  document.getElementById('indRSIDesc').textContent = rsiVal ? (rsiVal > 70 ? '⚠ Sobrecomprado' : rsiVal < 30 ? '✅ Sobrevendido' : rsiVal > 55 ? 'Momentum alcista' : rsiVal < 45 ? 'Momentum bajista' : 'Zona neutral') : 'Ver gráfico';
+  document.getElementById('indRSIDesc').textContent = (rsiVal && !isNaN(rsiVal)) ? (rsiVal > 70 ? '⚠ Sobrecomprado' : rsiVal < 30 ? '✅ Sobrevendido' : rsiVal > 55 ? 'Momentum alcista' : rsiVal < 45 ? 'Momentum bajista' : 'Zona neutral') : 'Ver gráfico';
   document.getElementById('indRSIDesc').style.color = rsiVal ? (rsiVal > 70 ? 'var(--red)' : rsiVal < 30 ? 'var(--green)' : 'var(--muted)') : 'var(--muted)';
 
   const currentPrice = liveData.price ? parseFloat(liveData.price) : null;
@@ -1831,7 +1868,7 @@ async function runConfirmation(pair, d, liveData) {
   // ── FILTRO 3: RSI 4H ──────────────────────────────────────────────────────
   const rsi4h = liveData.rsi4h;
   let f3pass = null, f3val = '--', f3detail = '';
-  if (rsi4h !== null) {
+  if (rsi4h !== null && !isNaN(parseFloat(rsi4h))) {
     const rsiN = parseFloat(rsi4h);
     if (dir === 'COMPRA') {
       if (rsiN < 30) { f3pass = true; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Sobrevendido`; f3detail = 'RSI sobrevendido = momentum bajista agotado. Buena señal para comprar.'; }
