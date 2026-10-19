@@ -368,6 +368,22 @@
   .confirm-check-val.neutral { color: var(--text); }
   .confirm-check-detail { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
   .confirm-loading { text-align: center; padding: 20px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; }
+
+  .tracker-trade.limit-pendiente { border-left: 3px solid var(--muted); }
+  .tracker-trade.en-progreso { border-left: 3px solid var(--blue); }
+  .tracker-result-badge.limit-pendiente { background: rgba(150,150,150,0.12); color: var(--muted); }
+  .tracker-result-badge.en-progreso { background: rgba(77,159,255,0.15); color: var(--blue); }
+  .tracker-pnl { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; }
+  .tracker-pnl.positive { color: var(--green); }
+  .tracker-pnl.negative { color: var(--red); }
+  .tracker-pnl.neutral { color: var(--muted); }
+  .tracker-status-btns { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .tracker-status-btn { font-size: 10px; font-family: 'Space Mono', monospace; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .tracker-status-btn:hover { opacity: 0.8; }
+  .tracker-status-btn.btn-progreso { border-color: var(--blue); color: var(--blue); }
+  .tracker-status-btn.btn-ganadora { border-color: var(--green); color: var(--green); }
+  .tracker-status-btn.btn-perdedora { border-color: var(--red); color: var(--red); }
+  .tracker-status-btn.btn-pendiente { border-color: var(--yellow); color: var(--yellow); }
 </style>
 </head>
 <body>
@@ -847,18 +863,26 @@
   <div class="tab-content" id="tab-tracker">
 
     <!-- Stats summary -->
-    <div class="tracker-stats">
+    <div class="tracker-stats" style="grid-template-columns: repeat(6, 1fr);">
       <div class="tracker-stat">
         <div class="tracker-stat-val" id="statTotal" style="color:var(--text)">0</div>
         <div class="tracker-stat-label">TOTAL</div>
       </div>
       <div class="tracker-stat">
+        <div class="tracker-stat-val" id="statLimitPend" style="color:var(--muted)">0</div>
+        <div class="tracker-stat-label">⏳ LIMIT</div>
+      </div>
+      <div class="tracker-stat">
+        <div class="tracker-stat-val" id="statEnProgreso" style="color:var(--blue)">0</div>
+        <div class="tracker-stat-label">🔄 ABIERTA</div>
+      </div>
+      <div class="tracker-stat">
         <div class="tracker-stat-val" id="statGanadoras" style="color:var(--green)">0</div>
-        <div class="tracker-stat-label">GANADORAS</div>
+        <div class="tracker-stat-label">✅ GANÓ</div>
       </div>
       <div class="tracker-stat">
         <div class="tracker-stat-val" id="statPerdedoras" style="color:var(--red)">0</div>
-        <div class="tracker-stat-label">PERDEDORAS</div>
+        <div class="tracker-stat-label">❌ PERDIÓ</div>
       </div>
       <div class="tracker-stat">
         <div class="tracker-stat-val" id="statWinrate" style="color:var(--yellow)">0%</div>
@@ -2000,7 +2024,7 @@ async function addToTracker() {
     entrada: entrada.toFixed(decimals),
     sl: sl,
     tp: tp,
-    resultado: 'pendiente',
+    resultado: 'limit-pendiente',
     pips: null,
     semana: weekData.label,
     fecha: new Date().toLocaleDateString('es', {day:'2-digit', month:'short', year:'numeric'}),
@@ -2035,7 +2059,7 @@ async function addToTracker() {
 }
 
 async function setTradeResult(id, resultado, trade) {
-  const isJPY = trade.par.includes('JPY');
+  const isJPY = trade.par && trade.par.includes('JPY');
   const pipMult = isJPY ? 100 : 10000;
   let pips = null;
   if (resultado === 'ganadora') {
@@ -2043,6 +2067,8 @@ async function setTradeResult(id, resultado, trade) {
   } else if (resultado === 'perdedora') {
     pips = parseFloat((-Math.abs(parseFloat(trade.sl) - parseFloat(trade.entrada)) * pipMult).toFixed(1));
   }
+  // For non-closed states, clear pips
+  if (resultado === 'limit-pendiente' || resultado === 'en-progreso') pips = null;
   await sbUpdate('trades', id, { resultado, pips });
   await renderTracker();
   await updateTrackerStats();
@@ -2062,6 +2088,8 @@ async function deleteTrade(id) {
 async function updateTrackerStats() {
   const trades = await sbGet('trades');
   if (!Array.isArray(trades)) return;
+  const limitPend = trades.filter(t => t.resultado === 'limit-pendiente').length;
+  const enProgreso = trades.filter(t => t.resultado === 'en-progreso').length;
   const ganadoras = trades.filter(t => t.resultado === 'ganadora').length;
   const perdedoras = trades.filter(t => t.resultado === 'perdedora').length;
   const total = trades.length;
@@ -2069,6 +2097,8 @@ async function updateTrackerStats() {
   const winrate = cerradas > 0 ? Math.round((ganadoras / cerradas) * 100) : 0;
 
   document.getElementById('statTotal').textContent = total;
+  document.getElementById('statLimitPend').textContent = limitPend;
+  document.getElementById('statEnProgreso').textContent = enProgreso;
   document.getElementById('statGanadoras').textContent = ganadoras;
   document.getElementById('statPerdedoras').textContent = perdedoras;
   document.getElementById('statWinrate').textContent = winrate + '%';
@@ -2115,7 +2145,7 @@ async function renderTracker() {
 
   list.innerHTML = '';
   Object.entries(byWeek).forEach(([week, weekTrades]) => {
-    const totalPips = weekTrades.reduce((sum, t) => sum + (t.pips || 0), 0);
+    const totalPips = weekTrades.filter(t => t.resultado === 'ganadora' || t.resultado === 'perdedora').reduce((sum, t) => sum + (t.pips || 0), 0);
     const pipsColor = totalPips >= 0 ? 'var(--green)' : 'var(--red)';
     const pipsSign = totalPips >= 0 ? '+' : '';
 
@@ -2141,7 +2171,7 @@ async function renderTracker() {
           <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:${pipsCol}">${pipsText}</span>
             <span class="tracker-result-badge ${trade.resultado}" onclick="cycleResult(${trade.id},'${trade.resultado}','${trade.par}',${trade.entrada},${trade.sl},${trade.tp})">
-              ${trade.resultado === 'ganadora' ? '✅ GANADORA' : trade.resultado === 'perdedora' ? '❌ PERDEDORA' : '⏳ PENDIENTE'}
+              ${estadoLabel}
             </span>
           </div>
         </div>
@@ -2169,8 +2199,11 @@ async function renderTracker() {
             onchange="saveNote(${trade.id}, this.value)"
             onblur="saveNote(${trade.id}, this.value)">
         </div>
-        <div class="tracker-actions">
-          <button class="tracker-action-btn" onclick="resetToPending(${trade.id})" style="border-color:var(--yellow);color:var(--yellow);">↩ Pendiente</button>
+        <div class="tracker-status-btns">
+          <button class="tracker-status-btn btn-pendiente" onclick="setEstado(${trade.id},'limit-pendiente',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">⏳ Limit</button>
+          <button class="tracker-status-btn btn-progreso" onclick="setEstado(${trade.id},'en-progreso',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">🔄 En Progreso</button>
+          <button class="tracker-status-btn btn-ganadora" onclick="setEstado(${trade.id},'ganadora',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">✅ Ganadora</button>
+          <button class="tracker-status-btn btn-perdedora" onclick="setEstado(${trade.id},'perdedora',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">❌ Perdedora</button>
           <button class="tracker-action-btn" onclick="deleteTrade(${trade.id})">🗑 Eliminar</button>
         </div>
       </div>`;
@@ -2182,22 +2215,33 @@ async function renderTracker() {
 }
 
 
+
+async function setEstado(id, estado, entrada, sl, tp, par) {
+  const fakeTrade = { par, entrada, sl, tp, direccion: parseFloat(sl) > parseFloat(entrada) ? 'VENTA' : 'COMPRA' };
+  await setTradeResult(id, estado, fakeTrade);
+}
 async function resetToPending(id) {
-  await sbUpdate('trades', id, { resultado: 'pendiente', pips: null });
+  await sbUpdate('trades', id, { resultado: 'limit-pendiente', pips: null });
   await renderTracker();
   await updateTrackerStats();
 }
 async function cycleResult(id, currentEstado, par, entrada, sl, tp) {
-  const cycle = {pendiente: 'ganadora', ganadora: 'perdedora', perdedora: 'pendiente'};
-  const newEstado = cycle[currentEstado] || 'pendiente';
-  const fakeTrade = { par, entrada, sl, tp, direccion: sl > entrada ? 'VENTA' : 'COMPRA' };
+  const cycle = {
+    'limit-pendiente': 'en-progreso',
+    'en-progreso': 'ganadora',
+    'ganadora': 'perdedora',
+    'perdedora': 'limit-pendiente',
+    'pendiente': 'en-progreso'
+  };
+  const newEstado = cycle[currentEstado] || 'limit-pendiente';
+  const fakeTrade = { par, entrada, sl, tp, direccion: parseFloat(sl) > parseFloat(entrada) ? 'VENTA' : 'COMPRA' };
   await setTradeResult(id, newEstado, fakeTrade);
 }
 
 // Init tracker on load
 
 async function autoCheckResults(trades) {
-  const pending = trades.filter(t => t.resultado === 'pendiente');
+  const pending = trades.filter(t => t.resultado === 'limit-pendiente' || t.resultado === 'en-progreso' || t.resultado === 'pendiente');
   if (pending.length === 0) return;
 
   for (const trade of pending) {
