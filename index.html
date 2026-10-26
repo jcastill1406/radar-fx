@@ -1180,7 +1180,7 @@ async function td(endpoint, params, retries = 2) {
 
 async function fetchLiveData(pair) {
   // Fetch all data needed for both live display AND confirmation system
-  // Uses Twelve Data /batch endpoint to reduce API calls
+  // Fetches price + indicators via Twelve Data API
 
   // 1. Quote — price + change
   const quote = await td('quote', `symbol=${pair}`);
@@ -1193,32 +1193,16 @@ async function fetchLiveData(pair) {
   const change = quote.change ? parseFloat(quote.change) : null;
   const changePct = quote.percent_change ? parseFloat(quote.percent_change) : null;
 
-  // 2. Use /batch to get RSI daily + EMA20 daily in ONE call
+  // 2. Daily RSI
   await new Promise(r => setTimeout(r, 500));
-  const batchDaily = await td('batch', `q=rsi&q=ema&symbol=${pair}&interval=1day&time_period=14&outputsize=2`);
-
-  // Batch endpoint returns differently — fallback to individual if batch fails
   let rsi = null, ema20 = null;
-  if (batchDaily && typeof batchDaily === 'object') {
-    // Try batch response format
-    const rsiData = batchDaily.rsi || batchDaily;
-    const emaData = batchDaily.ema;
-    if (rsiData?.values?.[0]?.rsi) rsi = parseFloat(rsiData.values[0].rsi);
-    if (emaData?.values?.[0]?.ema) ema20 = parseFloat(emaData.values[0].ema);
-  }
+  const rsiD = await td('rsi', `symbol=${pair}&interval=1day&time_period=14&outputsize=2`);
+  if (rsiD?.values?.[0]?.rsi) rsi = parseFloat(rsiD.values[0].rsi);
 
-  // Fallback: individual calls if batch didn't work
-  if (rsi === null) {
-    await new Promise(r => setTimeout(r, 400));
-    const rsiD = await td('rsi', `symbol=${pair}&interval=1day&time_period=14&outputsize=2`);
-    if (rsiD?.values?.[0]?.rsi) rsi = parseFloat(rsiD.values[0].rsi);
-  }
-
-  if (ema20 === null) {
-    await new Promise(r => setTimeout(r, 400));
-    const ema20D = await td('ema', `symbol=${pair}&interval=1day&time_period=20&outputsize=1`);
-    if (ema20D?.values?.[0]?.ema) ema20 = parseFloat(ema20D.values[0].ema);
-  }
+  // 3. Daily EMA20
+  await new Promise(r => setTimeout(r, 400));
+  const ema20D = await td('ema', `symbol=${pair}&interval=1day&time_period=20&outputsize=1`);
+  if (ema20D?.values?.[0]?.ema) ema20 = parseFloat(ema20D.values[0].ema);
 
   // 3. 4H RSI
   await new Promise(r => setTimeout(r, 400));
@@ -1684,6 +1668,373 @@ async function analyzePair() {
 }
 
 
+
+
+// ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://vmlyhugkggeophxjxyqe.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtbHlodWdrZ2dlb3BoeGp4eXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTAyNDgsImV4cCI6MjEwNjU4NjI0OH0.jIcM5pmeZztE9dMxUdNnpv1u6BilKLZJhY4LeSYhoZ4';
+
+async function sbGet(table, params = '') {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?order=created_at.desc${params}`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+  });
+  return res.json();
+}
+
+async function sbInsert(table, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(data)
+  });
+  return res.json();
+}
+
+async function sbUpdate(table, id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  });
+  return res.ok;
+}
+
+async function sbDelete(table, id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+  });
+  return res.ok;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+
+async function addToTracker() {
+  if (!selectedPair) return;
+  const weekData = WEEKLY_DATA[currentWeek];
+  const d = weekData ? weekData.pairs[selectedPair] : null;
+  if (!d) return;
+
+  // Get data from calculator if filled, else from recommendation
+  const entradaInput = document.getElementById('pipEntrada').value;
+  const slInput = document.getElementById('pipSLPrice').textContent;
+  const tpInput = document.getElementById('pipTPPrice').textContent;
+  const dir = pipDir;
+
+  const entrada = entradaInput ? parseFloat(entradaInput) : null;
+  const sl = slInput !== '--' ? slInput : d.rec.sl;
+  const tp = tpInput !== '--' ? tpInput : d.rec.tp;
+
+  if (!entrada) {
+    alert('Primero ingresa un precio de entrada en la Calculadora o analiza el par para obtener precios en vivo.');
+    return;
+  }
+
+  const isJPY = selectedPair.includes('JPY');
+  const decimals = isJPY ? 3 : 5;
+
+  const trade = {
+    id: Date.now(),
+    par: selectedPair,
+    direccion: dir.toUpperCase(),
+    estrategia: d.rec.estrategia.split('—')[0].trim(),
+    entrada: entrada.toFixed(decimals),
+    sl: sl,
+    tp: tp,
+    resultado: 'limit-pendiente',
+    pips: null,
+    semana: weekData.label,
+    fecha: new Date().toLocaleDateString('es', {day:'2-digit', month:'short', year:'numeric'}),
+    nota: ''
+  };
+
+  // Save to Supabase
+  const result = await sbInsert('trades', {
+    par: trade.par,
+    direccion: trade.direccion,
+    estrategia: trade.estrategia,
+    entrada: parseFloat(trade.entrada),
+    sl: parseFloat(trade.sl) || 0,
+    tp: parseFloat(trade.tp) || 0,
+    resultado: 'pendiente',
+    semana: trade.semana,
+    fecha: trade.fecha,
+    nota: ''
+  });
+
+  if (result && result[0]) {
+    await renderTracker();
+    await updateTrackerStats();
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-tracker').classList.add('active');
+    document.querySelectorAll('.tab-btn')[3].classList.add('active');
+    alert('✅ Operación guardada en la base de datos');
+  } else {
+    alert('❌ Error al guardar. Verifica que la tabla "trades" existe en Supabase.');
+  }
+}
+
+async function setTradeResult(id, resultado, trade) {
+  const isJPY = trade.par && trade.par.includes('JPY');
+  const pipMult = isJPY ? 100 : 10000;
+  let pips = null;
+  if (resultado === 'ganadora') {
+    pips = parseFloat((Math.abs(parseFloat(trade.tp) - parseFloat(trade.entrada)) * pipMult).toFixed(1));
+  } else if (resultado === 'perdedora') {
+    pips = parseFloat((-Math.abs(parseFloat(trade.sl) - parseFloat(trade.entrada)) * pipMult).toFixed(1));
+  }
+  // For non-closed states, clear pips
+  if (resultado === 'limit-pendiente' || resultado === 'en-progreso') pips = null;
+  await sbUpdate('trades', id, { resultado, pips });
+  await renderTracker();
+  await updateTrackerStats();
+}
+
+async function saveNote(id, nota) {
+  await sbUpdate('trades', id, { nota });
+}
+
+async function deleteTrade(id) {
+  if (!confirm('¿Eliminar esta operación?')) return;
+  await sbDelete('trades', id);
+  await renderTracker();
+  await updateTrackerStats();
+}
+
+async function updateTrackerStats() {
+  const trades = await sbGet('trades');
+  if (!Array.isArray(trades)) return;
+  const limitPend = trades.filter(t => t.resultado === 'limit-pendiente').length;
+  const enProgreso = trades.filter(t => t.resultado === 'en-progreso').length;
+  const ganadoras = trades.filter(t => t.resultado === 'ganadora').length;
+  const perdedoras = trades.filter(t => t.resultado === 'perdedora').length;
+  const total = trades.length;
+  const cerradas = ganadoras + perdedoras;
+  const winrate = cerradas > 0 ? Math.round((ganadoras / cerradas) * 100) : 0;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statLimitPend').textContent = limitPend;
+  document.getElementById('statEnProgreso').textContent = enProgreso;
+  document.getElementById('statGanadoras').textContent = ganadoras;
+  document.getElementById('statPerdedoras').textContent = perdedoras;
+  document.getElementById('statWinrate').textContent = winrate + '%';
+  document.getElementById('trackerCount').textContent = total;
+}
+
+async function renderTracker() {
+  const list = document.getElementById('trackerList');
+  list.innerHTML = '<div class="tracker-empty">⏳ Cargando operaciones...</div>';
+  
+  const trades = await sbGet('trades');
+  if (!Array.isArray(trades)) {
+    list.innerHTML = '<div class="tracker-empty">❌ Error conectando a la base de datos.<br>Verifica que la tabla "trades" existe en Supabase.</div>';
+    return;
+  }
+
+  const filter = document.getElementById('weekFilter').value;
+
+  // Update week filter options
+  const weeks = [...new Set(trades.map(t => t.semana))];
+  const filterEl = document.getElementById('weekFilter');
+  const currentFilter = filterEl.value;
+  filterEl.innerHTML = '<option value="all">Todas las semanas</option>';
+  weeks.forEach(w => {
+    const opt = document.createElement('option');
+    opt.value = w; opt.textContent = w;
+    if (w === currentFilter) opt.selected = true;
+    filterEl.appendChild(opt);
+  });
+
+  const filtered = filter === 'all' ? trades : trades.filter(t => t.semana === filter);
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="tracker-empty">📭 No hay operaciones registradas.<br>Analiza un par y usa el botón<br>"+ INCLUIR EN TRADING TRACKER"</div>';
+    return;
+  }
+
+  // Group by week
+  const byWeek = {};
+  filtered.forEach(t => {
+    if (!byWeek[t.semana]) byWeek[t.semana] = [];
+    byWeek[t.semana].push(t);
+  });
+
+  list.innerHTML = '';
+  Object.entries(byWeek).forEach(([week, weekTrades]) => {
+    const totalPips = weekTrades.filter(t => t.resultado === 'ganadora' || t.resultado === 'perdedora').reduce((sum, t) => sum + (t.pips || 0), 0);
+    const pipsColor = totalPips >= 0 ? 'var(--green)' : 'var(--red)';
+    const pipsSign = totalPips >= 0 ? '+' : '';
+
+    let weekHTML = `<div class="tracker-week-group">
+      <div class="tracker-week-label">
+        📅 ${week}
+        <span style="float:right;color:${pipsColor}">${pipsSign}${totalPips.toFixed(1)} pips</span>
+      </div>`;
+
+    weekTrades.forEach(trade => {
+      const dirColor = trade.direccion === 'COMPRA' ? 'var(--green)' : 'var(--red)';
+      const dirArrow = trade.direccion === 'COMPRA' ? '▲' : '▼';
+      const pipsText = trade.pips !== null ? (trade.pips >= 0 ? '+' : '') + trade.pips + ' pips' : '--';
+      const pipsCol = trade.pips !== null ? (trade.pips >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--muted)';
+
+      weekHTML += `<div class="tracker-trade ${trade.resultado}">
+        <div class="tracker-trade-header">
+          <div>
+            <span class="tracker-pair">${trade.par}</span>
+            <span style="font-size:11px;color:${dirColor};font-family:'Space Mono',monospace;margin-left:8px;">${dirArrow} ${trade.direccion}</span>
+            <span style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-left:6px;">${trade.estrategia}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:${pipsCol}">${pipsText}</span>
+            <span class="tracker-result-badge ${trade.resultado}" onclick="cycleResult(${trade.id},'${trade.resultado}','${trade.par}',${trade.entrada},${trade.sl},${trade.tp})">
+              ${estadoLabel}
+            </span>
+          </div>
+        </div>
+        <div class="tracker-prices">
+          <div class="tracker-price-cell">
+            <div class="tracker-price-label">ENTRADA</div>
+            <div class="tracker-price-val entrada">${trade.entrada}</div>
+          </div>
+          <div class="tracker-price-cell">
+            <div class="tracker-price-label">STOP LOSS</div>
+            <div class="tracker-price-val sl">${trade.sl}</div>
+          </div>
+          <div class="tracker-price-cell">
+            <div class="tracker-price-label">TAKE PROFIT</div>
+            <div class="tracker-price-val tp">${trade.tp}</div>
+          </div>
+        </div>
+        <div class="tracker-meta">
+          <span>📅 ${trade.fecha}</span>
+          <span>R:R 1:3</span>
+        </div>
+        <div class="tracker-note">
+          <input type="text" placeholder="Agregar nota sobre esta operación..." 
+            value="${trade.nota || ''}"
+            onchange="saveNote(${trade.id}, this.value)"
+            onblur="saveNote(${trade.id}, this.value)">
+        </div>
+        <div class="tracker-status-btns">
+          <button class="tracker-status-btn btn-pendiente" onclick="setEstado(${trade.id},'limit-pendiente',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">⏳ Limit</button>
+          <button class="tracker-status-btn btn-progreso" onclick="setEstado(${trade.id},'en-progreso',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">🔄 En Progreso</button>
+          <button class="tracker-status-btn btn-ganadora" onclick="setEstado(${trade.id},'ganadora',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">✅ Ganadora</button>
+          <button class="tracker-status-btn btn-perdedora" onclick="setEstado(${trade.id},'perdedora',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">❌ Perdedora</button>
+          <button class="tracker-action-btn" onclick="deleteTrade(${trade.id})">🗑 Eliminar</button>
+        </div>
+      </div>`;
+    });
+
+    weekHTML += '</div>';
+    list.innerHTML += weekHTML;
+  });
+}
+
+
+
+async function setEstado(id, estado, entrada, sl, tp, par) {
+  const fakeTrade = { par, entrada, sl, tp, direccion: parseFloat(sl) > parseFloat(entrada) ? 'VENTA' : 'COMPRA' };
+  await setTradeResult(id, estado, fakeTrade);
+}
+async function resetToPending(id) {
+  await sbUpdate('trades', id, { resultado: 'limit-pendiente', pips: null });
+  await renderTracker();
+  await updateTrackerStats();
+}
+async function cycleResult(id, currentEstado, par, entrada, sl, tp) {
+  const cycle = {
+    'limit-pendiente': 'en-progreso',
+    'en-progreso': 'ganadora',
+    'ganadora': 'perdedora',
+    'perdedora': 'limit-pendiente',
+    'pendiente': 'en-progreso'
+  };
+  const newEstado = cycle[currentEstado] || 'limit-pendiente';
+  const fakeTrade = { par, entrada, sl, tp, direccion: parseFloat(sl) > parseFloat(entrada) ? 'VENTA' : 'COMPRA' };
+  await setTradeResult(id, newEstado, fakeTrade);
+}
+
+// Init tracker on load
+
+async function autoCheckResults(trades) {
+  const pending = trades.filter(t => t.resultado === 'limit-pendiente' || t.resultado === 'en-progreso' || t.resultado === 'pendiente');
+  if (pending.length === 0) return;
+
+  for (const trade of pending) {
+    try {
+      const res = await fetch(`https://api.twelvedata.com/price?symbol=${trade.par}&apikey=${API_KEY}`);
+      const data = await res.json();
+      if (!data.price) continue;
+      const price = parseFloat(data.price);
+      const tp = parseFloat(trade.tp);
+      const sl = parseFloat(trade.sl);
+      const entrada = parseFloat(trade.entrada);
+      const isJPY = trade.par.includes('JPY');
+      const pipMult = isJPY ? 100 : 10000;
+
+      // Minimum pip movement required before checking result
+      // Trade must have moved at least 5 pips from entry before auto-checking
+      const minMovement = 5 / pipMult;
+      const movedEnough = Math.abs(price - entrada) >= minMovement;
+      if (!movedEnough) continue;
+
+      let resultado = null;
+
+      if (trade.direccion === 'COMPRA') {
+        // Price must have reached or passed TP (above entry)
+        if (price >= tp) resultado = 'ganadora';
+        // Price must have reached or passed SL (below entry)
+        else if (price <= sl) resultado = 'perdedora';
+      } else {
+        // VENTA: TP is below entry, SL is above entry
+        // Price must have reached or passed TP (below entry)
+        if (price <= tp) resultado = 'ganadora';
+        // Price must have reached or passed SL (above entry)
+        else if (price >= sl) resultado = 'perdedora';
+      }
+
+      // Extra validation: for a VENTA, TP must be BELOW entry and SL must be ABOVE entry
+      // For a COMPRA, TP must be ABOVE entry and SL must be BELOW entry
+      if (resultado) {
+        const validSetup = trade.direccion === 'COMPRA'
+          ? (tp > entrada && sl < entrada)
+          : (tp < entrada && sl > entrada);
+
+        if (!validSetup) {
+          console.log(`Skipping ${trade.par} — invalid SL/TP setup for ${trade.direccion}`);
+          continue;
+        }
+
+        let pips = resultado === 'ganadora'
+          ? parseFloat((Math.abs(tp - entrada) * pipMult).toFixed(1))
+          : parseFloat((-Math.abs(sl - entrada) * pipMult).toFixed(1));
+        await sbUpdate('trades', trade.id, { resultado, pips });
+        console.log(`Auto-result: ${trade.par} → ${resultado} (${pips} pips)`);
+      }
+    } catch(e) { continue; }
+  }
+}
+
+async function initTracker() {
+  // Only auto-check on initial load, not on every render
+  const trades = await sbGet('trades');
+  if (Array.isArray(trades) && trades.length > 0) {
+    await autoCheckResults(trades);
+  }
+  await renderTracker();
+  await updateTrackerStats();
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 
 // ─── TRADING TRACKER ──────────────────────────────────────────────────────────
