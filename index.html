@@ -1403,6 +1403,13 @@ async function analyzePair() {
   const r = d.rec;
   const colorMap = {green:'var(--green)',red:'var(--red)',yellow:'var(--yellow)'};
   const bgMap = {green:'rgba(0,229,160,0.07)',red:'rgba(255,64,96,0.07)',yellow:'rgba(255,209,102,0.07)'};
+  // Show which week is active
+  const weekLabelEl = document.getElementById('recWeekLabel');
+  if (weekLabelEl) {
+    const wLabel = WEEKLY_DATA[currentWeek].label;
+    weekLabelEl.textContent = '📅 ' + wLabel + (currentWeek === 'proxima' ? ' — PRÓXIMA SEMANA' : ' — ESTA SEMANA');
+  }
+
   const rb = document.getElementById('recBox');
   rb.style.borderColor = colorMap[r.color];
   rb.style.background = bgMap[r.color];
@@ -2504,13 +2511,19 @@ function autoFillCalc(pair, recData, livePrice) {
     document.getElementById('dirCompra').className = 'pip-dir-btn';
   }
 
-  // Use live price if available, otherwise use the recommended entry zone (first price)
-  if (livePrice) {
+  // For ESPERAR: use zona start price (not live price) so user sets their own entry
+  // For COMPRA/VENTA: use zona start price for precision, fallback to live price
+  const zonaPrice = recData.zona && recData.zona !== 'Sin zona clara' && recData.zona !== '—'
+    ? recData.zona.replace('–','-').split(/[-–]/)[0].trim()
+    : null;
+
+  if (recData.accion === 'ESPERAR') {
+    // Clear the entry price so user sets it manually
+    document.getElementById('pipEntrada').value = '';
+  } else if (zonaPrice && !isNaN(parseFloat(zonaPrice))) {
+    document.getElementById('pipEntrada').value = parseFloat(zonaPrice).toFixed(isJPY ? 3 : 5);
+  } else if (livePrice) {
     document.getElementById('pipEntrada').value = parseFloat(livePrice).toFixed(isJPY ? 3 : 5);
-  } else if (recData.zona && recData.zona !== 'Sin zona clara') {
-    // Extract first price from zona range e.g. "1.4100 – 1.4130"
-    const match = recData.zona.match(/[\d.]+/);
-    if (match) document.getElementById('pipEntrada').value = match[0];
   }
 
   // Always calculate
