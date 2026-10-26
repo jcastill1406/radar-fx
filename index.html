@@ -1453,10 +1453,10 @@ async function analyzePair() {
           distanciaMsg = `⚠️ El precio ya bajó por debajo de tu zona de entrada (${r.zona}). Espera que rebote de regreso a la zona para poner la orden Limit.`;
         }
       } else if (r.accion === 'VENTA') {
-        const diff = zonaMin - currentPrice;
-        const pips = isJPY ? Math.abs(diff * 100).toFixed(0) : Math.abs(diff * 10000).toFixed(0);
+        const diff2 = zonaMin - currentPrice;
+        const pipsStr2 = isJPY ? Math.abs(diff2 * 100).toFixed(0) : Math.abs(diff2 * 10000).toFixed(0);
         if (currentPrice < zonaMin) {
-          distanciaMsg = `✅ Puedes poner tu orden Limit de VENTA en ${r.zona} ahora mismo. El precio está ${pips} pips por debajo — cuando suba hasta tu zona, la orden se ejecuta sola.`;
+          distanciaMsg = `✅ Puedes poner tu orden Limit de VENTA en ${r.zona} ahora mismo. El precio está ${pipsStr2} pips por debajo — cuando suba hasta tu zona, la orden se ejecuta sola.`;
         } else {
           distanciaMsg = `⚠️ El precio ya subió por encima de tu zona de entrada (${r.zona}). Espera que retroceda de regreso a la zona para poner la orden Limit.`;
         }
@@ -1485,13 +1485,13 @@ async function analyzePair() {
     // EMA context
     let emaMsg = '';
     if (currentPrice && liveData.ema20 && liveData.ema50) {
-      const above20 = currentPrice > parseFloat(liveData.ema20);
-      const above50 = currentPrice > parseFloat(liveData.ema50);
-      if (above20 && above50) {
+      const above20c = currentPrice > parseFloat(liveData.ema20);
+      const above50c = currentPrice > parseFloat(liveData.ema50);
+      if (above20c && above50c) {
         emaMsg = 'Precio por encima de EMA 20 y EMA 50 — tendencia alcista confirmada en ambos plazos.';
-      } else if (!above20 && !above50) {
+      } else if (!above20c && !above50c) {
         emaMsg = 'Precio por debajo de EMA 20 y EMA 50 — tendencia bajista confirmada en ambos plazos.';
-      } else if (above20 && !above50) {
+      } else if (above20c && !above50c) {
         emaMsg = 'Precio por encima de EMA 20 pero por debajo de EMA 50 — tendencia de corto plazo alcista pero largo plazo aún bajista.';
       } else {
         emaMsg = 'Precio por debajo de EMA 20 pero por encima de EMA 50 — posible corrección en tendencia alcista de largo plazo.';
@@ -1589,9 +1589,9 @@ async function analyzePair() {
   if (impactNews.length > 0) {
     newsAlertBox.style.display = 'block';
     newsAlertEvents.innerHTML = impactNews.map(n => {
-      const ev = noticias_semana[n];
-      const icon = ev.color === 'rojo' ? '🔴' : '🟠';
-      return `<div class="news-alert-event">${icon} ${ev.titulo} — ${ev.fecha}</div>`;
+      const evAlert = noticias_semana[n];
+      const icon = evAlert.color === 'rojo' ? '🔴' : '🟠';
+      return `<div class="news-alert-event">${icon} ${evAlert.titulo} — ${evAlert.fecha}</div>`;
     }).join('');
   } else {
     newsAlertBox.style.display = 'none';
