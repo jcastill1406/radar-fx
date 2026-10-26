@@ -1886,6 +1886,13 @@ async function renderTracker() {
       const dirArrow = trade.direccion === 'COMPRA' ? '▲' : '▼';
       const pipsText = trade.pips !== null ? (trade.pips >= 0 ? '+' : '') + trade.pips + ' pips' : '--';
       const pipsCol = trade.pips !== null ? (trade.pips >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--muted)';
+      const estadoLabel = {
+        'limit-pendiente': '⏳ LIMIT',
+        'en-progreso': '🔄 EN PROGRESO',
+        'ganadora': '✅ GANADORA',
+        'perdedora': '❌ PERDEDORA',
+        'pendiente': '⏳ PENDIENTE'
+      }[trade.resultado] || trade.resultado.toUpperCase();
 
       weekHTML += `<div class="tracker-trade ${trade.resultado}">
         <div class="tracker-trade-header">
