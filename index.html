@@ -1,593 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- RADAR FX -->
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RADAR FX</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a26; --border: #2a2a3a;
-    --green: #00e5a0; --red: #ff4060; --yellow: #ffd166; --blue: #4d9fff;
-    --purple: #9b7fff; --text: #e8e8f0; --muted: #666680;
-  }
-  body { background: var(--bg); color: var(--text); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; padding: 24px 16px; }
-
-  /* LOGIN */
-  .login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
-  .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 32px; width: 100%; max-width: 380px; text-align: center; }
-  .login-title { font-size: 28px; font-weight: 700; margin-bottom: 4px; }
-  .login-title span { color: var(--green); }
-  .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; font-family: 'Space Mono', monospace; letter-spacing: 1px; }
-  .login-field { margin-bottom: 16px; text-align: left; }
-  .login-field label { font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); display: block; margin-bottom: 8px; }
-  .login-field input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Grotesk', sans-serif; font-size: 14px; padding: 12px 14px; outline: none; transition: border-color 0.15s; }
-  .login-field input:focus { border-color: var(--green); }
-  .login-btn { width: 100%; background: var(--green); color: #0a0a0f; border: none; border-radius: 10px; font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; padding: 14px; cursor: pointer; margin-top: 8px; transition: opacity 0.15s; }
-  .login-btn:hover { opacity: 0.85; }
-  .login-error { color: var(--red); font-size: 13px; margin-top: 12px; display: none; font-family: 'Space Mono', monospace; }
-  .login-lock { font-size: 48px; margin-bottom: 20px; }
-
-  /* APP */
-  .app-screen { display: none; }
-  header { text-align: center; margin-bottom: 28px; }
-  .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .logout-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; padding: 6px 12px; cursor: pointer; }
-  .logout-btn:hover { border-color: var(--red); color: var(--red); }
-  h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; }
-  h1 span { color: var(--green); }
-  .subtitle { font-size: 13px; color: var(--muted); margin-top: 6px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-  .card-title { font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 16px; }
-
-  .week-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
-  .week-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; cursor: pointer; transition: all 0.15s; }
-  .week-btn.active { border-color: var(--green); color: var(--green); background: rgba(0,229,160,0.08); }
-
-  .pair-grid { display: flex; flex-direction: column; margin-bottom: 16px; }
-
-  .pair-category-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1.5px; color: var(--muted); padding: 8px 0 6px; border-top: 1px solid var(--border); margin-top: 4px; }
-  .pair-category-label:first-child { border-top: none; margin-top: 0; padding-top: 0; }
-  .pair-category-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
-  #pairGrid { display: flex; flex-direction: column; margin-bottom: 16px; }
-  .pair-btn { flex: 0 0 auto; }
-  .pair-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 10px 4px; cursor: pointer; transition: all 0.15s; text-align: center; }
-  .pair-btn:hover { border-color: var(--green); color: var(--green); }
-  .pair-btn.active { background: var(--green); color: #0a0a0f; border-color: var(--green); }
-  .analyze-btn { width: 100%; background: var(--green); color: #0a0a0f; border: none; border-radius: 10px; font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; padding: 14px; cursor: pointer; transition: opacity 0.15s; }
-  .analyze-btn:hover { opacity: 0.85; }
-  .analyze-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-  .live-bar { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 1.5s infinite; display: inline-block; margin-right: 6px; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-  .live-label { font-size: 11px; font-family: 'Space Mono', monospace; color: var(--muted); }
-  .live-price { font-size: 28px; font-weight: 700; font-family: 'Space Mono', monospace; color: var(--text); }
-  .live-change { font-size: 13px; font-family: 'Space Mono', monospace; font-weight: 700; }
-  .live-change.up { color: var(--green); } .live-change.down { color: var(--red); }
-  .live-indicators { display: flex; gap: 16px; flex-wrap: wrap; }
-  .live-ind { text-align: center; }
-  .live-ind-val { font-family: 'Space Mono', monospace; font-size: 15px; font-weight: 700; }
-
-  .live-ind-desc { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 3px; max-width: 80px; line-height: 1.3; }
-  .live-bar { flex-wrap: wrap; }
-  .live-ind-label { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 1px; }
-
-  .rec-box { border-radius: 14px; padding: 22px; margin-bottom: 16px; border: 2px solid; text-align: center; }
-  .rec-accion { font-size: 38px; font-weight: 700; font-family: 'Space Mono', monospace; margin-bottom: 6px; }
-  .rec-estrategia { font-size: 13px; margin-bottom: 14px; color: var(--muted); }
-  .rec-zona-box { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
-  .rec-zona-label { font-size: 10px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; }
-  .rec-zona-price { font-size: 26px; font-weight: 700; font-family: 'Space Mono', monospace; }
-  .rec-zona-desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .rec-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-  .rec-cell { background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px; }
-  .rec-cell-label { font-size: 10px; font-family: 'Space Mono', monospace; color: var(--muted); margin-bottom: 4px; }
-  .rec-cell-val { font-size: 16px; font-weight: 700; font-family: 'Space Mono', monospace; }
-
-  .sesgo-box { border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid; }
-  .sesgo-box.alcista { background: rgba(0,229,160,0.08); border-color: var(--green); }
-  .sesgo-box.bajista { background: rgba(255,64,96,0.08); border-color: var(--red); }
-  .sesgo-box.neutral { background: rgba(255,209,102,0.08); border-color: var(--yellow); }
-  .sesgo-label { font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); margin-bottom: 6px; }
-  .sesgo-dir { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-  .alcista .sesgo-dir { color: var(--green); } .bajista .sesgo-dir { color: var(--red); } .neutral .sesgo-dir { color: var(--yellow); }
-  .sesgo-desc { font-size: 13px; color: var(--text); line-height: 1.5; }
-
-  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .metric { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
-  .metric-label { font-size: 10px; font-family: 'Space Mono', monospace; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 6px; }
-  .metric-val { font-size: 17px; font-weight: 700; }
-  .green { color: var(--green); } .red { color: var(--red); } .yellow { color: var(--yellow); } .blue { color: var(--blue); }
-
-  .estrategias { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  .estrategia-pill { border-radius: 8px; padding: 12px; text-align: center; border: 1px solid; }
-  .estrategia-pill.recomendada { background: rgba(0,229,160,0.1); border-color: var(--green); }
-  .estrategia-pill.posible { background: rgba(77,159,255,0.08); border-color: var(--blue); }
-  .estrategia-pill.evitar { background: rgba(255,64,96,0.06); border-color: rgba(255,64,96,0.2); }
-  .estrategia-pill .code { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
-  .recomendada .code { color: var(--green); } .posible .code { color: var(--blue); } .evitar .code { color: var(--muted); }
-  .estrategia-pill .etype { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; }
-
-  .prob-bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; margin-top: 8px; }
-  .prob-bar { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
-  .prob-bar.green { background: var(--green); } .prob-bar.red { background: var(--red); }
-  .prob-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 4px; }
-  .score-circle { width: 80px; height: 80px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid; margin: 0 auto 12px; }
-  .score-circle.high { border-color: var(--green); } .score-circle.med { border-color: var(--yellow); } .score-circle.low { border-color: var(--red); }
-  .score-num { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; }
-  .high .score-num { color: var(--green); } .med .score-num { color: var(--yellow); } .low .score-num { color: var(--red); }
-  .score-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; }
-
-  .setup-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 10px; }
-  .setup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .setup-type { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted); }
-  .setup-badge { font-size: 11px; font-family: 'Space Mono', monospace; padding: 3px 10px; border-radius: 20px; font-weight: 700; }
-  .setup-badge.compra { background: rgba(0,229,160,0.15); color: var(--green); }
-  .setup-badge.venta { background: rgba(255,64,96,0.15); color: var(--red); }
-  .setup-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; color: var(--muted); }
-  .setup-row span:last-child { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--text); }
-
-  .nivel-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
-  .nivel-item:last-child { border-bottom: none; }
-  .nivel-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-  .nivel-tag { font-family: 'Space Mono', monospace; font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 700; }
-  .nivel-tag.res { background: rgba(255,64,96,0.15); color: var(--red); }
-  .nivel-tag.sop { background: rgba(0,229,160,0.15); color: var(--green); }
-  .nivel-tag.psi { background: rgba(255,209,102,0.15); color: var(--yellow); }
-  .nivel-tag.key { background: rgba(155,127,255,0.15); color: var(--purple); }
-  .nivel-price { font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; }
-  .nivel-desc { font-size: 11px; color: var(--muted); }
-  .nivel-explain { font-size: 12px; color: var(--muted); line-height: 1.5; padding-left: 4px; margin-top: 4px; }
-  .nivel-rec { display: inline-block; margin-top: 4px; font-size: 11px; font-family: 'Space Mono', monospace; font-weight: 700; padding: 3px 10px; border-radius: 4px; }
-  .nivel-rec.compra { background: rgba(0,229,160,0.12); color: var(--green); }
-  .nivel-rec.venta { background: rgba(255,64,96,0.12); color: var(--red); }
-  .nivel-rec.cuidado { background: rgba(255,209,102,0.12); color: var(--yellow); }
-  .nivel-rec.observar { background: rgba(77,159,255,0.12); color: var(--blue); }
-
-  .noticia-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .noticia-item:last-child { border-bottom: none; }
-  .noticia-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
-  .noticia-dot.rojo { background: var(--red); box-shadow: 0 0 6px var(--red); }
-  .noticia-dot.naranja { background: var(--yellow); }
-  .noticia-dot.verde { background: var(--green); }
-  .noticia-titulo { font-weight: 600; color: var(--text); margin-bottom: 2px; }
-  .noticia-fecha { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
-
-  .finviz-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-  .finviz-pill { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
-  .finviz-pill.up { background: rgba(0,229,160,0.15); color: var(--green); }
-  .finviz-pill.down { background: rgba(255,64,96,0.15); color: var(--red); }
-
-  .warning-box { background: rgba(255,64,96,0.08); border: 1px solid rgba(255,64,96,0.3); border-radius: 10px; padding: 14px; font-size: 13px; color: var(--red); margin-bottom: 16px; }
-  .warning-box .w-title { font-weight: 700; margin-bottom: 4px; font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 1px; }
-
-  .info-msg { border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; border: 1px solid; }
-  .info-msg .info-title { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 2px; margin-bottom: 6px; }
-  .info-msg.ok { background: rgba(0,229,160,0.07); border-color: var(--green); color: var(--text); }
-  .info-msg.ok .info-title { color: var(--green); }
-  .info-msg.warn { background: rgba(255,209,102,0.07); border-color: var(--yellow); color: var(--text); }
-  .info-msg.warn .info-title { color: var(--yellow); }
-  .info-msg.danger { background: rgba(255,64,96,0.07); border-color: var(--red); color: var(--text); }
-  .info-msg.danger .info-title { color: var(--red); }
-  .zona-alert { background: rgba(255,209,102,0.1); border: 1px solid var(--yellow); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--yellow); margin-bottom: 12px; display: none; font-family: 'Space Mono', monospace; }
-  .loading { text-align: center; padding: 40px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 12px; display: none; }
-  .dot-anim::after { content: ''; animation: dots 1.2s steps(4,end) infinite; }
-  @keyframes dots { 0%,20%{content:''} 40%{content:'.'} 60%{content:'..'} 80%,100%{content:'...'} }
-  .result { display: none; }
-  footer { text-align: center; margin-top: 32px; font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; }
-  .context-text { font-size: 13px; color: var(--text); line-height: 1.6; }
-
-  /* Comparacion semanas */
-  .comp-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
-  .comp-title { font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 14px; }
-  .comp-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .comp-week { text-align: center; flex: 1; }
-  .comp-week-label { font-size: 10px; font-family: 'Space Mono', monospace; color: var(--muted); margin-bottom: 6px; letter-spacing: 1px; }
-  .comp-badge { font-size: 13px; font-weight: 700; font-family: 'Space Mono', monospace; padding: 8px 12px; border-radius: 8px; display: inline-block; }
-  .comp-badge.alcista { background: rgba(0,229,160,0.12); color: var(--green); }
-  .comp-badge.bajista { background: rgba(255,64,96,0.12); color: var(--red); }
-  .comp-badge.neutral { background: rgba(255,209,102,0.12); color: var(--yellow); }
-  .comp-arrow { font-size: 24px; flex-shrink: 0; }
-  .comp-veredicto { margin-top: 12px; text-align: center; font-size: 12px; font-family: 'Space Mono', monospace; padding: 8px; border-radius: 6px; }
-  .comp-veredicto.continua { background: rgba(77,159,255,0.1); color: var(--blue); }
-  .comp-veredicto.cambio-alcista { background: rgba(0,229,160,0.1); color: var(--green); }
-  .comp-veredicto.cambio-bajista { background: rgba(255,64,96,0.1); color: var(--red); }
-  .comp-veredicto.neutral { background: rgba(255,209,102,0.1); color: var(--yellow); }
-
-  /* Pip Calculator */
-  .pip-calc { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-  .pip-calc-title { font-size: 11px; font-family: 'Space Mono', monospace; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 16px; }
-  .pip-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .pip-field label { font-size: 10px; font-family: 'Space Mono', monospace; letter-spacing: 1.5px; color: var(--muted); display: block; margin-bottom: 6px; }
-  .pip-field input, .pip-field select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 14px; padding: 10px 12px; outline: none; transition: border-color 0.15s; }
-  .pip-field input:focus, .pip-field select:focus { border-color: var(--green); }
-  .pip-calc-btn { width: 100%; background: var(--surface2); border: 1px solid var(--green); color: var(--green); border-radius: 8px; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; padding: 12px; cursor: pointer; letter-spacing: 1px; transition: all 0.15s; margin-bottom: 14px; }
-  .pip-calc-btn:hover { background: var(--green); color: #0a0a0f; }
-  .pip-results { display: none; }
-  .pip-result-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-  .pip-result-cell { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
-  .pip-result-cell.sl-cell { border-color: rgba(255,64,96,0.4); background: rgba(255,64,96,0.06); }
-  .pip-result-cell.tp-cell { border-color: rgba(0,229,160,0.4); background: rgba(0,229,160,0.06); }
-  .pip-result-cell.rr-cell { border-color: rgba(155,127,255,0.4); background: rgba(155,127,255,0.06); }
-  .pip-result-label { font-size: 10px; font-family: 'Space Mono', monospace; color: var(--muted); margin-bottom: 4px; letter-spacing: 1px; }
-  .pip-result-val { font-size: 16px; font-weight: 700; font-family: 'Space Mono', monospace; }
-  .pip-result-cell.sl-cell .pip-result-val { color: var(--red); }
-  .pip-result-cell.tp-cell .pip-result-val { color: var(--green); }
-  .pip-result-cell.rr-cell .pip-result-val { color: var(--purple); }
-  .pip-result-sub { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 3px; }
-  .pip-summary { background: var(--surface2); border-radius: 8px; padding: 12px 14px; font-size: 12px; color: var(--muted); line-height: 1.6; font-family: 'Space Mono', monospace; }
-  .pip-dir-toggle { display: flex; gap: 8px; margin-bottom: 10px; }
-  .pip-dir-btn { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; cursor: pointer; transition: all 0.15s; font-weight: 700; }
-  .pip-dir-btn.active-compra { border-color: var(--green); color: var(--green); background: rgba(0,229,160,0.08); }
-  .pip-dir-btn.active-venta { border-color: var(--red); color: var(--red); background: rgba(255,64,96,0.08); }
-
-  /* Tabs */
-  .tabs { display: flex; gap: 0; margin-bottom: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
-  .tab-btn { flex: 1; padding: 10px 8px; border: none; border-radius: 7px; background: transparent; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px; cursor: pointer; transition: all 0.15s; font-weight: 700; }
-  .tab-btn.active { background: var(--green); color: #0a0a0f; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-
-  /* Strategy tab */
-  .strat-section { margin-bottom: 24px; }
-  .strat-section-title { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--green); text-transform: uppercase; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
-  .strat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
-  .strat-card-title { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
-  .strat-card-title.ar { color: var(--green); }
-  .strat-card-title.br { color: var(--red); }
-  .strat-card-title.cr { color: var(--yellow); }
-  .strat-card-title.dr { color: var(--blue); }
-  .strat-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
-  .strat-text strong { color: var(--text); }
-  .strat-rule { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .strat-rule:last-child { border-bottom: none; }
-  .strat-rule-num { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--green); font-weight: 700; flex-shrink: 0; width: 24px; }
-  .strat-rule-text { color: var(--text); line-height: 1.5; }
-  .psy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .psy-cell { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
-  .psy-cur { font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-  .psy-levels { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--yellow); }
-  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
-  .stat-row:last-child { border-bottom: none; }
-  .stat-label { color: var(--muted); }
-  .stat-val { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--text); }
-  .stat-val.green { color: var(--green); }
-  .stat-val.red { color: var(--red); }
-  .vela-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .vela-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 12px; }
-  .vela-pill-title { font-weight: 700; color: var(--text); margin-bottom: 3px; }
-  .vela-pill-dir { font-size: 10px; font-family: 'Space Mono', monospace; }
-  .vela-pill-dir.alcista { color: var(--green); }
-  .vela-pill-dir.bajista { color: var(--red); }
-
-  /* Tracker */
-  .tracker-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-  .tracker-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
-  .tracker-stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
-  .tracker-stat-val { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
-  .tracker-stat-label { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 1px; }
-  .tracker-week-group { margin-bottom: 20px; }
-  .tracker-week-label { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--muted); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-  .tracker-trade { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 8px; }
-  .tracker-trade.ganadora { border-left: 3px solid var(--green); }
-  .tracker-trade.perdedora { border-left: 3px solid var(--red); }
-  .tracker-trade.pendiente { border-left: 3px solid var(--yellow); }
-  .tracker-trade-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-  .tracker-pair { font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; color: var(--text); }
-  .tracker-result-badge { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; cursor: pointer; }
-  .tracker-result-badge.ganadora { background: rgba(0,229,160,0.15); color: var(--green); }
-  .tracker-result-badge.perdedora { background: rgba(255,64,96,0.15); color: var(--red); }
-  .tracker-result-badge.pendiente { background: rgba(255,209,102,0.15); color: var(--yellow); }
-  .tracker-prices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
-  .tracker-price-cell { text-align: center; }
-  .tracker-price-label { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; margin-bottom: 3px; }
-  .tracker-price-val { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; }
-  .tracker-price-val.entrada { color: var(--text); }
-  .tracker-price-val.sl { color: var(--red); }
-  .tracker-price-val.tp { color: var(--green); }
-  .tracker-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; flex-wrap: wrap; gap: 4px; }
-  .tracker-note { font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-  .tracker-note input { width: 100%; background: transparent; border: none; color: var(--muted); font-family: 'Space Grotesk', sans-serif; font-size: 12px; outline: none; }
-  .tracker-note input::placeholder { color: var(--border); }
-  .tracker-actions { display: flex; gap: 6px; margin-top: 8px; }
-  .tracker-action-btn { font-size: 10px; font-family: 'Space Mono', monospace; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
-  .tracker-action-btn:hover { border-color: var(--red); color: var(--red); }
-  .tracker-empty { text-align: center; padding: 40px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 12px; }
-  .add-trade-btn { background: var(--green); color: #0a0a0f; border: none; border-radius: 8px; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 8px 16px; cursor: pointer; letter-spacing: 1px; }
-  .week-filter { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 11px; padding: 7px 12px; cursor: pointer; }
-
-  /* Session Clock */
-  .session-bar { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-  .session-bar-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
-  .market-status { display: flex; align-items: center; gap: 8px; }
-  .market-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .market-status-dot.open { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 1.5s infinite; }
-  .market-status-dot.closed { background: var(--red); }
-  .market-status-text { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; }
-  .market-status-text.open { color: var(--green); }
-  .market-status-text.closed { color: var(--red); }
-  .session-time { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); }
-
-  .session-sessions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
-  .session-pill { border-radius: 8px; padding: 8px 6px; text-align: center; border: 1px solid var(--border); background: var(--surface2); transition: all 0.3s; }
-  .session-pill.active { border-color: var(--green); background: rgba(0,229,160,0.08); }
-  .session-pill.next { border-color: var(--yellow); background: rgba(255,209,102,0.05); }
-  .session-pill-name { font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; color: var(--muted); margin-bottom: 3px; letter-spacing: 1px; }
-  .session-pill.active .session-pill-name { color: var(--green); }
-  .session-pill.next .session-pill-name { color: var(--yellow); }
-  .session-pill-time { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; }
-  .session-pill-status { font-size: 9px; margin-top: 3px; font-family: 'Space Mono', monospace; }
-  .session-pill.active .session-pill-status { color: var(--green); }
-  .session-pill.next .session-pill-status { color: var(--yellow); }
-
-  .session-counters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .session-counter { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; text-align: center; }
-  .session-counter-label { font-size: 10px; font-family: 'Space Mono', monospace; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; }
-  .session-counter-time { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; letter-spacing: 2px; }
-  .session-counter-sub { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 3px; }
-  .session-counter.cierre .session-counter-time { color: var(--red); }
-  .session-counter.apertura .session-counter-time { color: var(--green); }
-  .session-counter.cierre .session-counter-label { color: var(--red); }
-  .session-counter.apertura .session-counter-label { color: var(--green); }
-
-  .session-current-box { background: rgba(0,229,160,0.06); border: 1px solid rgba(0,229,160,0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-  .session-current-name { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; color: var(--green); }
-  .session-next-info { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; text-align: right; }
-  .session-closed-box { background: rgba(255,64,96,0.06); border: 1px solid rgba(255,64,96,0.2); border-radius: 8px; padding: 10px 14px; margin-bottom: 10px; text-align: center; font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; color: var(--red); }
-
-  /* ── Confirmation System ─────────────────────────────────────── */
-  .confirm-box { background: var(--surface); border-radius: 12px; padding: 18px; margin-bottom: 16px; border: 1px solid var(--border); }
-  .confirm-title { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; text-transform: uppercase; }
-  .confirm-score { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .confirm-score-circle { width: 72px; height: 72px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 3px solid; flex-shrink: 0; }
-  .confirm-score-circle.high { border-color: var(--green); background: rgba(0,229,160,0.08); }
-  .confirm-score-circle.med  { border-color: var(--yellow); background: rgba(255,209,102,0.08); }
-  .confirm-score-circle.low  { border-color: var(--red); background: rgba(255,64,96,0.08); }
-  .confirm-score-num { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; line-height: 1; }
-  .confirm-score-circle.high .confirm-score-num { color: var(--green); }
-  .confirm-score-circle.med  .confirm-score-num { color: var(--yellow); }
-  .confirm-score-circle.low  .confirm-score-num { color: var(--red); }
-  .confirm-score-label { font-size: 9px; color: var(--muted); font-family: 'Space Mono', monospace; letter-spacing: 1px; }
-  .confirm-verdict { flex: 1; margin-left: 14px; }
-  .confirm-verdict-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-  .confirm-verdict-title.high { color: var(--green); }
-  .confirm-verdict-title.med  { color: var(--yellow); }
-  .confirm-verdict-title.low  { color: var(--red); }
-  .confirm-verdict-sub { font-size: 12px; color: var(--muted); line-height: 1.5; }
-  .confirm-checks { display: flex; flex-direction: column; gap: 8px; }
-  .confirm-check { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 8px; background: var(--surface2); border: 1px solid var(--border); }
-  .confirm-check-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
-  .confirm-check-body { flex: 1; }
-  .confirm-check-label { font-family: 'Space Mono', monospace; font-size: 10px; letter-spacing: 1px; color: var(--muted); margin-bottom: 3px; }
-  .confirm-check-val { font-size: 13px; font-weight: 600; }
-  .confirm-check-val.pass { color: var(--green); }
-  .confirm-check-val.fail { color: var(--red); }
-  .confirm-check-val.warn { color: var(--yellow); }
-  .confirm-check-val.neutral { color: var(--text); }
-  .confirm-check-detail { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
-  .confirm-loading { text-align: center; padding: 20px; color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; }
-
-  .tracker-trade.limit-pendiente { border-left: 3px solid var(--muted); }
-  .tracker-trade.en-progreso { border-left: 3px solid var(--blue); }
-  .tracker-result-badge.limit-pendiente { background: rgba(150,150,150,0.12); color: var(--muted); }
-  .tracker-result-badge.en-progreso { background: rgba(77,159,255,0.15); color: var(--blue); }
-  .tracker-pnl { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; }
-  .tracker-pnl.positive { color: var(--green); }
-  .tracker-pnl.negative { color: var(--red); }
-  .tracker-pnl.neutral { color: var(--muted); }
-  .tracker-status-btns { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .tracker-status-btn { font-size: 10px; font-family: 'Space Mono', monospace; padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
-  .tracker-status-btn:hover { opacity: 0.8; }
-  .tracker-status-btn.btn-progreso { border-color: var(--blue); color: var(--blue); }
-  .tracker-status-btn.btn-ganadora { border-color: var(--green); color: var(--green); }
-  .tracker-status-btn.btn-perdedora { border-color: var(--red); color: var(--red); }
-  .tracker-status-btn.btn-pendiente { border-color: var(--yellow); color: var(--yellow); }
-
-  /* Red news 48h alert */
-  .news-alert-box { border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; border: 2px solid var(--red); background: rgba(255,64,96,0.08); display: none; }
-  .news-alert-title { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; color: var(--red); letter-spacing: 1.5px; margin-bottom: 6px; }
-  .news-alert-body { font-size: 13px; color: var(--text); line-height: 1.6; }
-  .news-alert-events { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
-  .news-alert-event { font-size: 12px; background: rgba(255,64,96,0.1); border-radius: 6px; padding: 6px 10px; color: var(--red); font-family: 'Space Mono', monospace; }
-  /* Zone distance alert */
-  .zone-dist-box { border-radius: 10px; padding: 12px 16px; margin-bottom: 14px; border: 1px solid var(--yellow); background: rgba(255,209,102,0.07); display: none; }
-  .zone-dist-title { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--yellow); letter-spacing: 1.5px; margin-bottom: 4px; }
-  .zone-dist-body { font-size: 12px; color: var(--muted); line-height: 1.5; }
-</style>
-</head>
-<body>
-
-<!-- LOGIN SCREEN -->
-<div class="login-screen" id="loginScreen">
-  <div class="login-box">
-    <div class="login-lock">📡</div>
-    <div class="login-title">RADAR <span>FX</span></div>
-    <div class="login-sub">ACCESO RESTRINGIDO</div>
-    <div class="login-field">
-      <label>EMAIL</label>
-      <input type="email" id="loginEmail" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') doLogin()">
-    </div>
-    <div class="login-field">
-      <label>CONTRASEÑA</label>
-      <input type="password" id="loginPass" placeholder="••••••••••••" onkeydown="if(event.key==='Enter') doLogin()">
-    </div>
-    <button class="login-btn" onclick="doLogin()">ENTRAR</button>
-    <div class="login-error" id="loginError">❌ Email o contraseña incorrectos</div>
-  </div>
-</div>
-
-<!-- APP SCREEN -->
-<div class="app-screen" id="appScreen">
-
-  <div class="header-top">
-    <div style="font-size:11px;font-family:'Space Mono',monospace;color:var(--muted);">
-      <span class="live-dot"></span>EN VIVO
-    </div>
-    <button class="logout-btn" onclick="doLogout()">CERRAR SESIÓN</button>
-  </div>
-
-  <header>
-    <h1>RADAR <span>FX</span></h1>
-    <p class="subtitle">Precios en vivo · Análisis semanal · Estrategia Ren</p>
-  </header>
-
-
-  <!-- Tab Navigation -->
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('analisis')">📡 ANÁLISIS</button>
-    <button class="tab-btn" onclick="switchTab('calculadora')">🧮 CALCULADORA</button>
-    <button class="tab-btn" onclick="switchTab('estrategia')">📋 ESTRATEGIA</button>
-    <button class="tab-btn" onclick="switchTab('tracker')">📊 TRACKER</button>
-  </div>
-
-
-  <!-- Session Clock Bar -->
-  <div class="session-bar" id="sessionBar">
-    <div class="session-bar-top">
-      <div class="market-status">
-        <div class="market-status-dot" id="mktDot"></div>
-        <div class="market-status-text" id="mktStatus">CARGANDO...</div>
-      </div>
-      <div class="session-time" id="sessionLocalTime"></div>
-    </div>
-
-    <div id="sessionCurrentBox"></div>
-
-    <div class="session-sessions">
-      <div class="session-pill" id="pillSydney">
-        <div class="session-pill-name">SYDNEY</div>
-        <div class="session-pill-time">4pm–1am CST</div>
-        <div class="session-pill-status" id="pillSydneyStatus">—</div>
-      </div>
-      <div class="session-pill" id="pillTokyo">
-        <div class="session-pill-name">TOKYO</div>
-        <div class="session-pill-time">6pm–3am CST</div>
-        <div class="session-pill-status" id="pillTokyoStatus">—</div>
-      </div>
-      <div class="session-pill" id="pillLondon">
-        <div class="session-pill-name">LONDON</div>
-        <div class="session-pill-time">2am–11am CST</div>
-        <div class="session-pill-status" id="pillLondonStatus">—</div>
-      </div>
-      <div class="session-pill" id="pillNY">
-        <div class="session-pill-name">NEW YORK</div>
-        <div class="session-pill-time">7am–4pm CST</div>
-        <div class="session-pill-status" id="pillNYStatus">—</div>
-      </div>
-    </div>
-
-    <div class="session-counters">
-      <div class="session-counter cierre">
-        <div class="session-counter-label">⏱ CIERRE DEL MERCADO</div>
-        <div class="session-counter-time" id="cntCierre">--:--:--</div>
-        <div class="session-counter-sub" id="cntCierreSub">Viernes 4pm CST</div>
-      </div>
-      <div class="session-counter apertura">
-        <div class="session-counter-label">⏰ APERTURA DEL MERCADO</div>
-        <div class="session-counter-time" id="cntApertura">--:--:--</div>
-        <div class="session-counter-sub" id="cntAperturaSub">Domingo 4pm CST</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tab: Analisis -->
-  <div class="tab-content active" id="tab-analisis">
-  <div class="card">
-    <div class="card-title">Semana a Analizar</div>
-    <div class="week-toggle">
-      <button class="week-btn active" id="btnEsta" onclick="setWeek('esta')">📅 ESTA SEMANA<br><span style="font-size:10px;opacity:0.7">6 Oct – 9 Oct</span></button>
-      <button class="week-btn" id="btnProx" onclick="setWeek('proxima')">📅 PRÓXIMA SEMANA<br><span style="font-size:10px;opacity:0.7">19 Oct – 23 Oct</span></button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Seleccionar Par</div>
-    <div class="pair-grid" id="pairGrid"></div>
-    <button class="analyze-btn" id="analyzeBtn" onclick="analyzePair()" disabled>Analizar Par</button>
-  </div>
-
-  <div class="loading" id="loading"><span class="dot-anim">Cargando datos en vivo</span></div>
-
-  <div class="result" id="result">
-    <div class="live-bar">
-      <div>
-        <div class="live-label"><span class="live-dot"></span>EN VIVO · <span id="livePair">--</span></div>
-        <div class="live-price" id="livePrice">--</div>
-        <div class="live-change" id="liveChange">--</div>
-      </div>
-      <div class="live-indicators">
-        <div class="live-ind">
-          <div class="live-ind-val" id="indRSI">--</div>
-          <div class="live-ind-label">RSI 14</div>
-          <div class="live-ind-desc" id="indRSIDesc">--</div>
-        </div>
-        <div class="live-ind">
-          <div class="live-ind-val" id="indEMA20">--</div>
-          <div class="live-ind-label">EMA 20</div>
-          <div class="live-ind-desc" id="indEMA20Desc">--</div>
-        </div>
-        <div class="live-ind">
-          <div class="live-ind-val" id="indEMA50">--</div>
-          <div class="live-ind-label">EMA 50</div>
-          <div class="live-ind-desc" id="indEMA50Desc">--</div>
-        </div>
-        <div class="live-ind">
-          <div class="live-ind-val" id="indATR">--</div>
-          <div class="live-ind-label">ATR 14</div>
-          <div class="live-ind-desc" id="indATRDesc">--</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="zona-alert" id="zonaAlert"></div>
-
-    <!-- Alerta noticias rojas 48h -->
-    <div class="news-alert-box" id="newsAlertBox">
-      <div class="news-alert-title">⛔ NOTICIA ROJA EN LAS PRÓXIMAS 48H — PRECAUCIÓN MÁXIMA</div>
-      <div class="news-alert-body">Hay eventos de alto impacto próximos que afectan este par. <strong>No coloques la orden Limit hasta después del evento</strong> — el precio puede moverse 50-150 pips en segundos y tocar tu SL antes de ir a tu favor.</div>
-      <div class="news-alert-events" id="newsAlertEvents"></div>
-    </div>
-    <!-- Alerta zona alejada -->
-    <div class="zone-dist-box" id="zoneDistBox">
-      <div class="zone-dist-title">📏 ZONA ALEJADA DEL PRECIO ACTUAL</div>
-      <div class="zone-dist-body" id="zoneDistText"></div>
-    </div>
-
-    <div class="warning-box" id="warningBox" style="display:none"><div class="w-title">⚠ NOTICIAS ROJAS ESTA SEMANA</div><div id="warningText"></div></div>
-
-
-    <!-- Mensaje informativo -->
-    <div class="info-msg" id="infoMsg" style="display:none">
-      <div class="info-title" id="infoTitle"></div>
-      <div id="infoText"></div>
-    </div>
-    <div class="rec-box" id="recBox">
-      <div style="font-size:11px;font-family:'Space Mono',monospace;letter-spacing:3px;color:var(--muted);margin-bottom:10px;">RECOMENDACIÓN RADAR FX</div>
-      <div class="rec-accion" id="recAccion"></div>
-      <div class="rec-estrategia" id="recEstrategia"></div>
-      <div class="rec-zona-box">
-        <div class="rec-zona-label">ZONA PSICOLÓGICA DE ENTRADA</div>
-        <div class="rec-zona-price" id="recZona"></div>
-        <div class="rec-zona-desc" id="recZonaDesc"></div>
-      </div>
-      <div class="rec-grid">
-        <div class="rec-cell"><div class="rec-cell-label">STOP LOSS</div><div class="rec-cell-val red" id="recSL"></div></div>
-        <div class="rec-cell"><div class="rec-cell-label">TAKE PROFIT</div><div class="rec-cell-val green" id="recTP"></div></div>
-        <div class="rec-cell"><div class="rec-cell-label">R:R</div><div class="rec-cell-val" style="color:var(--purple)">1 : 3</div></div>
-      </div>
-    </div>
-
-    <div class="sesgo-box" id="sesgBox">
-      <div class="sesgo-label">Sesgo Semanal</div>
-      <div class="sesgo-dir" id="sesgDir"></div>
-      <div class="sesgo-desc" id="sesgDesc"></div>
-    </div>TYPE html>
-<html lang="es">
-<head>
-<!-- RADAR FX -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RADAR FX</title>
@@ -1192,8 +605,6 @@
         <div class="confirm-checks" id="confirmChecks"></div>
       </div>
     </div>
-
-
 
     <!-- Comparacion semanas -->
     <div class="comp-box">
@@ -1992,13 +1403,6 @@ async function analyzePair() {
   const r = d.rec;
   const colorMap = {green:'var(--green)',red:'var(--red)',yellow:'var(--yellow)'};
   const bgMap = {green:'rgba(0,229,160,0.07)',red:'rgba(255,64,96,0.07)',yellow:'rgba(255,209,102,0.07)'};
-  // Show which week is active
-  const weekLabelEl = document.getElementById('recWeekLabel');
-  if (weekLabelEl) {
-    const wLabel = WEEKLY_DATA[currentWeek].label;
-    weekLabelEl.textContent = '📅 ' + wLabel + (currentWeek === 'proxima' ? ' — PRÓXIMA SEMANA' : ' — ESTA SEMANA');
-  }
-
   const rb = document.getElementById('recBox');
   rb.style.borderColor = colorMap[r.color];
   rb.style.background = bgMap[r.color];
@@ -2042,10 +1446,10 @@ async function analyzePair() {
           distanciaMsg = `⚠️ El precio ya bajó por debajo de tu zona de entrada (${r.zona}). Espera que rebote de regreso a la zona para poner la orden Limit.`;
         }
       } else if (r.accion === 'VENTA') {
-        const diff2 = zonaMin - currentPrice;
-        const pipsStr2 = isJPY ? Math.abs(diff2 * 100).toFixed(0) : Math.abs(diff2 * 10000).toFixed(0);
+        const diff = zonaMin - currentPrice;
+        const pips = isJPY ? Math.abs(diff * 100).toFixed(0) : Math.abs(diff * 10000).toFixed(0);
         if (currentPrice < zonaMin) {
-          distanciaMsg = `✅ Puedes poner tu orden Limit de VENTA en ${r.zona} ahora mismo. El precio está ${pipsStr2} pips por debajo — cuando suba hasta tu zona, la orden se ejecuta sola.`;
+          distanciaMsg = `✅ Puedes poner tu orden Limit de VENTA en ${r.zona} ahora mismo. El precio está ${pips} pips por debajo — cuando suba hasta tu zona, la orden se ejecuta sola.`;
         } else {
           distanciaMsg = `⚠️ El precio ya subió por encima de tu zona de entrada (${r.zona}). Espera que retroceda de regreso a la zona para poner la orden Limit.`;
         }
@@ -2074,13 +1478,13 @@ async function analyzePair() {
     // EMA context
     let emaMsg = '';
     if (currentPrice && liveData.ema20 && liveData.ema50) {
-      const above20c = currentPrice > parseFloat(liveData.ema20);
-      const above50c = currentPrice > parseFloat(liveData.ema50);
-      if (above20c && above50c) {
+      const above20 = currentPrice > parseFloat(liveData.ema20);
+      const above50 = currentPrice > parseFloat(liveData.ema50);
+      if (above20 && above50) {
         emaMsg = 'Precio por encima de EMA 20 y EMA 50 — tendencia alcista confirmada en ambos plazos.';
-      } else if (!above20c && !above50c) {
+      } else if (!above20 && !above50) {
         emaMsg = 'Precio por debajo de EMA 20 y EMA 50 — tendencia bajista confirmada en ambos plazos.';
-      } else if (above20c && !above50c) {
+      } else if (above20 && !above50) {
         emaMsg = 'Precio por encima de EMA 20 pero por debajo de EMA 50 — tendencia de corto plazo alcista pero largo plazo aún bajista.';
       } else {
         emaMsg = 'Precio por debajo de EMA 20 pero por encima de EMA 50 — posible corrección en tendencia alcista de largo plazo.';
@@ -2178,9 +1582,9 @@ async function analyzePair() {
   if (impactNews.length > 0) {
     newsAlertBox.style.display = 'block';
     newsAlertEvents.innerHTML = impactNews.map(n => {
-      const evAlert = noticias_semana[n];
-      const icon = evAlert.color === 'rojo' ? '🔴' : '🟠';
-      return `<div class="news-alert-event">${icon} ${evAlert.titulo} — ${evAlert.fecha}</div>`;
+      const ev = noticias_semana[n];
+      const icon = ev.color === 'rojo' ? '🔴' : '🟠';
+      return `<div class="news-alert-event">${icon} ${ev.titulo} — ${ev.fecha}</div>`;
     }).join('');
   } else {
     newsAlertBox.style.display = 'none';
@@ -2276,11 +1680,7 @@ async function analyzePair() {
   document.getElementById('trackerBtnWrap').style.display = 'block';
   document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
   // Run 5-filter confirmation system (fills in asynchronously after main render)
-  try {
-    runConfirmation(selectedPair, d, liveData);
-  } catch(e) {
-    console.error('runConfirmation error:', e);
-  }
+  try { runConfirmation(selectedPair, d, liveData); } catch(e) { console.error('confirm error:', e); }
 }
 
 
@@ -2475,288 +1875,234 @@ setInterval(updateSessionClock, 1000);
 // ─────────────────────────────────────────────────────────────────────────────
 
 
-// ── SISTEMA DE CONFIRMACIÓN — CALIBRADO PARA ESTRATEGIA REN ─────────────────
-// Basado en: operaciones 8-24h, análisis macro + 4H, zonas psicológicas
-function checkIcon(pass) { return pass === true ? '✅' : pass === false ? '❌' : '⚠️'; }
-function checkClass(pass) { return pass === true ? 'pass' : pass === false ? 'fail' : 'warn'; }
+// ── SISTEMA DE CONFIRMACIÓN — ESTRATEGIA REN (8-24h, macro + 4H, zonas) ────
+function checkIcon(p) { return p===true?'✅':p===false?'❌':'⚠️'; }
+function checkClass(p) { return p===true?'pass':p===false?'fail':'warn'; }
 
 async function runConfirmation(pair, d, liveData) {
-  if (!pair || !d || !d.rec) return; // guard: no data
-  const box = document.getElementById('confirmBox');
-  const loading = document.getElementById('confirmLoading');
-  const contentEl = document.getElementById('confirmContent');
-  if (!box || !loading || !contentEl) return; // guard: no DOM
-  box.style.display = 'block';
-  loading.style.display = 'block';
-  contentEl.style.display = 'none';
+  if (!pair || !d || !d.rec) return;
+  var box=document.getElementById('confirmBox'), loading=document.getElementById('confirmLoading'), contentEl=document.getElementById('confirmContent');
+  if (!box) return;
+  box.style.display='block'; loading.style.display='block'; contentEl.style.display='none';
 
-  const dir = d.rec.accion; // 'COMPRA', 'VENTA', 'ESPERAR'
-  const isJPY = pair.includes('JPY');
-  const pipMul = isJPY ? 100 : 10000;
-  const decN = isJPY ? 3 : 5;
-  const price = liveData.price ? parseFloat(liveData.price) : null;
-  const checks = [];
-  let score = 0;
-  let criticalFail = false; // if any critical filter fails, block the trade
+  var dir=d.rec.accion, isJPY=pair.includes('JPY'), pipMul=isJPY?100:10000, decN=isJPY?3:5;
+  var price=liveData.price?parseFloat(liveData.price):null;
+  var checks=[], score=0;
 
-  // ── FILTRO 1 (CRÍTICO): Zona psicológica ─────────────────────────────────
-  let f1pass = null, f1val = '--', f1detail = '', f1critical = true;
-  if (price && d.rec.zona && d.rec.zona !== 'Sin zona clara' && d.rec.zona !== '—') {
-    const znums = d.rec.zona.replace('–','-').replace(/[^\d.\-]/g,' ').trim()
-      .split(/\s+/).map(parseFloat).filter(n => !isNaN(n));
-    if (znums.length >= 1) {
-      const zCenter = znums.reduce((a,b)=>a+b,0)/znums.length;
-      const zMin = Math.min(...znums);
-      const zMax = Math.max(...znums);
-      const dist = Math.abs(price - zCenter) * pipMul;
-      const inZone = price >= zMin * 0.9998 && price <= zMax * 1.0002;
-
-      if (inZone) {
-        f1pass = true; score++;
-        f1val = `✅ Precio en zona ahora (${price.toFixed(decN)})`;
-        f1detail = `El precio está dentro de la zona psicológica ${d.rec.zona}. Puedes colocar tu Limit order ahora.`;
-      } else if (dist <= 40) {
-        f1pass = true; score++;
-        f1val = `✅ Precio a ${dist.toFixed(0)} pips de la zona (${d.rec.zona})`;
-        f1detail = `Muy cerca de la zona. Puedes colocar la orden Limit — el precio puede llegar esta sesión.`;
-      } else if (dist <= 80) {
-        f1pass = null;
-        f1val = `⚠️ Precio a ${dist.toFixed(0)} pips de la zona (${d.rec.zona})`;
-        f1detail = `Distancia moderada. La orden puede ejecutarse en 8-24h si el mercado se mueve normalmente.`;
-      } else {
-        f1pass = false; criticalFail = true;
-        f1val = `❌ Precio a ${dist.toFixed(0)} pips de la zona (${d.rec.zona})`;
-        f1detail = `Zona muy alejada para una operación de 8-24h. Con ${dist.toFixed(0)} pips de distancia es poco probable que se ejecute esta sesión.`;
-      }
+  // FILTRO 1: Zona psicologica
+  var f1pass=null, f1val='Sin precio en vivo', f1detail='';
+  if (price && d.rec.zona && d.rec.zona!=='Sin zona clara' && d.rec.zona!=='—') {
+    var znums=d.rec.zona.replace(/[^0-9.]/g,' ').trim().split(/\s+/).map(parseFloat).filter(function(n){return !isNaN(n);});
+    if (znums.length>=1) {
+      var zMin=Math.min.apply(null,znums), zMax=Math.max.apply(null,znums), zCenter=(zMin+zMax)/2;
+      var dist=Math.abs(price-zCenter)*pipMul;
+      if (price>=zMin*0.9998 && price<=zMax*1.0002) { f1pass=true; score++; f1val='Precio en zona ('+price.toFixed(decN)+')'; f1detail='El precio esta dentro de la zona '+d.rec.zona+'. Puedes colocar tu Limit order ahora.'; }
+      else if (dist<=40) { f1pass=true; score++; f1val='A '+dist.toFixed(0)+' pips de la zona ('+d.rec.zona+')'; f1detail='Muy cerca. La orden puede ejecutarse esta sesion.'; }
+      else if (dist<=80) { f1pass=null; f1val='A '+dist.toFixed(0)+' pips de la zona ('+d.rec.zona+')'; f1detail='Distancia moderada. Puede ejecutarse en 8-24h.'; }
+      else { f1pass=false; f1val='A '+dist.toFixed(0)+' pips de la zona ('+d.rec.zona+')'; f1detail='Zona muy alejada. Baja probabilidad de ejecutarse esta sesion.'; }
     }
-  } else if (dir === 'ESPERAR') {
-    f1pass = null;
-    f1val = 'Sin zona definida — esperando catalizador';
-    f1detail = 'La recomendación es ESPERAR el evento macro antes de definir zona de entrada.';
+  } else if (dir==='ESPERAR') { f1pass=null; f1val='Sin zona — esperando catalizador'; f1detail='Esperar el evento macro antes de definir zona.'; }
+  checks.push({label:'FILTRO 1 — ZONA PSICOLOGICA',val:f1val,detail:f1detail,pass:f1pass,critical:true});
+
+  // FILTRO 2: Noticias rojas 48h
+  var f2pass=null, f2val='--', f2detail='';
+  var wk=WEEKLY_DATA[currentWeek], nots=wk?wk.noticias_semana:{};
+  var pNews=(d.noticias||[]).filter(function(n){return nots[n];});
+  var rNews=pNews.filter(function(n){return nots[n].color==='rojo';});
+  var oNews=pNews.filter(function(n){return nots[n].color==='naranja';});
+  if (rNews.length>0) {
+    f2pass=false; f2val=rNews.length+' noticia(s) ROJA(S) que afectan este par';
+    f2detail=rNews.map(function(n){return nots[n].titulo+' — '+nots[n].fecha;}).join(' | ')+'. NO colocar la orden hasta despues del evento.';
+  } else if (oNews.length>0) {
+    f2pass=null; f2val=oNews.length+' noticia(s) naranja(s) proximas';
+    f2detail=oNews.map(function(n){return nots[n].titulo+' — '+nots[n].fecha;}).join(' | ')+'. Evalua esperar el resultado.';
+  } else { f2pass=true; score++; f2val='Sin noticias de alto impacto'; f2detail='Puedes colocar la orden Limit sin riesgo de volatilidad extrema por noticias.'; }
+  checks.push({label:'FILTRO 2 — NOTICIAS ROJAS EN 48H',val:f2val,detail:f2detail,pass:f2pass,critical:true});
+
+  // FILTRO 3: Direccion macro
+  var f3pass=null, f3val='--', f3detail='';
+  var sesgo=d.sesgo;
+  if (dir==='ESPERAR') { f3pass=null; f3val='Sin direccion — semana de alto riesgo'; f3detail='Esperar decisiones de bancos centrales.'; }
+  else if ((dir==='COMPRA'&&sesgo==='alcista')||(dir==='VENTA'&&sesgo==='bajista')) { f3pass=true; score++; f3val='Sesgo '+sesgo.toUpperCase()+' — alineado con '+dir; f3detail=d.sesgDesc?(d.sesgDesc.substring(0,100)+'...'):''; }
+  else if (sesgo==='neutral') { f3pass=null; f3val='Sesgo NEUTRAL — sin direccion clara'; f3detail='El analisis semanal no confirma la direccion.'; }
+  else { f3pass=false; f3val='Sesgo '+sesgo.toUpperCase()+' — EN CONTRA de la '+dir; f3detail='El analisis macro apunta en direccion contraria. Riesgo elevado.'; }
+  checks.push({label:'FILTRO 3 — DIRECCION MACRO SEMANAL',val:f3val,detail:f3detail,pass:f3pass,critical:true});
+
+  // FILTRO 4: RSI 4H
+  var f4pass=null, f4val='Sin datos RSI 4H', f4detail='';
+  var r4=liveData.rsi4h;
+  if (r4!==null&&r4!==undefined&&!isNaN(r4)) {
+    r4=parseFloat(r4);
+    if (dir==='COMPRA') {
+      if (r4>75){f4pass=false;f4val='RSI 4H: '+r4.toFixed(1)+' — Sobrecomprado extremo';f4detail='RSI sobre 75. NO comprar aqui — espera correccion.';}
+      else if (r4>65){f4pass=null;f4val='RSI 4H: '+r4.toFixed(1)+' — Elevado';f4detail='RSI elevado. Entra con precaucion.';}
+      else{f4pass=true;score++;f4val='RSI 4H: '+r4.toFixed(1)+' — Favorable para COMPRA';f4detail=r4<35?'RSI bajo — momentum bajista agotandose.':'RSI en zona favorable.';}
+    } else if (dir==='VENTA') {
+      if (r4<25){f4pass=false;f4val='RSI 4H: '+r4.toFixed(1)+' — Sobrevendido extremo';f4detail='RSI bajo 25. NO vender aqui — espera rebote.';}
+      else if (r4<35){f4pass=null;f4val='RSI 4H: '+r4.toFixed(1)+' — Bajo';f4detail='RSI bajo. Entra con precaucion.';}
+      else{f4pass=true;score++;f4val='RSI 4H: '+r4.toFixed(1)+' — Favorable para VENTA';f4detail=r4>65?'RSI alto — momentum alcista agotandose.':'RSI en zona favorable.';}
+    } else {f4pass=null;f4val='RSI 4H: '+r4.toFixed(1);}
   }
-  checks.push({ label:'FILTRO 1 — ZONA PSICOLÓGICA', val: f1val, detail: f1detail, pass: f1pass, critical: true });
+  checks.push({label:'FILTRO 4 — RSI 4H (NO EXTREMO CONTRARIO)',val:f4val,detail:f4detail,pass:f4pass,critical:false});
 
-  // ── FILTRO 2 (CRÍTICO): Noticias rojas en 48h ────────────────────────────
-  let f2pass = null, f2val = '--', f2detail = '';
-  const weekData = WEEKLY_DATA[currentWeek];
-  const noticias = weekData?.noticias_semana || {};
-  const pairNews = (d.noticias || []).filter(n => noticias[n]);
-  const redNews48 = pairNews.filter(n => noticias[n].color === 'rojo');
-  const orangeNews48 = pairNews.filter(n => noticias[n].color === 'naranja');
-
-  if (redNews48.length > 0) {
-    f2pass = false; criticalFail = true;
-    f2val = `❌ ${redNews48.length} noticia(s) roja(s) que afectan este par`;
-    f2detail = redNews48.map(n => `🔴 ${noticias[n].titulo} — ${noticias[n].fecha}`).join(' | ') +
-      '. NO colocar la orden Limit hasta después del evento — el precio puede moverse 50-200 pips en segundos.';
-  } else if (orangeNews48.length > 0) {
-    f2pass = null;
-    f2val = `⚠️ ${orangeNews48.length} noticia(s) naranja(s) próximas`;
-    f2detail = orangeNews48.map(n => `🟠 ${noticias[n].titulo} — ${noticias[n].fecha}`).join(' | ') +
-      '. Precaución — puede haber volatilidad. Evalúa esperar el resultado antes de entrar.';
-  } else {
-    f2pass = true; score++;
-    f2val = '✅ Sin noticias de alto impacto próximas';
-    f2detail = 'Semana tranquila para este par. Puedes colocar la orden Limit sin riesgo de volatilidad extrema por noticias.';
+  // FILTRO 5: EMA 4H
+  var f5pass=null, f5val='Sin datos EMA 4H', f5detail='';
+  var ema4=liveData.ema4h;
+  if (price&&ema4) {
+    var ab4=price>ema4;
+    if (dir==='COMPRA'){if(ab4){f5pass=true;score++;f5val='Precio sobre EMA20-4H ('+ema4.toFixed(decN)+')';f5detail='Momentum 4H alcista — alineado con la compra.';}else{f5pass=null;f5val='Precio bajo EMA20-4H ('+ema4.toFixed(decN)+')';f5detail='Momentum 4H bajista — puede funcionar si zona y macro son fuertes.';}}
+    else if (dir==='VENTA'){if(!ab4){f5pass=true;score++;f5val='Precio bajo EMA20-4H ('+ema4.toFixed(decN)+')';f5detail='Momentum 4H bajista — alineado con la venta.';}else{f5pass=null;f5val='Precio sobre EMA20-4H ('+ema4.toFixed(decN)+')';f5detail='Momentum 4H alcista — puede funcionar si zona y macro son fuertes.';}}
+    else{f5pass=null;f5val='EMA20-4H: '+ema4.toFixed(decN);}
   }
-  checks.push({ label:'FILTRO 2 — NOTICIAS ROJAS EN 48H', val: f2val, detail: f2detail, pass: f2pass, critical: true });
+  checks.push({label:'FILTRO 5 — TENDENCIA 4H (EMA 20)',val:f5val,detail:f5detail,pass:f5pass,critical:false});
 
-  // ── FILTRO 3 (CRÍTICO): Dirección macro semanal ──────────────────────────
-  let f3pass = null, f3val = '--', f3detail = '';
-  const sesgo = d.sesgo; // 'alcista', 'bajista', 'neutral'
+  // RENDER
+  loading.style.display='none'; contentEl.style.display='block';
+  var circle=document.getElementById('confirmCircle'), num=document.getElementById('confirmNum');
+  var vtitle=document.getElementById('confirmVerdictTitle'), vsub=document.getElementById('confirmVerdictSub');
+  var checksEl=document.getElementById('confirmChecks');
+  var cp=checks.filter(function(c){return c.critical&&c.pass===true;}).length;
+  var cf=checks.filter(function(c){return c.critical&&c.pass===false;}).length;
+  num.textContent=score;
+  var lv=score>=4?'high':score>=3?'med':'low'; if(cf>=1)lv='low';
+  circle.className='confirm-score-circle '+lv;
+  if(dir==='ESPERAR'){vtitle.className='confirm-verdict-title warn';vtitle.textContent='ESPERAR — Hay eventos macro importantes';vsub.textContent='Espera las decisiones de los bancos centrales antes de colocar cualquier orden.';}
+  else if(cf>=2){vtitle.className='confirm-verdict-title low';vtitle.textContent='NO ENTRAR — '+cf+' filtros criticos en rojo';vsub.textContent='Hay '+cf+' razones criticas para NO colocar esta orden ahora.';}
+  else if(cf===1){vtitle.className='confirm-verdict-title low';vtitle.textContent='ALTO RIESGO — 1 filtro critico en rojo';vsub.textContent='Un filtro critico esta fallando. Revisa antes de entrar.';}
+  else if(cp===3&&score>=4){vtitle.className='confirm-verdict-title high';vtitle.textContent='CONDICIONES OPTIMAS — '+score+'/5';vsub.textContent='Los 3 filtros criticos pasan. Puedes colocar tu orden Limit en la zona indicada.';}
+  else if(cp===3&&score===3){vtitle.className='confirm-verdict-title med';vtitle.textContent='CONDICIONES ACEPTABLES — '+score+'/5';vsub.textContent='Los 3 criticos pasan. Entra con tamano reducido.';}
+  else{vtitle.className='confirm-verdict-title low';vtitle.textContent='CONDICIONES DESFAVORABLES — '+score+'/5';vsub.textContent='Pocos filtros confirmados. Espera mejores condiciones.';}
 
-  if (dir === 'ESPERAR') {
-    f3pass = null;
-    f3val = 'Sin dirección — semana de alto riesgo macro';
-    f3detail = 'El análisis recomienda esperar las decisiones de los bancos centrales antes de evaluar dirección.';
-  } else if (dir === 'COMPRA' && sesgo === 'alcista') {
-    f3pass = true; score++;
-    f3val = '✅ Sesgo semanal ALCISTA — alineado con la COMPRA';
-    f3detail = d.sesgDesc.substring(0, 120) + '...';
-  } else if (dir === 'VENTA' && sesgo === 'bajista') {
-    f3pass = true; score++;
-    f3val = '✅ Sesgo semanal BAJISTA — alineado con la VENTA';
-    f3detail = d.sesgDesc.substring(0, 120) + '...';
-  } else if (dir === 'COMPRA' && sesgo === 'neutral') {
-    f3pass = null;
-    f3val = '⚠️ Sesgo semanal NEUTRAL — dirección no confirmada';
-    f3detail = 'El análisis semanal no tiene dirección clara. La compra puede funcionar pero sin el viento a favor.';
-  } else if (dir === 'VENTA' && sesgo === 'neutral') {
-    f3pass = null;
-    f3val = '⚠️ Sesgo semanal NEUTRAL — dirección no confirmada';
-    f3detail = 'El análisis semanal no tiene dirección clara. La venta puede funcionar pero sin el viento a favor.';
-  } else {
-    f3pass = false; criticalFail = true;
-    const sesgoLabel = sesgo === 'alcista' ? '🟢 ALCISTA' : sesgo === 'bajista' ? '🔴 BAJISTA' : '🟡 NEUTRAL';
-    f3val = `❌ Sesgo semanal ${sesgoLabel} — EN CONTRA de la ${dir}`;
-    f3detail = `El análisis macro de la semana apunta en dirección contraria a tu trade. Estás yendo contra el mercado — riesgo elevado.`;
-  }
-  checks.push({ label:'FILTRO 3 — DIRECCIÓN MACRO SEMANAL', val: f3val, detail: f3detail, pass: f3pass, critical: true });
-
-  // ── FILTRO 4 (CONTEXTO): RSI 4H ──────────────────────────────────────────
-  let f4pass = null, f4val = '--', f4detail = '';
-  const rsi4h = liveData.rsi4h;
-
-  if (rsi4h !== null && !isNaN(rsi4h)) {
-    const r = parseFloat(rsi4h);
-    if (dir === 'COMPRA') {
-      if (r > 75) {
-        f4pass = false;
-        f4val = `❌ RSI 4H: ${r.toFixed(1)} — Sobrecomprado extremo`;
-        f4detail = `RSI sobre 75 en 4H. El precio subió demasiado rápido. Espera que el RSI baje a menos de 60 antes de comprar.`;
-      } else if (r > 65) {
-        f4pass = null;
-        f4val = `⚠️ RSI 4H: ${r.toFixed(1)} — Elevado`;
-        f4detail = `RSI elevado pero no extremo. Puedes entrar con precaución.`;
-      } else {
-        f4pass = true; score++;
-        f4val = `✅ RSI 4H: ${r.toFixed(1)} — Favorable para COMPRA`;
-        f4detail = r < 35 ? `RSI bajo — momentum bajista agotándose. Buen momento para buscar compra.` : `RSI en zona favorable. Sin señal de sobrecompra extrema.`;
-      }
-    } else if (dir === 'VENTA') {
-      if (r < 25) {
-        f4pass = false;
-        f4val = `❌ RSI 4H: ${r.toFixed(1)} — Sobrevendido extremo`;
-        f4detail = `RSI bajo 25 en 4H. El precio bajó demasiado rápido. Espera que el RSI suba a más de 40 antes de vender.`;
-      } else if (r < 35) {
-        f4pass = null;
-        f4val = `⚠️ RSI 4H: ${r.toFixed(1)} — Bajo`;
-        f4detail = `RSI bajo pero no extremo. Puedes vender con precaución.`;
-      } else {
-        f4pass = true; score++;
-        f4val = `✅ RSI 4H: ${r.toFixed(1)} — Favorable para VENTA`;
-        f4detail = r > 65 ? `RSI alto — momentum alcista agotándose. Buen momento para buscar venta.` : `RSI en zona favorable. Sin señal de sobrevendido extremo.`;
-      }
-    } else {
-      f4pass = null;
-      f4val = `RSI 4H: ${r.toFixed(1)}`;
-      f4detail = 'No aplica — sesgo ESPERAR.';
-    }
-  } else {
-    f4pass = null;
-    f4val = 'Sin datos RSI 4H';
-    f4detail = 'No se pudo obtener el RSI de 4H. Verifica en TradingView que el RSI no esté en zona extrema contraria.';
-  }
-  checks.push({ label:'FILTRO 4 — RSI 4H (NO EXTREMO CONTRARIO)', val: f4val, detail: f4detail, pass: f4pass, critical: false });
-
-  // ── FILTRO 5 (CONTEXTO): Tendencia 4H (EMA 20) ───────────────────────────
-  let f5pass = null, f5val = '--', f5detail = '';
-  const ema4h = liveData.ema4h;
-
-  if (price && ema4h) {
-    const above4h = price > ema4h;
-    if (dir === 'COMPRA') {
-      if (above4h) {
-        f5pass = true; score++;
-        f5val = `✅ Precio sobre EMA20-4H (${ema4h.toFixed(decN)}) — momentum alcista`;
-        f5detail = 'El precio está por encima de la EMA 20 en 4H. El momentum de corto plazo está a favor de la compra.';
-      } else {
-        f5pass = null;
-        f5val = `⚠️ Precio bajo EMA20-4H (${ema4h.toFixed(decN)}) — momentum bajista en 4H`;
-        f5detail = 'El precio está por debajo de la EMA 20 en 4H. La compra va contra el momentum de corto plazo — puede funcionar si la zona y el macro son fuertes.';
-      }
-    } else if (dir === 'VENTA') {
-      if (!above4h) {
-        f5pass = true; score++;
-        f5val = `✅ Precio bajo EMA20-4H (${ema4h.toFixed(decN)}) — momentum bajista`;
-        f5detail = 'El precio está por debajo de la EMA 20 en 4H. El momentum de corto plazo está a favor de la venta.';
-      } else {
-        f5pass = null;
-        f5val = `⚠️ Precio sobre EMA20-4H (${ema4h.toFixed(decN)}) — momentum alcista en 4H`;
-        f5detail = 'El precio está por encima de la EMA 20 en 4H. La venta va contra el momentum de corto plazo — puede funcionar si la zona y el macro son fuertes.';
-      }
-    } else {
-      f5pass = null;
-      f5val = ema4h ? `EMA20-4H: ${ema4h.toFixed(decN)}` : '--';
-      f5detail = 'No aplica — sesgo ESPERAR.';
-    }
-  } else {
-    f5pass = null;
-    f5val = 'Sin datos EMA 4H';
-    f5detail = 'No se pudo obtener la EMA 20 de 4H. Como referencia: verifica en TradingView si el precio está por encima o debajo de la EMA 20 en gráfico de 4 horas.';
-  }
-  checks.push({ label:'FILTRO 5 — TENDENCIA 4H (EMA 20)', val: f5val, detail: f5detail, pass: f5pass, critical: false });
-
-  // ── RENDER ─────────────────────────────────────────────────────────────────
-  loading.style.display = 'none';
-  contentEl.style.display = 'block';
-
-  const circle = document.getElementById('confirmCircle');
-  const num = document.getElementById('confirmNum');
-  const vtitle = document.getElementById('confirmVerdictTitle');
-  const vsub = document.getElementById('confirmVerdictSub');
-  const checksEl = document.getElementById('confirmChecks');
-
-  // Count critical passes
-  const criticalChecks = checks.filter(c => c.critical);
-  const criticalPasses = criticalChecks.filter(c => c.pass === true).length;
-  const criticalFails = criticalChecks.filter(c => c.pass === false).length;
-
-  num.textContent = score;
-  let level = score >= 4 ? 'high' : score >= 3 ? 'med' : 'low';
-  if (criticalFails >= 1) level = 'low';
-  circle.className = 'confirm-score-circle ' + level;
-
-  if (dir === 'ESPERAR') {
-    vtitle.className = 'confirm-verdict-title warn';
-    vtitle.textContent = '⏳ ESPERAR — Hay eventos macro importantes';
-    vsub.textContent = 'El análisis recomienda esperar las decisiones de los bancos centrales antes de colocar cualquier orden. El mercado puede moverse 100-300 pips en minutos tras los anuncios.';
-  } else if (criticalFails >= 2) {
-    vtitle.className = 'confirm-verdict-title low';
-    vtitle.textContent = `🚫 NO ENTRAR — ${criticalFails} filtros críticos en rojo`;
-    vsub.textContent = `Hay ${criticalFails} razones críticas para NO colocar esta orden ahora. Corrígelas antes de entrar.`;
-  } else if (criticalFails === 1) {
-    vtitle.className = 'confirm-verdict-title low';
-    vtitle.textContent = `⛔ ALTO RIESGO — 1 filtro crítico en rojo`;
-    vsub.textContent = `Uno de los 3 filtros críticos está fallando. Revisa el filtro en rojo y corrígelo antes de entrar.`;
-  } else if (criticalPasses === 3 && score >= 4) {
-    vtitle.className = 'confirm-verdict-title high';
-    vtitle.textContent = `✅ CONDICIONES ÓPTIMAS — ${score}/5 filtros confirmados`;
-    vsub.textContent = `Los 3 filtros críticos pasan y ${score} de 5 en total. Puedes colocar tu orden Limit en la zona psicológica indicada.`;
-  } else if (criticalPasses === 3 && score === 3) {
-    vtitle.className = 'confirm-verdict-title med';
-    vtitle.textContent = `⚠️ CONDICIONES ACEPTABLES — ${score}/5 filtros confirmados`;
-    vsub.textContent = `Los 3 filtros críticos pasan. Los filtros de contexto (RSI y EMA 4H) no están completamente alineados, pero puedes entrar con tamaño de posición reducido.`;
-  } else if (criticalPasses === 2) {
-    vtitle.className = 'confirm-verdict-title med';
-    vtitle.textContent = `⚠️ PRECAUCIÓN — Solo 2/3 filtros críticos confirmados`;
-    vsub.textContent = `Falta uno de los 3 filtros críticos. Evalúa si el filtro faltante es aceptable dado el contexto.`;
-  } else {
-    vtitle.className = 'confirm-verdict-title low';
-    vtitle.textContent = `❌ CONDICIONES DESFAVORABLES — ${score}/5`;
-    vsub.textContent = `Pocos filtros confirmados. Espera mejores condiciones o busca otro par con mejor setup.`;
-  }
-
-  checksEl.innerHTML = '';
-  checks.forEach(function(c) {
-    var div = document.createElement('div');
-    div.className = 'confirm-check';
-    if (c.critical) {
-      var color = c.pass === true ? 'var(--green)' : c.pass === false ? 'var(--red)' : 'var(--yellow)';
-      div.style.borderLeft = '2px solid ' + color;
-    }
-    var typeTag = c.critical
-      ? '<span style="color:var(--red);font-size:9px;margin-left:4px">CRITICO</span>'
-      : '<span style="color:var(--muted);font-size:9px;margin-left:4px">contexto</span>';
-    div.innerHTML =
-      '<div class="confirm-check-icon">' + checkIcon(c.pass) + '</div>' +
-      '<div class="confirm-check-body">' +
-        '<div class="confirm-check-label">' + c.label + typeTag + '</div>' +
-        '<div class="confirm-check-val ' + checkClass(c.pass) + '">' + c.val + '</div>' +
-        (c.detail ? '<div class="confirm-check-detail">' + c.detail + '</div>' : '') +
-      '</div>';
+  checksEl.innerHTML='';
+  checks.forEach(function(c){
+    var div=document.createElement('div'); div.className='confirm-check';
+    if(c.critical){var col=c.pass===true?'var(--green)':c.pass===false?'var(--red)':'var(--yellow)';div.style.borderLeft='2px solid '+col;}
+    var tag=c.critical?'<small style="color:var(--red);margin-left:4px">CRITICO</small>':'<small style="color:var(--muted);margin-left:4px">contexto</small>';
+    div.innerHTML='<div class="confirm-check-icon">'+checkIcon(c.pass)+'</div><div class="confirm-check-body"><div class="confirm-check-label">'+c.label+tag+'</div><div class="confirm-check-val '+checkClass(c.pass)+'">'+c.val+'</div>'+(c.detail?'<div class="confirm-check-detail">'+c.detail+'</div>':'')+'</div>';
     checksEl.appendChild(div);
   });
 }
 
 
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─── PIP CALCULATOR ──────────────────────────────────────────────────────────
+let pipDir = 'compra';
+let pipType = 'normal'; // normal = 5 decimals, jpy = 3 decimals
+
+function setPipDir(dir) {
+  pipDir = dir;
+  document.getElementById('dirCompra').className = 'pip-dir-btn' + (dir === 'compra' ? ' active-compra' : '');
+  document.getElementById('dirVenta').className = 'pip-dir-btn' + (dir === 'venta' ? ' active-venta' : '');
+  calcPips();
+}
+
+function updatePipPar() {
+  pipType = document.getElementById('pipPar').value;
+  calcPips();
+}
+
+function calcPips() {
+  const entradaStr = document.getElementById('pipEntrada').value;
+  const slPips = parseFloat(document.getElementById('pipSL').value) || 25;
+  const rr = parseFloat(document.getElementById('pipRR').value) || 3;
+
+  if (!entradaStr) return;
+  const entrada = parseFloat(entradaStr);
+  if (isNaN(entrada)) return;
+
+  const pipSize = pipType === 'jpy' ? 0.01 : 0.0001;
+  const decimals = pipType === 'jpy' ? 3 : 5;
+  const slValue = slPips * pipSize;
+  const tpPips = slPips * rr;
+  const tpValue = tpPips * pipSize;
+
+  let slPrice, tpPrice;
+  if (pipDir === 'compra') {
+    slPrice = entrada - slValue;
+    tpPrice = entrada + tpValue;
+  } else {
+    slPrice = entrada + slValue;
+    tpPrice = entrada - tpValue;
+  }
+
+  document.getElementById('pipSLPrice').textContent = slPrice.toFixed(decimals);
+  document.getElementById('pipTPPrice').textContent = tpPrice.toFixed(decimals);
+  document.getElementById('pipSLPips').textContent = slPips + ' pips';
+  document.getElementById('pipTPPips').textContent = tpPips + ' pips';
+  document.getElementById('pipRRVal').textContent = '1:' + rr;
+
+  const dir = pipDir === 'compra' ? 'COMPRA' : 'VENTA';
+  const slDir = pipDir === 'compra' ? 'por debajo' : 'por encima';
+  const tpDir = pipDir === 'compra' ? 'por encima' : 'por debajo';
+
+  document.getElementById('pipSummary').textContent =
+    `${dir} en ${entrada.toFixed(decimals)} → ` +
+    `SL ${slPips} pips ${slDir} = ${slPrice.toFixed(decimals)} → ` +
+    `TP ${tpPips} pips ${tpDir} = ${tpPrice.toFixed(decimals)} → ` +
+    `Si pierdes 1 unidad, ganas ${rr} unidades. R:R 1:${rr}.`;
+
+  document.getElementById('pipResults').style.display = 'block';
+}
+
+// Auto-fill calculator when a pair is analyzed
+function autoFillCalc(pair, recData, livePrice) {
+  const isJPY = pair.includes('JPY');
+
+  // Set pair type
+  document.getElementById('pipPar').value = isJPY ? 'jpy' : 'normal';
+  pipType = isJPY ? 'jpy' : 'normal';
+
+  // Auto-select direction from recommendation — always, no matter what
+  if (recData.accion === 'COMPRA') {
+    pipDir = 'compra';
+    document.getElementById('dirCompra').className = 'pip-dir-btn active-compra';
+    document.getElementById('dirVenta').className = 'pip-dir-btn';
+  } else if (recData.accion === 'VENTA') {
+    pipDir = 'venta';
+    document.getElementById('dirVenta').className = 'pip-dir-btn active-venta';
+    document.getElementById('dirCompra').className = 'pip-dir-btn';
+  }
+
+  // Use live price if available, otherwise use the recommended entry zone (first price)
+  if (livePrice) {
+    document.getElementById('pipEntrada').value = parseFloat(livePrice).toFixed(isJPY ? 3 : 5);
+  } else if (recData.zona && recData.zona !== 'Sin zona clara') {
+    // Extract first price from zona range e.g. "1.4100 – 1.4130"
+    const match = recData.zona.match(/[\d.]+/);
+    if (match) document.getElementById('pipEntrada').value = match[0];
+  }
+
+  // Always calculate
+  calcPips();
+
+  // Switch to calculator tab automatically and show a toast
+  // (only switch if user is on analisis tab)
+  const calcTab = document.getElementById('tab-calculadora');
+  if (calcTab) {
+    // Don't switch tab — just show indicator that calc is ready
+    const btn = document.querySelector('.tab-btn:nth-child(2)');
+    if (btn) {
+      btn.style.boxShadow = '0 0 10px var(--green)';
+      setTimeout(() => { btn.style.boxShadow = ''; }, 3000);
+    }
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Init
 checkSession();
 initGrid();
 initTracker();
 updateSessionClock();
-setInterval(updateSessionClock, 1000);
 </script>
 </body>
 </html>
