@@ -2157,6 +2157,12 @@ async function runConfirmation(pair, d, liveData) {
 
 
 
+// ── INIT ─────────────────────────────────────────────────────────────────────
+checkSession();
+initGrid();
+initTracker();
+updateSessionClock();
+setInterval(updateSessionClock, 1000);
 </script>
 </body>
 </html>
