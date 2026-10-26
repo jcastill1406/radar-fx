@@ -1882,7 +1882,8 @@ setInterval(updateSessionClock, 1000);
 // ─────────────────────────────────────────────────────────────────────────────
 
 
-// ── 5-FILTER CONFIRMATION SYSTEM ─────────────────────────────────────────────
+// ── SISTEMA DE CONFIRMACIÓN — CALIBRADO PARA ESTRATEGIA REN ─────────────────
+// Basado en: operaciones 8-24h, análisis macro + 4H, zonas psicológicas
 function checkIcon(pass) { return pass === true ? '✅' : pass === false ? '❌' : '⚠️'; }
 function checkClass(pass) { return pass === true ? 'pass' : pass === false ? 'fail' : 'warn'; }
 
@@ -1896,124 +1897,190 @@ async function runConfirmation(pair, d, liveData) {
 
   const dir = d.rec.accion; // 'COMPRA', 'VENTA', 'ESPERAR'
   const isJPY = pair.includes('JPY');
+  const pipMul = isJPY ? 100 : 10000;
+  const decN = isJPY ? 3 : 5;
   const price = liveData.price ? parseFloat(liveData.price) : null;
   const checks = [];
   let score = 0;
+  let criticalFail = false; // if any critical filter fails, block the trade
 
-  // ── FILTRO 1: Tendencia Daily (EMA 20) ────────────────────────────────────
-  const ema20 = liveData.ema20;
-  let f1pass = null, f1val = '--', f1detail = '';
-  if (price && ema20) {
-    const aboveEma = price > ema20;
-    if (dir === 'COMPRA') {
-      f1pass = aboveEma;
-      f1val = aboveEma ? `▲ Precio sobre EMA20 (${ema20.toFixed(isJPY?3:5)})` : `▼ Precio bajo EMA20 (${ema20.toFixed(isJPY?3:5)})`;
-      f1detail = aboveEma ? 'Tendencia diaria alcista confirmada.' : 'Tendencia diaria bajista — en contra de la compra.';
-    } else if (dir === 'VENTA') {
-      f1pass = !aboveEma;
-      f1val = !aboveEma ? `▼ Precio bajo EMA20 (${ema20.toFixed(isJPY?3:5)})` : `▲ Precio sobre EMA20 (${ema20.toFixed(isJPY?3:5)})`;
-      f1detail = !aboveEma ? 'Tendencia diaria bajista confirmada.' : 'Tendencia diaria alcista — en contra de la venta.';
-    } else { f1pass = null; f1val = 'N/A — no hay dirección clara'; f1detail = 'Sesgo neutral esta semana.'; }
-    if (f1pass === true) score++;
-  } else {
-    f1val = 'Sin datos EMA20';
-    f1detail = 'No se pudo obtener EMA20 diaria de Twelve Data.';
+  // ── FILTRO 1 (CRÍTICO): Zona psicológica ─────────────────────────────────
+  let f1pass = null, f1val = '--', f1detail = '', f1critical = true;
+  if (price && d.rec.zona && d.rec.zona !== 'Sin zona clara' && d.rec.zona !== '—') {
+    const znums = d.rec.zona.replace('–','-').replace(/[^\d.\-]/g,' ').trim()
+      .split(/\s+/).map(parseFloat).filter(n => !isNaN(n));
+    if (znums.length >= 1) {
+      const zCenter = znums.reduce((a,b)=>a+b,0)/znums.length;
+      const zMin = Math.min(...znums);
+      const zMax = Math.max(...znums);
+      const dist = Math.abs(price - zCenter) * pipMul;
+      const inZone = price >= zMin * 0.9998 && price <= zMax * 1.0002;
+
+      if (inZone) {
+        f1pass = true; score++;
+        f1val = `✅ Precio en zona ahora (${price.toFixed(decN)})`;
+        f1detail = `El precio está dentro de la zona psicológica ${d.rec.zona}. Puedes colocar tu Limit order ahora.`;
+      } else if (dist <= 40) {
+        f1pass = true; score++;
+        f1val = `✅ Precio a ${dist.toFixed(0)} pips de la zona (${d.rec.zona})`;
+        f1detail = `Muy cerca de la zona. Puedes colocar la orden Limit — el precio puede llegar esta sesión.`;
+      } else if (dist <= 80) {
+        f1pass = null;
+        f1val = `⚠️ Precio a ${dist.toFixed(0)} pips de la zona (${d.rec.zona})`;
+        f1detail = `Distancia moderada. La orden puede ejecutarse en 8-24h si el mercado se mueve normalmente.`;
+      } else {
+        f1pass = false; criticalFail = true;
+        f1val = `❌ Precio a ${dist.toFixed(0)} pips de la zona (${d.rec.zona})`;
+        f1detail = `Zona muy alejada para una operación de 8-24h. Con ${dist.toFixed(0)} pips de distancia es poco probable que se ejecute esta sesión.`;
+      }
+    }
+  } else if (dir === 'ESPERAR') {
+    f1pass = null;
+    f1val = 'Sin zona definida — esperando catalizador';
+    f1detail = 'La recomendación es ESPERAR el evento macro antes de definir zona de entrada.';
   }
-  checks.push({ label:'FILTRO 1 — TENDENCIA DIARIA (EMA 20)', val: f1val, detail: f1detail, pass: f1pass });
+  checks.push({ label:'FILTRO 1 — ZONA PSICOLÓGICA', val: f1val, detail: f1detail, pass: f1pass, critical: true });
 
-  // ── FILTRO 2: Tendencia 4H (EMA 4H) ──────────────────────────────────────
-  const ema4h = liveData.ema4h;
+  // ── FILTRO 2 (CRÍTICO): Noticias rojas en 48h ────────────────────────────
   let f2pass = null, f2val = '--', f2detail = '';
+  const weekData = WEEKLY_DATA[currentWeek];
+  const noticias = weekData?.noticias_semana || {};
+  const pairNews = (d.noticias || []).filter(n => noticias[n]);
+  const redNews48 = pairNews.filter(n => noticias[n].color === 'rojo');
+  const orangeNews48 = pairNews.filter(n => noticias[n].color === 'naranja');
+
+  if (redNews48.length > 0) {
+    f2pass = false; criticalFail = true;
+    f2val = `❌ ${redNews48.length} noticia(s) roja(s) que afectan este par`;
+    f2detail = redNews48.map(n => `🔴 ${noticias[n].titulo} — ${noticias[n].fecha}`).join(' | ') +
+      '. NO colocar la orden Limit hasta después del evento — el precio puede moverse 50-200 pips en segundos.';
+  } else if (orangeNews48.length > 0) {
+    f2pass = null;
+    f2val = `⚠️ ${orangeNews48.length} noticia(s) naranja(s) próximas`;
+    f2detail = orangeNews48.map(n => `🟠 ${noticias[n].titulo} — ${noticias[n].fecha}`).join(' | ') +
+      '. Precaución — puede haber volatilidad. Evalúa esperar el resultado antes de entrar.';
+  } else {
+    f2pass = true; score++;
+    f2val = '✅ Sin noticias de alto impacto próximas';
+    f2detail = 'Semana tranquila para este par. Puedes colocar la orden Limit sin riesgo de volatilidad extrema por noticias.';
+  }
+  checks.push({ label:'FILTRO 2 — NOTICIAS ROJAS EN 48H', val: f2val, detail: f2detail, pass: f2pass, critical: true });
+
+  // ── FILTRO 3 (CRÍTICO): Dirección macro semanal ──────────────────────────
+  let f3pass = null, f3val = '--', f3detail = '';
+  const sesgo = d.sesgo; // 'alcista', 'bajista', 'neutral'
+
+  if (dir === 'ESPERAR') {
+    f3pass = null;
+    f3val = 'Sin dirección — semana de alto riesgo macro';
+    f3detail = 'El análisis recomienda esperar las decisiones de los bancos centrales antes de evaluar dirección.';
+  } else if (dir === 'COMPRA' && sesgo === 'alcista') {
+    f3pass = true; score++;
+    f3val = '✅ Sesgo semanal ALCISTA — alineado con la COMPRA';
+    f3detail = d.sesgDesc.substring(0, 120) + '...';
+  } else if (dir === 'VENTA' && sesgo === 'bajista') {
+    f3pass = true; score++;
+    f3val = '✅ Sesgo semanal BAJISTA — alineado con la VENTA';
+    f3detail = d.sesgDesc.substring(0, 120) + '...';
+  } else if (dir === 'COMPRA' && sesgo === 'neutral') {
+    f3pass = null;
+    f3val = '⚠️ Sesgo semanal NEUTRAL — dirección no confirmada';
+    f3detail = 'El análisis semanal no tiene dirección clara. La compra puede funcionar pero sin el viento a favor.';
+  } else if (dir === 'VENTA' && sesgo === 'neutral') {
+    f3pass = null;
+    f3val = '⚠️ Sesgo semanal NEUTRAL — dirección no confirmada';
+    f3detail = 'El análisis semanal no tiene dirección clara. La venta puede funcionar pero sin el viento a favor.';
+  } else {
+    f3pass = false; criticalFail = true;
+    const sesgoLabel = sesgo === 'alcista' ? '🟢 ALCISTA' : sesgo === 'bajista' ? '🔴 BAJISTA' : '🟡 NEUTRAL';
+    f3val = `❌ Sesgo semanal ${sesgoLabel} — EN CONTRA de la ${dir}`;
+    f3detail = `El análisis macro de la semana apunta en dirección contraria a tu trade. Estás yendo contra el mercado — riesgo elevado.`;
+  }
+  checks.push({ label:'FILTRO 3 — DIRECCIÓN MACRO SEMANAL', val: f3val, detail: f3detail, pass: f3pass, critical: true });
+
+  // ── FILTRO 4 (CONTEXTO): RSI 4H ──────────────────────────────────────────
+  let f4pass = null, f4val = '--', f4detail = '';
+  const rsi4h = liveData.rsi4h;
+
+  if (rsi4h !== null && !isNaN(rsi4h)) {
+    const r = parseFloat(rsi4h);
+    if (dir === 'COMPRA') {
+      if (r > 75) {
+        f4pass = false;
+        f4val = `❌ RSI 4H: ${r.toFixed(1)} — Sobrecomprado extremo`;
+        f4detail = `RSI sobre 75 en 4H. El precio subió demasiado rápido. Espera que el RSI baje a menos de 60 antes de comprar.`;
+      } else if (r > 65) {
+        f4pass = null;
+        f4val = `⚠️ RSI 4H: ${r.toFixed(1)} — Elevado`;
+        f4detail = `RSI elevado pero no extremo. Puedes entrar con precaución.`;
+      } else {
+        f4pass = true; score++;
+        f4val = `✅ RSI 4H: ${r.toFixed(1)} — Favorable para COMPRA`;
+        f4detail = r < 35 ? `RSI bajo — momentum bajista agotándose. Buen momento para buscar compra.` : `RSI en zona favorable. Sin señal de sobrecompra extrema.`;
+      }
+    } else if (dir === 'VENTA') {
+      if (r < 25) {
+        f4pass = false;
+        f4val = `❌ RSI 4H: ${r.toFixed(1)} — Sobrevendido extremo`;
+        f4detail = `RSI bajo 25 en 4H. El precio bajó demasiado rápido. Espera que el RSI suba a más de 40 antes de vender.`;
+      } else if (r < 35) {
+        f4pass = null;
+        f4val = `⚠️ RSI 4H: ${r.toFixed(1)} — Bajo`;
+        f4detail = `RSI bajo pero no extremo. Puedes vender con precaución.`;
+      } else {
+        f4pass = true; score++;
+        f4val = `✅ RSI 4H: ${r.toFixed(1)} — Favorable para VENTA`;
+        f4detail = r > 65 ? `RSI alto — momentum alcista agotándose. Buen momento para buscar venta.` : `RSI en zona favorable. Sin señal de sobrevendido extremo.`;
+      }
+    } else {
+      f4pass = null;
+      f4val = `RSI 4H: ${r.toFixed(1)}`;
+      f4detail = 'No aplica — sesgo ESPERAR.';
+    }
+  } else {
+    f4pass = null;
+    f4val = 'Sin datos RSI 4H';
+    f4detail = 'No se pudo obtener el RSI de 4H. Verifica en TradingView que el RSI no esté en zona extrema contraria.';
+  }
+  checks.push({ label:'FILTRO 4 — RSI 4H (NO EXTREMO CONTRARIO)', val: f4val, detail: f4detail, pass: f4pass, critical: false });
+
+  // ── FILTRO 5 (CONTEXTO): Tendencia 4H (EMA 20) ───────────────────────────
+  let f5pass = null, f5val = '--', f5detail = '';
+  const ema4h = liveData.ema4h;
+
   if (price && ema4h) {
     const above4h = price > ema4h;
     if (dir === 'COMPRA') {
-      f2pass = above4h;
-      f2val = above4h ? `▲ Precio sobre EMA20-4H (${ema4h.toFixed(isJPY?3:5)})` : `▼ Precio bajo EMA20-4H (${ema4h.toFixed(isJPY?3:5)})`;
-      f2detail = above4h ? 'Momentum de corto plazo alcista — alineado con la compra.' : 'Momentum 4H bajista — en contra de la compra. Espera que el 4H se alinee.';
+      if (above4h) {
+        f5pass = true; score++;
+        f5val = `✅ Precio sobre EMA20-4H (${ema4h.toFixed(decN)}) — momentum alcista`;
+        f5detail = 'El precio está por encima de la EMA 20 en 4H. El momentum de corto plazo está a favor de la compra.';
+      } else {
+        f5pass = null;
+        f5val = `⚠️ Precio bajo EMA20-4H (${ema4h.toFixed(decN)}) — momentum bajista en 4H`;
+        f5detail = 'El precio está por debajo de la EMA 20 en 4H. La compra va contra el momentum de corto plazo — puede funcionar si la zona y el macro son fuertes.';
+      }
     } else if (dir === 'VENTA') {
-      f2pass = !above4h;
-      f2val = !above4h ? `▼ Precio bajo EMA20-4H (${ema4h.toFixed(isJPY?3:5)})` : `▲ Precio sobre EMA20-4H (${ema4h.toFixed(isJPY?3:5)})`;
-      f2detail = !above4h ? 'Momentum 4H bajista — alineado con la venta.' : 'Momentum 4H alcista — en contra de la venta. Espera corrección.';
-    } else { f2pass = null; f2val = 'N/A'; f2detail = ''; }
-    if (f2pass === true) score++;
-  } else {
-    f2val = 'Sin datos EMA 4H';
-    f2detail = 'No se pudo obtener EMA20 en 4H.';
-  }
-  checks.push({ label:'FILTRO 2 — MOMENTUM 4H (EMA 20)', val: f2val, detail: f2detail, pass: f2pass });
-
-  // ── FILTRO 3: RSI 4H ──────────────────────────────────────────────────────
-  const rsi4h = liveData.rsi4h;
-  let f3pass = null, f3val = '--', f3detail = '';
-  if (rsi4h !== null && !isNaN(parseFloat(rsi4h))) {
-    const rsiN = parseFloat(rsi4h);
-    if (dir === 'COMPRA') {
-      if (rsiN < 30) { f3pass = true; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Sobrevendido`; f3detail = 'RSI sobrevendido = momentum bajista agotado. Buena señal para comprar.'; }
-      else if (rsiN <= 55) { f3pass = true; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Zona neutral/baja`; f3detail = 'RSI en zona favorable para compra.'; }
-      else if (rsiN <= 65) { f3pass = null; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Precaución`; f3detail = 'RSI elevado. El precio ya subió bastante — puede corregir antes de subir más.'; }
-      else { f3pass = false; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Sobrecomprado`; f3detail = 'RSI sobrecomprado — precio ya subió demasiado. NO comprar aquí.'; }
-    } else if (dir === 'VENTA') {
-      if (rsiN > 70) { f3pass = true; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Sobrecomprado`; f3detail = 'RSI sobrecomprado = momentum alcista agotado. Buena señal para vender.'; }
-      else if (rsiN >= 45) { f3pass = true; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Zona neutral/alta`; f3detail = 'RSI en zona favorable para venta.'; }
-      else if (rsiN >= 35) { f3pass = null; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Precaución`; f3detail = 'RSI bajo. El precio ya bajó bastante — puede rebotar antes de caer más.'; }
-      else { f3pass = false; f3val = `RSI 4H: ${rsiN.toFixed(1)} — Sobrevendido`; f3detail = 'RSI sobrevendido — precio ya bajó demasiado. NO vender aquí.'; }
-    } else { f3pass = null; f3val = `RSI 4H: ${rsiN.toFixed(1)}`; f3detail = ''; }
-    if (f3pass === true) score++;
-  } else {
-    f3val = 'Sin datos RSI 4H';
-    f3detail = 'No se pudo obtener RSI 4H.';
-  }
-  checks.push({ label:'FILTRO 3 — RSI 4H (MOMENTUM)', val: f3val, detail: f3detail, pass: f3pass });
-
-  // ── FILTRO 4: Estructura del mercado ──────────────────────────────────────
-  const struct = liveData.structure;
-  let f4pass = null, f4val = '--', f4detail = '';
-  if (struct) {
-    if (dir === 'COMPRA') {
-      f4pass = struct === 'alcista';
-      f4val = struct === 'alcista' ? '📈 Máximos y mínimos crecientes' : struct === 'bajista' ? '📉 Máximos y mínimos decrecientes' : '↔️ Mercado en rango lateral';
-      f4detail = struct === 'alcista' ? 'Estructura alcista confirmada — mercado haciendo máximos más altos.' : struct === 'bajista' ? 'Estructura bajista — mercado haciendo mínimos más bajos. La compra va contra la estructura.' : 'Mercado en rango — esperar ruptura antes de entrar.';
-    } else if (dir === 'VENTA') {
-      f4pass = struct === 'bajista';
-      f4val = struct === 'bajista' ? '📉 Máximos y mínimos decrecientes' : struct === 'alcista' ? '📈 Máximos y mínimos crecientes' : '↔️ Mercado en rango lateral';
-      f4detail = struct === 'bajista' ? 'Estructura bajista confirmada — mercado haciendo mínimos más bajos.' : struct === 'alcista' ? 'Estructura alcista — mercado haciendo máximos más altos. La venta va contra la estructura.' : 'Mercado en rango — esperar ruptura antes de entrar.';
-    } else { f4pass = null; f4val = struct === 'alcista' ? '📈 Alcista' : struct === 'bajista' ? '📉 Bajista' : '↔️ Lateral'; f4detail = ''; }
-    if (f4pass === true) score++;
-  } else {
-    f4val = 'Sin datos de estructura';
-    f4detail = 'No se pudieron obtener velas diarias para analizar estructura.';
-  }
-  checks.push({ label:'FILTRO 4 — ESTRUCTURA DEL MERCADO (DAILY)', val: f4val, detail: f4detail, pass: f4pass });
-
-  // ── FILTRO 5: Fortaleza relativa de divisas ────────────────────────────────
-  let f5pass = null, f5val = '--', f5detail = '';
-  try {
-    const strength = await fetchCurrencyStrength();
-    const parts = pair.split('/');
-    const base = parts[0]; const quote = parts[1];
-    const baseStr = strength[base];
-    const quoteStr = strength[quote];
-
-    if (baseStr !== undefined && quoteStr !== undefined) {
-      const diff = baseStr - quoteStr;
-      const baseLabel = baseStr >= 0 ? `${base} fuerte (+${baseStr.toFixed(2)}%)` : `${base} débil (${baseStr.toFixed(2)}%)`;
-      const quoteLabel = quoteStr >= 0 ? `${quote} fuerte (+${quoteStr.toFixed(2)}%)` : `${quote} débil (${quoteStr.toFixed(2)}%)`;
-
-      if (dir === 'COMPRA') {
-        // Need base strong AND quote weak (diff > 0)
-        if (diff > 0.1) { f5pass = true; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia de +${diff.toFixed(2)}% a favor de la compra. ${base} más fuerte que ${quote} hoy.`; }
-        else if (diff > -0.1) { f5pass = null; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia débil (${diff.toFixed(2)}%). No hay ventaja clara de fuerza relativa.`; }
-        else { f5pass = false; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia de ${diff.toFixed(2)}% EN CONTRA de la compra. ${quote} está más fuerte que ${base} hoy.`; }
-      } else if (dir === 'VENTA') {
-        // Need base weak AND quote strong (diff < 0)
-        if (diff < -0.1) { f5pass = true; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia de ${diff.toFixed(2)}% a favor de la venta. ${quote} más fuerte que ${base} hoy.`; }
-        else if (diff < 0.1) { f5pass = null; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia débil (${diff.toFixed(2)}%). No hay ventaja clara de fuerza relativa.`; }
-        else { f5pass = false; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = `Divergencia de +${diff.toFixed(2)}% EN CONTRA de la venta. ${base} está más fuerte que ${quote} hoy.`; }
-      } else { f5pass = null; f5val = `${baseLabel} vs ${quoteLabel}`; f5detail = ''; }
-      if (f5pass === true) score++;
+      if (!above4h) {
+        f5pass = true; score++;
+        f5val = `✅ Precio bajo EMA20-4H (${ema4h.toFixed(decN)}) — momentum bajista`;
+        f5detail = 'El precio está por debajo de la EMA 20 en 4H. El momentum de corto plazo está a favor de la venta.';
+      } else {
+        f5pass = null;
+        f5val = `⚠️ Precio sobre EMA20-4H (${ema4h.toFixed(decN)}) — momentum alcista en 4H`;
+        f5detail = 'El precio está por encima de la EMA 20 en 4H. La venta va contra el momentum de corto plazo — puede funcionar si la zona y el macro son fuertes.';
+      }
+    } else {
+      f5pass = null;
+      f5val = ema4h ? `EMA20-4H: ${ema4h.toFixed(decN)}` : '--';
+      f5detail = 'No aplica — sesgo ESPERAR.';
     }
-  } catch(e) { f5val = 'Sin datos de fortaleza'; f5detail = 'No se pudo calcular la fortaleza relativa de divisas.'; }
-  checks.push({ label:'FILTRO 5 — FORTALEZA RELATIVA DE DIVISAS', val: f5val, detail: f5detail, pass: f5pass });
+  } else {
+    f5pass = null;
+    f5val = 'Sin datos EMA 4H';
+    f5detail = 'No se pudo obtener la EMA 20 de 4H. Como referencia: verifica en TradingView si el precio está por encima o debajo de la EMA 20 en gráfico de 4 horas.';
+  }
+  checks.push({ label:'FILTRO 5 — TENDENCIA 4H (EMA 20)', val: f5val, detail: f5detail, pass: f5pass, critical: false });
 
   // ── RENDER ─────────────────────────────────────────────────────────────────
   loading.style.display = 'none';
@@ -2025,529 +2092,55 @@ async function runConfirmation(pair, d, liveData) {
   const vsub = document.getElementById('confirmVerdictSub');
   const checksEl = document.getElementById('confirmChecks');
 
+  // Count critical passes
+  const criticalChecks = checks.filter(c => c.critical);
+  const criticalPasses = criticalChecks.filter(c => c.pass === true).length;
+  const criticalFails = criticalChecks.filter(c => c.pass === false).length;
+
   num.textContent = score;
   let level = score >= 4 ? 'high' : score >= 3 ? 'med' : 'low';
+  if (criticalFails >= 1) level = 'low';
   circle.className = 'confirm-score-circle ' + level;
 
   if (dir === 'ESPERAR') {
     vtitle.className = 'confirm-verdict-title warn';
-    vtitle.textContent = '⏳ Sin señal clara — ESPERAR';
-    vsub.textContent = 'El análisis recomienda esperar un catalizador o que el precio llegue a la zona psicológica.';
-  } else if (score >= 4) {
+    vtitle.textContent = '⏳ ESPERAR — Hay eventos macro importantes';
+    vsub.textContent = 'El análisis recomienda esperar las decisiones de los bancos centrales antes de colocar cualquier orden. El mercado puede moverse 100-300 pips en minutos tras los anuncios.';
+  } else if (criticalFails >= 2) {
+    vtitle.className = 'confirm-verdict-title low';
+    vtitle.textContent = `🚫 NO ENTRAR — ${criticalFails} filtros críticos en rojo`;
+    vsub.textContent = `Hay ${criticalFails} razones críticas para NO colocar esta orden ahora. Corrígelas antes de entrar.`;
+  } else if (criticalFails === 1) {
+    vtitle.className = 'confirm-verdict-title low';
+    vtitle.textContent = `⛔ ALTO RIESGO — 1 filtro crítico en rojo`;
+    vsub.textContent = `Uno de los 3 filtros críticos está fallando. Revisa el filtro en rojo y corrígelo antes de entrar.`;
+  } else if (criticalPasses === 3 && score >= 4) {
     vtitle.className = 'confirm-verdict-title high';
-    vtitle.textContent = `✅ ALTA PROBABILIDAD — ${dir}`;
-    vsub.textContent = `${score} de 5 filtros confirman la ${dir.toLowerCase()}. Puedes poner la orden Limit en la zona psicológica.`;
-  } else if (score === 3) {
+    vtitle.textContent = `✅ CONDICIONES ÓPTIMAS — ${score}/5 filtros confirmados`;
+    vsub.textContent = `Los 3 filtros críticos pasan y ${score} de 5 en total. Puedes colocar tu orden Limit en la zona psicológica indicada.`;
+  } else if (criticalPasses === 3 && score === 3) {
     vtitle.className = 'confirm-verdict-title med';
-    vtitle.textContent = `⚠️ PROBABILIDAD MEDIA — ${dir} con precaución`;
-    vsub.textContent = `Solo ${score}/5 filtros confirman. El trade puede funcionar pero hay factores en contra. Reduce el tamaño o espera más confirmación.`;
+    vtitle.textContent = `⚠️ CONDICIONES ACEPTABLES — ${score}/5 filtros confirmados`;
+    vsub.textContent = `Los 3 filtros críticos pasan. Los filtros de contexto (RSI y EMA 4H) no están completamente alineados, pero puedes entrar con tamaño de posición reducido.`;
+  } else if (criticalPasses === 2) {
+    vtitle.className = 'confirm-verdict-title med';
+    vtitle.textContent = `⚠️ PRECAUCIÓN — Solo 2/3 filtros críticos confirmados`;
+    vsub.textContent = `Falta uno de los 3 filtros críticos. Evalúa si el filtro faltante es aceptable dado el contexto.`;
   } else {
     vtitle.className = 'confirm-verdict-title low';
-    vtitle.textContent = `❌ BAJA PROBABILIDAD — NO ${dir} AHORA`;
-    vsub.textContent = `Solo ${score}/5 filtros confirman. Las condiciones NO son favorables para esta operación. Espera o busca otro par.`;
+    vtitle.textContent = `❌ CONDICIONES DESFAVORABLES — ${score}/5`;
+    vsub.textContent = `Pocos filtros confirmados. Espera mejores condiciones o busca otro par con mejor setup.`;
   }
 
   checksEl.innerHTML = checks.map(c => `
-    <div class="confirm-check">
+    <div class="confirm-check" style="${c.critical ? 'border-left: 2px solid ' + (c.pass === true ? 'var(--green)' : c.pass === false ? 'var(--red)' : 'var(--yellow)') + ';' : ''}">
       <div class="confirm-check-icon">${checkIcon(c.pass)}</div>
       <div class="confirm-check-body">
-        <div class="confirm-check-label">${c.label}</div>
+        <div class="confirm-check-label">${c.label}${c.critical ? ' <span style="color:var(--red);font-size:9px">● CRÍTICO</span>' : ' <span style="color:var(--muted);font-size:9px">● CONTEXTO</span>'}</div>
         <div class="confirm-check-val ${checkClass(c.pass)}">${c.val}</div>
         ${c.detail ? `<div class="confirm-check-detail">${c.detail}</div>` : ''}
       </div>
     </div>`).join('');
 }
-// ─────────────────────────────────────────────────────────────────────────────
-// ─── SUPABASE CONFIG ──────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://vmlyhugkggeophxjxyqe.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtbHlodWdrZ2dlb3BoeGp4eXFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMTAyNDgsImV4cCI6MjEwNjU4NjI0OH0.jIcM5pmeZztE9dMxUdNnpv1u6BilKLZJhY4LeSYhoZ4';
-
-async function sbGet(table, params = '') {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?order=created_at.desc${params}`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-  });
-  return res.json();
-}
-
-async function sbInsert(table, data) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify(data)
-  });
-  return res.json();
-}
-
-async function sbUpdate(table, id, data) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  });
-  return res.ok;
-}
-
-async function sbDelete(table, id) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method: 'DELETE',
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-  });
-  return res.ok;
-}
-// ─────────────────────────────────────────────────────────────────────────────
 
 
-async function addToTracker() {
-  if (!selectedPair) return;
-  const weekData = WEEKLY_DATA[currentWeek];
-  const d = weekData ? weekData.pairs[selectedPair] : null;
-  if (!d) return;
-
-  // Get data from calculator if filled, else from recommendation
-  const entradaInput = document.getElementById('pipEntrada').value;
-  const slInput = document.getElementById('pipSLPrice').textContent;
-  const tpInput = document.getElementById('pipTPPrice').textContent;
-  const dir = pipDir;
-
-  const entrada = entradaInput ? parseFloat(entradaInput) : null;
-  const sl = slInput !== '--' ? slInput : d.rec.sl;
-  const tp = tpInput !== '--' ? tpInput : d.rec.tp;
-
-  if (!entrada) {
-    alert('Primero ingresa un precio de entrada en la Calculadora o analiza el par para obtener precios en vivo.');
-    return;
-  }
-
-  const isJPY = selectedPair.includes('JPY');
-  const decimals = isJPY ? 3 : 5;
-
-  const trade = {
-    id: Date.now(),
-    par: selectedPair,
-    direccion: dir.toUpperCase(),
-    estrategia: d.rec.estrategia.split('—')[0].trim(),
-    entrada: entrada.toFixed(decimals),
-    sl: sl,
-    tp: tp,
-    resultado: 'limit-pendiente',
-    pips: null,
-    semana: weekData.label,
-    fecha: new Date().toLocaleDateString('es', {day:'2-digit', month:'short', year:'numeric'}),
-    nota: ''
-  };
-
-  // Save to Supabase
-  const result = await sbInsert('trades', {
-    par: trade.par,
-    direccion: trade.direccion,
-    estrategia: trade.estrategia,
-    entrada: parseFloat(trade.entrada),
-    sl: parseFloat(trade.sl) || 0,
-    tp: parseFloat(trade.tp) || 0,
-    resultado: 'pendiente',
-    semana: trade.semana,
-    fecha: trade.fecha,
-    nota: ''
-  });
-
-  if (result && result[0]) {
-    await renderTracker();
-    await updateTrackerStats();
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('tab-tracker').classList.add('active');
-    document.querySelectorAll('.tab-btn')[3].classList.add('active');
-    alert('✅ Operación guardada en la base de datos');
-  } else {
-    alert('❌ Error al guardar. Verifica que la tabla "trades" existe en Supabase.');
-  }
-}
-
-async function setTradeResult(id, resultado, trade) {
-  const isJPY = trade.par && trade.par.includes('JPY');
-  const pipMult = isJPY ? 100 : 10000;
-  let pips = null;
-  if (resultado === 'ganadora') {
-    pips = parseFloat((Math.abs(parseFloat(trade.tp) - parseFloat(trade.entrada)) * pipMult).toFixed(1));
-  } else if (resultado === 'perdedora') {
-    pips = parseFloat((-Math.abs(parseFloat(trade.sl) - parseFloat(trade.entrada)) * pipMult).toFixed(1));
-  }
-  // For non-closed states, clear pips
-  if (resultado === 'limit-pendiente' || resultado === 'en-progreso') pips = null;
-  await sbUpdate('trades', id, { resultado, pips });
-  await renderTracker();
-  await updateTrackerStats();
-}
-
-async function saveNote(id, nota) {
-  await sbUpdate('trades', id, { nota });
-}
-
-async function deleteTrade(id) {
-  if (!confirm('¿Eliminar esta operación?')) return;
-  await sbDelete('trades', id);
-  await renderTracker();
-  await updateTrackerStats();
-}
-
-async function updateTrackerStats() {
-  const trades = await sbGet('trades');
-  if (!Array.isArray(trades)) return;
-  const limitPend = trades.filter(t => t.resultado === 'limit-pendiente').length;
-  const enProgreso = trades.filter(t => t.resultado === 'en-progreso').length;
-  const ganadoras = trades.filter(t => t.resultado === 'ganadora').length;
-  const perdedoras = trades.filter(t => t.resultado === 'perdedora').length;
-  const total = trades.length;
-  const cerradas = ganadoras + perdedoras;
-  const winrate = cerradas > 0 ? Math.round((ganadoras / cerradas) * 100) : 0;
-
-  document.getElementById('statTotal').textContent = total;
-  document.getElementById('statLimitPend').textContent = limitPend;
-  document.getElementById('statEnProgreso').textContent = enProgreso;
-  document.getElementById('statGanadoras').textContent = ganadoras;
-  document.getElementById('statPerdedoras').textContent = perdedoras;
-  document.getElementById('statWinrate').textContent = winrate + '%';
-  document.getElementById('trackerCount').textContent = total;
-}
-
-async function renderTracker() {
-  const list = document.getElementById('trackerList');
-  list.innerHTML = '<div class="tracker-empty">⏳ Cargando operaciones...</div>';
-  
-  const trades = await sbGet('trades');
-  if (!Array.isArray(trades)) {
-    list.innerHTML = '<div class="tracker-empty">❌ Error conectando a la base de datos.<br>Verifica que la tabla "trades" existe en Supabase.</div>';
-    return;
-  }
-
-  const filter = document.getElementById('weekFilter').value;
-
-  // Update week filter options
-  const weeks = [...new Set(trades.map(t => t.semana))];
-  const filterEl = document.getElementById('weekFilter');
-  const currentFilter = filterEl.value;
-  filterEl.innerHTML = '<option value="all">Todas las semanas</option>';
-  weeks.forEach(w => {
-    const opt = document.createElement('option');
-    opt.value = w; opt.textContent = w;
-    if (w === currentFilter) opt.selected = true;
-    filterEl.appendChild(opt);
-  });
-
-  const filtered = filter === 'all' ? trades : trades.filter(t => t.semana === filter);
-
-  if (filtered.length === 0) {
-    list.innerHTML = '<div class="tracker-empty">📭 No hay operaciones registradas.<br>Analiza un par y usa el botón<br>"+ INCLUIR EN TRADING TRACKER"</div>';
-    return;
-  }
-
-  // Group by week
-  const byWeek = {};
-  filtered.forEach(t => {
-    if (!byWeek[t.semana]) byWeek[t.semana] = [];
-    byWeek[t.semana].push(t);
-  });
-
-  list.innerHTML = '';
-  Object.entries(byWeek).forEach(([week, weekTrades]) => {
-    const totalPips = weekTrades.filter(t => t.resultado === 'ganadora' || t.resultado === 'perdedora').reduce((sum, t) => sum + (t.pips || 0), 0);
-    const pipsColor = totalPips >= 0 ? 'var(--green)' : 'var(--red)';
-    const pipsSign = totalPips >= 0 ? '+' : '';
-
-    let weekHTML = `<div class="tracker-week-group">
-      <div class="tracker-week-label">
-        📅 ${week}
-        <span style="float:right;color:${pipsColor}">${pipsSign}${totalPips.toFixed(1)} pips</span>
-      </div>`;
-
-    weekTrades.forEach(trade => {
-      const dirColor = trade.direccion === 'COMPRA' ? 'var(--green)' : 'var(--red)';
-      const dirArrow = trade.direccion === 'COMPRA' ? '▲' : '▼';
-      const pipsText = trade.pips !== null ? (trade.pips >= 0 ? '+' : '') + trade.pips + ' pips' : '--';
-      const pipsCol = trade.pips !== null ? (trade.pips >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--muted)';
-
-      weekHTML += `<div class="tracker-trade ${trade.resultado}">
-        <div class="tracker-trade-header">
-          <div>
-            <span class="tracker-pair">${trade.par}</span>
-            <span style="font-size:11px;color:${dirColor};font-family:'Space Mono',monospace;margin-left:8px;">${dirArrow} ${trade.direccion}</span>
-            <span style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-left:6px;">${trade.estrategia}</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:${pipsCol}">${pipsText}</span>
-            <span class="tracker-result-badge ${trade.resultado}" onclick="cycleResult(${trade.id},'${trade.resultado}','${trade.par}',${trade.entrada},${trade.sl},${trade.tp})">
-              ${estadoLabel}
-            </span>
-          </div>
-        </div>
-        <div class="tracker-prices">
-          <div class="tracker-price-cell">
-            <div class="tracker-price-label">ENTRADA</div>
-            <div class="tracker-price-val entrada">${trade.entrada}</div>
-          </div>
-          <div class="tracker-price-cell">
-            <div class="tracker-price-label">STOP LOSS</div>
-            <div class="tracker-price-val sl">${trade.sl}</div>
-          </div>
-          <div class="tracker-price-cell">
-            <div class="tracker-price-label">TAKE PROFIT</div>
-            <div class="tracker-price-val tp">${trade.tp}</div>
-          </div>
-        </div>
-        <div class="tracker-meta">
-          <span>📅 ${trade.fecha}</span>
-          <span>R:R 1:3</span>
-        </div>
-        <div class="tracker-note">
-          <input type="text" placeholder="Agregar nota sobre esta operación..." 
-            value="${trade.nota || ''}"
-            onchange="saveNote(${trade.id}, this.value)"
-            onblur="saveNote(${trade.id}, this.value)">
-        </div>
-        <div class="tracker-status-btns">
-          <button class="tracker-status-btn btn-pendiente" onclick="setEstado(${trade.id},'limit-pendiente',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">⏳ Limit</button>
-          <button class="tracker-status-btn btn-progreso" onclick="setEstado(${trade.id},'en-progreso',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">🔄 En Progreso</button>
-          <button class="tracker-status-btn btn-ganadora" onclick="setEstado(${trade.id},'ganadora',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">✅ Ganadora</button>
-          <button class="tracker-status-btn btn-perdedora" onclick="setEstado(${trade.id},'perdedora',${trade.entrada},${trade.sl},${trade.tp},'${trade.par}')">❌ Perdedora</button>
-          <button class="tracker-action-btn" onclick="deleteTrade(${trade.id})">🗑 Eliminar</button>
-        </div>
-      </div>`;
-    });
-
-    weekHTML += '</div>';
-    list.innerHTML += weekHTML;
-  });
-}
-
-
-
-async function setEstado(id, estado, entrada, sl, tp, par) {
-  const fakeTrade = { par, entrada, sl, tp, direccion: parseFloat(sl) > parseFloat(entrada) ? 'VENTA' : 'COMPRA' };
-  await setTradeResult(id, estado, fakeTrade);
-}
-async function resetToPending(id) {
-  await sbUpdate('trades', id, { resultado: 'limit-pendiente', pips: null });
-  await renderTracker();
-  await updateTrackerStats();
-}
-async function cycleResult(id, currentEstado, par, entrada, sl, tp) {
-  const cycle = {
-    'limit-pendiente': 'en-progreso',
-    'en-progreso': 'ganadora',
-    'ganadora': 'perdedora',
-    'perdedora': 'limit-pendiente',
-    'pendiente': 'en-progreso'
-  };
-  const newEstado = cycle[currentEstado] || 'limit-pendiente';
-  const fakeTrade = { par, entrada, sl, tp, direccion: parseFloat(sl) > parseFloat(entrada) ? 'VENTA' : 'COMPRA' };
-  await setTradeResult(id, newEstado, fakeTrade);
-}
-
-// Init tracker on load
-
-async function autoCheckResults(trades) {
-  const pending = trades.filter(t => t.resultado === 'limit-pendiente' || t.resultado === 'en-progreso' || t.resultado === 'pendiente');
-  if (pending.length === 0) return;
-
-  for (const trade of pending) {
-    try {
-      const res = await fetch(`https://api.twelvedata.com/price?symbol=${trade.par}&apikey=${API_KEY}`);
-      const data = await res.json();
-      if (!data.price) continue;
-      const price = parseFloat(data.price);
-      const tp = parseFloat(trade.tp);
-      const sl = parseFloat(trade.sl);
-      const entrada = parseFloat(trade.entrada);
-      const isJPY = trade.par.includes('JPY');
-      const pipMult = isJPY ? 100 : 10000;
-
-      // Minimum pip movement required before checking result
-      // Trade must have moved at least 5 pips from entry before auto-checking
-      const minMovement = 5 / pipMult;
-      const movedEnough = Math.abs(price - entrada) >= minMovement;
-      if (!movedEnough) continue;
-
-      let resultado = null;
-
-      if (trade.direccion === 'COMPRA') {
-        // Price must have reached or passed TP (above entry)
-        if (price >= tp) resultado = 'ganadora';
-        // Price must have reached or passed SL (below entry)
-        else if (price <= sl) resultado = 'perdedora';
-      } else {
-        // VENTA: TP is below entry, SL is above entry
-        // Price must have reached or passed TP (below entry)
-        if (price <= tp) resultado = 'ganadora';
-        // Price must have reached or passed SL (above entry)
-        else if (price >= sl) resultado = 'perdedora';
-      }
-
-      // Extra validation: for a VENTA, TP must be BELOW entry and SL must be ABOVE entry
-      // For a COMPRA, TP must be ABOVE entry and SL must be BELOW entry
-      if (resultado) {
-        const validSetup = trade.direccion === 'COMPRA'
-          ? (tp > entrada && sl < entrada)
-          : (tp < entrada && sl > entrada);
-
-        if (!validSetup) {
-          console.log(`Skipping ${trade.par} — invalid SL/TP setup for ${trade.direccion}`);
-          continue;
-        }
-
-        let pips = resultado === 'ganadora'
-          ? parseFloat((Math.abs(tp - entrada) * pipMult).toFixed(1))
-          : parseFloat((-Math.abs(sl - entrada) * pipMult).toFixed(1));
-        await sbUpdate('trades', trade.id, { resultado, pips });
-        console.log(`Auto-result: ${trade.par} → ${resultado} (${pips} pips)`);
-      }
-    } catch(e) { continue; }
-  }
-}
-
-async function initTracker() {
-  // Only auto-check on initial load, not on every render
-  const trades = await sbGet('trades');
-  if (Array.isArray(trades) && trades.length > 0) {
-    await autoCheckResults(trades);
-  }
-  await renderTracker();
-  await updateTrackerStats();
-}
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ─── TABS ─────────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  event.target.classList.add('active');
-}
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ─── PIP CALCULATOR ──────────────────────────────────────────────────────────
-let pipDir = 'compra';
-let pipType = 'normal'; // normal = 5 decimals, jpy = 3 decimals
-
-function setPipDir(dir) {
-  pipDir = dir;
-  document.getElementById('dirCompra').className = 'pip-dir-btn' + (dir === 'compra' ? ' active-compra' : '');
-  document.getElementById('dirVenta').className = 'pip-dir-btn' + (dir === 'venta' ? ' active-venta' : '');
-  calcPips();
-}
-
-function updatePipPar() {
-  pipType = document.getElementById('pipPar').value;
-  calcPips();
-}
-
-function calcPips() {
-  const entradaStr = document.getElementById('pipEntrada').value;
-  const slPips = parseFloat(document.getElementById('pipSL').value) || 25;
-  const rr = parseFloat(document.getElementById('pipRR').value) || 3;
-
-  if (!entradaStr) return;
-  const entrada = parseFloat(entradaStr);
-  if (isNaN(entrada)) return;
-
-  const pipSize = pipType === 'jpy' ? 0.01 : 0.0001;
-  const decimals = pipType === 'jpy' ? 3 : 5;
-  const slValue = slPips * pipSize;
-  const tpPips = slPips * rr;
-  const tpValue = tpPips * pipSize;
-
-  let slPrice, tpPrice;
-  if (pipDir === 'compra') {
-    slPrice = entrada - slValue;
-    tpPrice = entrada + tpValue;
-  } else {
-    slPrice = entrada + slValue;
-    tpPrice = entrada - tpValue;
-  }
-
-  document.getElementById('pipSLPrice').textContent = slPrice.toFixed(decimals);
-  document.getElementById('pipTPPrice').textContent = tpPrice.toFixed(decimals);
-  document.getElementById('pipSLPips').textContent = slPips + ' pips';
-  document.getElementById('pipTPPips').textContent = tpPips + ' pips';
-  document.getElementById('pipRRVal').textContent = '1:' + rr;
-
-  const dir = pipDir === 'compra' ? 'COMPRA' : 'VENTA';
-  const slDir = pipDir === 'compra' ? 'por debajo' : 'por encima';
-  const tpDir = pipDir === 'compra' ? 'por encima' : 'por debajo';
-
-  document.getElementById('pipSummary').textContent =
-    `${dir} en ${entrada.toFixed(decimals)} → ` +
-    `SL ${slPips} pips ${slDir} = ${slPrice.toFixed(decimals)} → ` +
-    `TP ${tpPips} pips ${tpDir} = ${tpPrice.toFixed(decimals)} → ` +
-    `Si pierdes 1 unidad, ganas ${rr} unidades. R:R 1:${rr}.`;
-
-  document.getElementById('pipResults').style.display = 'block';
-}
-
-// Auto-fill calculator when a pair is analyzed
-function autoFillCalc(pair, recData, livePrice) {
-  const isJPY = pair.includes('JPY');
-
-  // Set pair type
-  document.getElementById('pipPar').value = isJPY ? 'jpy' : 'normal';
-  pipType = isJPY ? 'jpy' : 'normal';
-
-  // Auto-select direction from recommendation — always, no matter what
-  if (recData.accion === 'COMPRA') {
-    pipDir = 'compra';
-    document.getElementById('dirCompra').className = 'pip-dir-btn active-compra';
-    document.getElementById('dirVenta').className = 'pip-dir-btn';
-  } else if (recData.accion === 'VENTA') {
-    pipDir = 'venta';
-    document.getElementById('dirVenta').className = 'pip-dir-btn active-venta';
-    document.getElementById('dirCompra').className = 'pip-dir-btn';
-  }
-
-  // For ESPERAR: use zona start price (not live price) so user sets their own entry
-  // For COMPRA/VENTA: use zona start price for precision, fallback to live price
-  const zonaPrice = recData.zona && recData.zona !== 'Sin zona clara' && recData.zona !== '—'
-    ? recData.zona.replace('–','-').split(/[-–]/)[0].trim()
-    : null;
-
-  if (recData.accion === 'ESPERAR') {
-    // Clear the entry price so user sets it manually
-    document.getElementById('pipEntrada').value = '';
-  } else if (zonaPrice && !isNaN(parseFloat(zonaPrice))) {
-    document.getElementById('pipEntrada').value = parseFloat(zonaPrice).toFixed(isJPY ? 3 : 5);
-  } else if (livePrice) {
-    document.getElementById('pipEntrada').value = parseFloat(livePrice).toFixed(isJPY ? 3 : 5);
-  }
-
-  // Always calculate
-  calcPips();
-
-  // Switch to calculator tab automatically and show a toast
-  // (only switch if user is on analisis tab)
-  const calcTab = document.getElementById('tab-calculadora');
-  if (calcTab) {
-    // Don't switch tab — just show indicator that calc is ready
-    const btn = document.querySelector('.tab-btn:nth-child(2)');
-    if (btn) {
-      btn.style.boxShadow = '0 0 10px var(--green)';
-      setTimeout(() => { btn.style.boxShadow = ''; }, 3000);
-    }
-  }
-}
-// ─────────────────────────────────────────────────────────────────────────────
-
-// Init
-checkSession();
-initGrid();
-initTracker();
-updateSessionClock();
-</script>
-</body>
-</html>
