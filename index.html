@@ -2132,15 +2132,21 @@ async function runConfirmation(pair, d, liveData) {
     vsub.textContent = `Pocos filtros confirmados. Espera mejores condiciones o busca otro par con mejor setup.`;
   }
 
-  checksEl.innerHTML = checks.map(c => `
-    <div class="confirm-check" style="${c.critical ? 'border-left: 2px solid ' + (c.pass === true ? 'var(--green)' : c.pass === false ? 'var(--red)' : 'var(--yellow)') + ';' : ''}">
-      <div class="confirm-check-icon">${checkIcon(c.pass)}</div>
-      <div class="confirm-check-body">
-        <div class="confirm-check-label">${c.label}${c.critical ? ' <span style="color:var(--red);font-size:9px">● CRÍTICO</span>' : ' <span style="color:var(--muted);font-size:9px">● CONTEXTO</span>'}</div>
-        <div class="confirm-check-val ${checkClass(c.pass)}">${c.val}</div>
-        ${c.detail ? `<div class="confirm-check-detail">${c.detail}</div>` : ''}
-      </div>
-    </div>`).join('');
+  checksEl.innerHTML = checks.map(function(c) {
+    const borderStyle = c.critical ? 'border-left: 2px solid ' + (c.pass === true ? 'var(--green)' : c.pass === false ? 'var(--red)' : 'var(--yellow)') + ';' : '';
+    const criticalLabel = c.critical ? ' <span style="color:var(--red);font-size:9px">&#9679; CR&Iacute;TICO</span>' : ' <span style="color:var(--muted);font-size:9px">&#9679; CONTEXTO</span>';
+    const detailHtml = c.detail ? '<div class="confirm-check-detail">' + c.detail + '</div>' : '';
+    const passIcon = checkIcon(c.pass);
+    const passClass = checkClass(c.pass);
+    return '<div class="confirm-check" style="' + borderStyle + '">' +
+      '<div class="confirm-check-icon">' + passIcon + '</div>' +
+      '<div class="confirm-check-body">' +
+        '<div class="confirm-check-label">' + c.label + criticalLabel + '</div>' +
+        '<div class="confirm-check-val ' + passClass + '">' + c.val + '</div>' +
+        detailHtml +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
 
