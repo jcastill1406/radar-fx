@@ -2132,21 +2132,26 @@ async function runConfirmation(pair, d, liveData) {
     vsub.textContent = `Pocos filtros confirmados. Espera mejores condiciones o busca otro par con mejor setup.`;
   }
 
-  checksEl.innerHTML = checks.map(function(c) {
-    const borderStyle = c.critical ? 'border-left: 2px solid ' + (c.pass === true ? 'var(--green)' : c.pass === false ? 'var(--red)' : 'var(--yellow)') + ';' : '';
-    const criticalLabel = c.critical ? ' <span style="color:var(--red);font-size:9px">&#9679; CR&Iacute;TICO</span>' : ' <span style="color:var(--muted);font-size:9px">&#9679; CONTEXTO</span>';
-    const detailHtml = c.detail ? '<div class="confirm-check-detail">' + c.detail + '</div>' : '';
-    const passIcon = checkIcon(c.pass);
-    const passClass = checkClass(c.pass);
-    return '<div class="confirm-check" style="' + borderStyle + '">' +
-      '<div class="confirm-check-icon">' + passIcon + '</div>' +
+  checksEl.innerHTML = '';
+  checks.forEach(function(c) {
+    var div = document.createElement('div');
+    div.className = 'confirm-check';
+    if (c.critical) {
+      var color = c.pass === true ? 'var(--green)' : c.pass === false ? 'var(--red)' : 'var(--yellow)';
+      div.style.borderLeft = '2px solid ' + color;
+    }
+    var typeTag = c.critical
+      ? '<span style="color:var(--red);font-size:9px;margin-left:4px">CRITICO</span>'
+      : '<span style="color:var(--muted);font-size:9px;margin-left:4px">contexto</span>';
+    div.innerHTML =
+      '<div class="confirm-check-icon">' + checkIcon(c.pass) + '</div>' +
       '<div class="confirm-check-body">' +
-        '<div class="confirm-check-label">' + c.label + criticalLabel + '</div>' +
-        '<div class="confirm-check-val ' + passClass + '">' + c.val + '</div>' +
-        detailHtml +
-      '</div>' +
-    '</div>';
-  }).join('');
+        '<div class="confirm-check-label">' + c.label + typeTag + '</div>' +
+        '<div class="confirm-check-val ' + checkClass(c.pass) + '">' + c.val + '</div>' +
+        (c.detail ? '<div class="confirm-check-detail">' + c.detail + '</div>' : '') +
+      '</div>';
+    checksEl.appendChild(div);
+  });
 }
 
 
