@@ -994,6 +994,89 @@ const PAIR_CATEGORIES = [
 
 const PAIRS = PAIR_CATEGORIES.flatMap(c => c.pairs);
 
+// ─── ZONAS PSICOLÓGICAS POR MONEDA (Tarjeta Estrategia Ren) ──────────────────
+// Los decimales indican la fracción dentro de cada entero que aplica
+// Ej: AUD .125 → 0.6125, 0.6375... | JPY .500 → 158.500, 159.500...
+const PSY_ZONES = {
+  AUD: [0.125, 0.375, 0.625, 0.875],
+  EUR: [0.000, 0.250, 0.500, 0.750],
+  GBP: [0.000, 0.250, 0.500, 0.750],
+  USD: [0.000, 0.250, 0.500, 0.750],
+  NZD: [0.000, 0.250],
+  CAD: [0.000, 0.500],
+  CHF: [0.000, 0.500],
+  JPY: [0.500]   // se aplica sobre el entero: 158.500, 159.500, etc.
+};
+
+// Genera todas las zonas cercanas al precio y devuelve la más próxima
+function getNearestPsyZone(pair, price) {
+  if (!price || !pair) return null;
+  var p = parseFloat(price);
+  var isJPY = pair.includes('JPY');
+  var currencies = pair.split('/');                // ['GBP','AUD']
+  var pipMul = isJPY ? 100 : 10000;
+
+  var allZones = [];
+
+  currencies.forEach(function(cur) {
+    var fracs = PSY_ZONES[cur];
+    if (!fracs) return;
+
+    if (isJPY) {
+      // Para pares JPY la parte entera es grande (p.ej. 158), fracción es .500
+      // Generamos ±5 enteros alrededor del precio actual
+      var baseInt = Math.floor(p);
+      for (var i = baseInt - 5; i <= baseInt + 5; i++) {
+        fracs.forEach(function(f) {
+          var zonePrice = i + f;
+          if (zonePrice > 0) allZones.push({ cur: cur, frac: f, price: zonePrice });
+        });
+      }
+    } else {
+      // Para pares no-JPY la parte entera es 0 o 1 (p.ej. 0.6xxx o 1.3xxx)
+      // La "fracción" se aplica sobre el segundo decimal en adelante
+      // Ej: precio 0.6123 → entero base = 0.6 (floor a 1 decimal)
+      // Zonas AUD: 0.6125, 0.6375, 0.6625, 0.6875, 0.7125...
+      // Determinamos el "entero base" como floor(price * 10) / 10 para no-JPY
+      // pero en realidad recorremos los enteros de 1 decimal alrededor del precio
+      var tenthBase = Math.floor(p * 10);  // p.ej. 0.6123 → 6
+      for (var t = tenthBase - 2; t <= tenthBase + 3; t++) {
+        var base10 = t / 10;  // 0.6
+        fracs.forEach(function(f) {
+          // f es 0.000→0.875; como fracción del "centésimo" nivel:
+          // precio zona = base10 + f/10  NO — las zonas son decimales directos
+          // AUD .125 significa X.125, X.375 etc donde X es el "entero-décimo"
+          // Ej: si base10=0.6, zona .125 → 0.6125, zona .375 → 0.6375
+          var zonePrice = +(base10 + f / 10).toFixed(5);
+          if (zonePrice > 0) allZones.push({ cur: cur, frac: f, price: zonePrice });
+        });
+      }
+    }
+  });
+
+  // Eliminar duplicados muy cercanos (diferencia < 0.0001)
+  var seen = [];
+  allZones = allZones.filter(function(z) {
+    var dup = seen.some(function(s) { return Math.abs(s - z.price) < 0.00001; });
+    if (!dup) seen.push(z.price);
+    return !dup;
+  });
+
+  // Encontrar la zona más cercana al precio actual
+  if (allZones.length === 0) return null;
+  allZones.sort(function(a, b) { return Math.abs(a.price - p) - Math.abs(b.price - p); });
+  var nearest = allZones[0];
+  var distPips = Math.abs(p - nearest.price) * pipMul;
+
+  return {
+    zonePrice: nearest.price,
+    currency: nearest.cur,
+    frac: nearest.frac,
+    distPips: distPips,
+    label: (nearest.frac === 0 ? '.000' : ('.' + (nearest.frac * 1000).toFixed(0).padStart(3, '0'))) + ' ' + nearest.cur
+  };
+}
+
 let selectedPair = null;
 let currentWeek = 'esta';
 
@@ -2247,19 +2330,39 @@ async function runConfirmation(pair, d, liveData) {
   var price=liveData.price?parseFloat(liveData.price):null;
   var checks=[], score=0;
 
-  // FILTRO 1: Zona psicologica
+  // FILTRO 1: Zona psicologica — calcula TODAS las zonas del par y usa la más cercana
   var f1pass=null, f1val='Sin precio en vivo', f1detail='';
-  if (price && d.rec.zona && d.rec.zona!=='Sin zona clara' && d.rec.zona!=='—') {
-    var znums=d.rec.zona.replace(/[^0-9.]/g,' ').trim().split(/\s+/).map(parseFloat).filter(function(n){return !isNaN(n);});
-    if (znums.length>=1) {
-      var zMin=Math.min.apply(null,znums), zMax=Math.max.apply(null,znums), zCenter=(zMin+zMax)/2;
-      var dist=Math.abs(price-zCenter)*pipMul;
-      if (price>=zMin*0.9998 && price<=zMax*1.0002) { f1pass=true; score++; f1val='Precio en zona ('+price.toFixed(decN)+')'; f1detail='El precio esta dentro de la zona '+d.rec.zona+'. Puedes colocar tu Limit order ahora.'; }
-      else if (dist<=40) { f1pass=true; score++; f1val='A '+dist.toFixed(0)+' pips de la zona ('+d.rec.zona+')'; f1detail='Muy cerca. La orden puede ejecutarse esta sesion.'; }
-      else if (dist<=80) { f1pass=null; f1val='A '+dist.toFixed(0)+' pips de la zona ('+d.rec.zona+')'; f1detail='Distancia moderada. Puede ejecutarse en 8-24h.'; }
-      else { f1pass=false; f1val='A '+dist.toFixed(0)+' pips de la zona ('+d.rec.zona+')'; f1detail='Zona muy alejada. Baja probabilidad de ejecutarse esta sesion.'; }
+  if (price) {
+    if (dir==='ESPERAR') {
+      f1pass=null; f1val='Sin zona — esperando catalizador'; f1detail='Esperar el evento macro antes de definir zona.';
+    } else {
+      var nearZ = getNearestPsyZone(pair, price);
+      if (nearZ) {
+        var dist=nearZ.distPips;
+        var decN2=isJPY?3:5;
+        var zStr=nearZ.zonePrice.toFixed(decN2);
+        if (dist<=5) {
+          f1pass=true; score++;
+          f1val='Precio EN zona '+nearZ.label+' ('+zStr+') — a '+dist.toFixed(0)+' pips';
+          f1detail='El precio esta exactamente en la zona psicologica. Puedes colocar tu Limit order ahora.';
+        } else if (dist<=40) {
+          f1pass=true; score++;
+          f1val='A '+dist.toFixed(0)+' pips de zona '+nearZ.label+' ('+zStr+')';
+          f1detail='Muy cerca de la zona psicologica. La orden puede ejecutarse en esta sesion.';
+        } else if (dist<=100) {
+          f1pass=null;
+          f1val='A '+dist.toFixed(0)+' pips de zona '+nearZ.label+' ('+zStr+')';
+          f1detail='Distancia moderada. Posible ejecucion en 8-24h si el precio se mueve hacia la zona.';
+        } else {
+          f1pass=false;
+          f1val='A '+dist.toFixed(0)+' pips de zona '+nearZ.label+' ('+zStr+')';
+          f1detail='Zona alejada del precio actual. Baja probabilidad de ejecutarse esta sesion.';
+        }
+      } else {
+        f1pass=null; f1val='No se pudo calcular zona'; f1detail='Verifica conexion a datos en vivo.';
+      }
     }
-  } else if (dir==='ESPERAR') { f1pass=null; f1val='Sin zona — esperando catalizador'; f1detail='Esperar el evento macro antes de definir zona.'; }
+  }
   checks.push({label:'FILTRO 1 — ZONA PSICOLOGICA',val:f1val,detail:f1detail,pass:f1pass,critical:true});
 
   // FILTRO 2: Noticias rojas 48h
